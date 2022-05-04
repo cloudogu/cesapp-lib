@@ -1,0 +1,140 @@
+[
+  {
+    "Name": "testing/dogua",
+    "Version": "1.0-2",
+    "DisplayName": "Dogu A",
+    "Description": "Dogu A => Dependency Dogu B",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Image": "staging-registry.cloudogu.com/testing/dogua",
+    "Dependencies": [
+      {"type":"dogu", "name":"nginx"},
+      {"type":"dogu", "name":"dogub", "version": "=1.0-2"}
+    ],
+    "HealthChecks": [{
+      "Type": "tcp",
+      "Port": 8080
+    },{
+      "Type": "state"
+    }],
+    "Volumes": [],
+    "Category": "Development Apps",
+    "Tags": [
+      "warp"
+    ],
+    "Url": ""
+  },
+  {
+    "Name": "testing/dogub",
+    "Version": "1.0-2",
+    "DisplayName": "Dogu B",
+    "Description": "",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Image": "staging-registry.cloudogu.com/testing/dogub",
+    "Dependencies": [
+      {"type":"dogu", "name":"nginx"},
+      {"type":"dogu", "name":"doguc", "version": "==1.0-2"}
+    ],
+    "HealthChecks": [{
+      "Type": "tcp",
+      "Port": 8080
+    },{
+      "Type": "state"
+    }],
+    "Volumes": [],
+    "Category": "Development Apps",
+    "Tags": [
+      "warp"
+    ],
+    "Url": ""
+  },
+  {
+    "Name": "testing/doguc",
+    "Version": "1.0-2",
+    "DisplayName": "Dogu C",
+    "Description": "",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Image": "staging-registry.cloudogu.com/testing/doguc",
+    "Dependencies": [
+      {"type":"dogu", "name":"nginx"},
+      {"type":"dogu", "name":"dogue", "version": ">1.0-1"}
+    ],
+    "OptionalDependencies": [
+      {"type":"dogu", "name":"dogud", "version": "<1.0-2"}
+    ],
+    "HealthChecks": [{
+      "Type": "tcp",
+      "Port": 8080
+    },{
+      "Type": "state"
+    }],
+    "Volumes": [],
+    "Category": "Development Apps",
+    "Tags": [
+      "warp"
+    ],
+    "Url": "",
+    "ServiceAccounts": [
+      {
+        "Type": "dogud"
+      }
+    ]
+  },
+  {
+    "Name": "testing/dogud",
+    "Version": "1.0-2",
+    "DisplayName": "Dogu D",
+    "Description": "",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Image": "staging-registry.cloudogu.com/testing/dogud",
+    "Dependencies": [
+      {"type":"dogu", "name":"nginx"}
+    ],
+    "HealthChecks": [{
+      "Type": "tcp",
+      "Port": 8080
+    },{
+      "Type": "state"
+    }],
+    "Volumes": [],
+    "Category": "Development Apps",
+    "Tags": [
+      "warp"
+    ],
+    "Url": "",
+    "ExposedCommands": [
+      {
+        "Name": "service-account-create",
+        "Description": "Creates a new service account",
+        "Command": "/create-sa.sh"
+      },
+      {
+        "Name": "service-account-remove",
+        "Description": "Removes a service account",
+        "Command": "/remove-sa.sh"
+      }
+    ]
+  },
+  {
+    "Name": "testing/dogue",
+    "Version": "1.0-2",
+    "DisplayName": "Dogu E",
+    "Description": "",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Image": "staging-registry.cloudogu.com/testing/dogue",
+    "Dependencies": [
+      {"type":"dogu", "name":"nginx"}
+    ],
+    "HealthChecks": [{
+      "Type": "tcp",
+      "Port": 8080
+    },{
+      "Type": "state"
+    }],
+    "Volumes": [],
+    "Category": "Development Apps",
+    "Tags": [
+      "warp"
+    ],
+    "Url": ""
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "Name": "conf-dogu",
+  "Version": "0.1.0",
+  "DisplayName": "Conf Dogu",
+  "Description": "Dogu with configuration",
+  "Image": "registry.cloudogu.com/sample/conf-dogu",
+  "URL": "https://cloudogu.com",
+  "ExposedPorts": [{
+    "Type": "tcp",
+    "Host": 9090,
+    "Container": 80
+  }],
+  "HealthCheck": {
+    "Type": "tcp",
+    "Port": 80
+  },
+  "Configuration": [{
+    "Name": "title",
+    "Description": "Title of index page"
+  }, {
+    "Name": "body",
+    "Description": "Body of the index page",
+    "Optional": true
+  }]
+}

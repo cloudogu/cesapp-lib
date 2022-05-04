@@ -1,6 +1,5 @@
 #!groovy
-
-@Library(['github.com/cloudogu/dogu-build-lib@v1.4.1', 'github.com/cloudogu/ces-build-lib@1.51.0'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.6.0', 'github.com/cloudogu/ces-build-lib@1.53.0'])
 import com.cloudogu.ces.cesbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
@@ -34,10 +33,46 @@ node('docker') {
 
         stage('Checkout') {
             checkout scm
+            make 'clean'
         }
+
+        docker
+                .image('golang:1.18.1')
+                .mountJenkinsUser()
+                .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
+                        {
+                            stage('Build') {
+                                make 'compile'
+                            }
+
+                            stage('Unit Tests') {
+                                make 'unit-test'
+                                junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
+                            }
+
+                            stage('Vet') {
+                                make 'vet'
+                            }
+
+                            stage("Review dog analysis") {
+                                stageStaticAnalysisReviewDog()
+                            }
+                        }
 
         stage('SonarQube') {
             stageStaticAnalysisSonarQube()
+        }
+
+        stageAutomaticRelease()
+    }
+}
+
+void stageStaticAnalysisReviewDog() {
+    def commitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-gh', usernameVariable: 'USERNAME', passwordVariable: 'REVIEWDOG_GITHUB_API_TOKEN']]) {
+        withEnv(["CI_PULL_REQUEST=${env.CHANGE_ID}", "CI_COMMIT=${commitSha}", "CI_REPO_OWNER=${repositoryOwner}", "CI_REPO_NAME=${repositoryName}"]) {
+            make 'static-analysis'
         }
     }
 }
@@ -70,4 +105,22 @@ void stageStaticAnalysisSonarQube() {
             unstable("Pipeline unstable due to SonarQube quality gate failure")
         }
     }
+}
+
+void stageAutomaticRelease() {
+    if (gitflow.isReleaseBranch()) {
+        String releaseVersion = gitWrapper.getSimpleBranchName()
+
+        stage('Finish Release') {
+            gitflow.finishRelease(releaseVersion, productionReleaseBranch)
+        }
+
+        stage('Add Github-Release') {
+            releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
+        }
+    }
+}
+
+void make(String makeArgs) {
+    sh "make ${makeArgs}"
 }
