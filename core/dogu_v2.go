@@ -10,7 +10,7 @@ import (
 )
 
 // GetLogger is an alias function to provide a different logger for the core.
-var GetLogger = func() *logrus.Logger { return logrus.StandardLogger() }
+var GetLogger = func() logrus.FieldLogger { return logrus.StandardLogger() }
 
 // Volume is the volume struct of a dogu and will be used to define docker
 // volumes
