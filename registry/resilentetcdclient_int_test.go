@@ -5,6 +5,7 @@ package registry
 
 import (
 	"fmt"
+	"github.com/coreos/etcd/client"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
