@@ -1,0 +1,6 @@
+{
+  "insecure-registries": [
+    "authorizedRegistry:5000",
+    "anonymousRegistry:5000"
+  ]
+}

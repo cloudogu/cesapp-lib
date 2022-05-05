@@ -50,6 +50,12 @@ node('docker') {
                                 junit allowEmptyResults: true, testResults: 'target/unit-tests/*-tests.xml'
                             }
 
+                            stage('Integration Test') {
+                                // If SKIP_DOCKER_TESTS is true, tests which need Docker containers are skipped
+                                make 'integration-test'
+                                junit allowEmptyResults: true, testResults: 'target/integration-tests/*-tests.xml'
+                            }
+
                             stage('Vet') {
                                 make 'vet'
                             }

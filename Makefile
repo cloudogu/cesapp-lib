@@ -6,6 +6,8 @@ GOTAG?=1.18.1
 MAKEFILES_VERSION=5.1.0
 
 include build/make/variables.mk
+PACKAGES_FOR_INTEGRATION_TEST=github.com/cloudogu/cesapp-lib/registry
+
 include build/make/self-update.mk
 include build/make/dependencies-gomod.mk
 include build/make/build.mk
