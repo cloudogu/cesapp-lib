@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"sort"
@@ -229,13 +230,17 @@ func TestPrintDogus(t *testing.T) {
 	}
 
 	t.Run("should print table correctly with namespace", func(t *testing.T) {
-		defer restoreOriginalStdout(realStdOut)
+		originalLogger := GetLogger
+		defer func() { GetLogger = originalLogger }()
 
+		defer restoreOriginalStdout(realStdOut)
 		fakeReader, fakeWriter := routeStdoutToReplacement()
 
-		myOut := GetLogger().Out
-		defer func() { GetLogger().Out = myOut }()
-		GetLogger().Out = fakeWriter
+		myLogger := logrus.New()
+		myLogger.Out = fakeWriter
+		GetLogger = func() logrus.FieldLogger {
+			return myLogger
+		}
 
 		PrintDogus([]*Dogu{dogu1, dogu2}, true)
 
@@ -256,13 +261,17 @@ func TestPrintDogus(t *testing.T) {
 	})
 
 	t.Run("should print table correctly without namespace", func(t *testing.T) {
-		defer restoreOriginalStdout(realStdOut)
+		originalLogger := GetLogger
+		defer func() { GetLogger = originalLogger }()
 
+		defer restoreOriginalStdout(realStdOut)
 		fakeReader, fakeWriter := routeStdoutToReplacement()
 
-		myOut := GetLogger().Out
-		defer func() { GetLogger().Out = myOut }()
-		GetLogger().Out = fakeWriter
+		myLogger := logrus.New()
+		myLogger.Out = fakeWriter
+		GetLogger = func() logrus.FieldLogger {
+			return myLogger
+		}
 
 		PrintDogus([]*Dogu{dogu1, dogu2}, false)
 
