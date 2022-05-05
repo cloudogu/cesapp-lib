@@ -2,10 +2,10 @@ package registry
 
 import (
 	"errors"
+	"github.com/coreos/etcd/client"
 	"strconv"
 	"testing"
 
-	"github.com/coreos/etcd/client"
 	errors2 "github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )

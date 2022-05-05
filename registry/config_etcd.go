@@ -3,9 +3,9 @@ package registry
 import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/coreos/etcd/client"
 	"time"
 
-	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
 )
 

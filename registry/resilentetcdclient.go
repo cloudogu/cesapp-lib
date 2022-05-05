@@ -2,13 +2,13 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/coreos/etcd/client"
 	"time"
 
 	"context"
 
 	"strings"
 
-	"github.com/coreos/etcd/client"
 	"github.com/eapache/go-resiliency/retrier"
 	"github.com/pkg/errors"
 )

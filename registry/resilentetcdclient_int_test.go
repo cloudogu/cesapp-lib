@@ -13,7 +13,6 @@ import (
 
 	"github.com/eapache/go-resiliency/retrier"
 
-	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/net/context"
 
