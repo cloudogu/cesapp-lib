@@ -5,6 +5,7 @@ VERSION=0.0.0
 GOTAG?=1.18.1
 MAKEFILES_VERSION=5.1.0
 LINT_VERSION=v1.45.2
+GO_BUILD_FLAGS?=-mod=vendor -a ./...
 
 include build/make/variables.mk
 PACKAGES_FOR_INTEGRATION_TEST=github.com/cloudogu/cesapp-lib/registry
