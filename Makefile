@@ -1,9 +1,10 @@
 # Set these to the desired values
-ARTIFACT_ID=k8s-ces-setup
+ARTIFACT_ID=cesapp-lib
 VERSION=0.0.0
 
 GOTAG?=1.18.1
 MAKEFILES_VERSION=5.1.0
+LINT_VERSION=v1.45.2
 
 include build/make/variables.mk
 PACKAGES_FOR_INTEGRATION_TEST=github.com/cloudogu/cesapp-lib/registry
