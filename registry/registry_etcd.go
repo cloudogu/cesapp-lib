@@ -42,7 +42,7 @@ func (er *etcdRegistry) GlobalConfig() ConfigurationContext {
 
 // HostConfig returns a ConfigurationContext for the host context.
 func (er *etcdRegistry) HostConfig(hostService string) ConfigurationContext {
-	return &etcdConfigurationContext{"/config/" + DirectoryHost + "/" + hostService, er.client}
+	return &etcdConfigurationContext{"/config/" + directoryHost + "/" + hostService, er.client}
 }
 
 // DoguConfig returns a ConfigurationContext for the given dogu.

@@ -8,8 +8,8 @@ import (
 const (
 	// DirectoryGlobal contains the registry key to the global registry.
 	DirectoryGlobal = "_global"
-	// DirectoryHost contains the registry key to the host registry
-	DirectoryHost = "_host"
+	// directoryHost contains the registry key to the host registry
+	directoryHost = "_host"
 	// KeyDoguPublicKey contains the key to a dogu's public key.
 	KeyDoguPublicKey = "public.pem"
 )
