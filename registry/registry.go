@@ -12,14 +12,6 @@ const (
 	DirectoryHost = "_host"
 	// KeyDoguPublicKey contains the key to a dogu's public key.
 	KeyDoguPublicKey = "public.pem"
-	// HostServiceCesappd is the service name of cesappd
-	HostServiceCesappd = "cesappd"
-	// HostServiceBackupWatcher is the service name of backup-watcher
-	HostServiceBackupWatcher = "backup-watcher"
-)
-
-var (
-	HostServices = map[string]struct{}{HostServiceCesappd: {}, HostServiceBackupWatcher: {}}
 )
 
 // Registry represents the main registry of a cloudogu ecosystem. The registry
