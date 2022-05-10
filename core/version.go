@@ -11,7 +11,7 @@ import (
 func ParseVersion(raw string) (Version, error) {
 	version := Version{Raw: raw}
 
-	r, _ := regexp.Compile(OperatorRegex)
+	r, _ := regexp.Compile(operatorRegex)
 	if r.MatchString(raw) {
 		idx := r.FindStringIndex(raw)
 		raw = raw[idx[1]:] //remove operator from raw

@@ -7,16 +7,28 @@ import (
 )
 
 // go does not support lookaheads or lookbehinds (tried "^[=,>,<]+[\"d\"-,.]*" "^[=,>,<]+(?=[d])+"
-const OperatorRegex = `^[=><]+`
+const operatorRegex = `^[=><]+`
 
-// =, <, >, <=, >=
-type Operator string
+// =, ==, <, >, <=, >=
+const (
+	// version compare operators
+	operatorEqual              = "="
+	operatorEqualDouble        = "=="
+	operatorLessThan           = "<"
+	operatorGreaterThan        = ">"
+	operatorLessOrEqualThan    = "<="
+	operatorGreaterOrEqualThan = ">="
+)
 
+type operator string
+
+// VersionComparator is responsible to compare versions and to check defined constraints.
 type VersionComparator struct {
 	version  Version
-	operator Operator
+	operator operator
 }
 
+// ParseVersionComparator creates a new version comparator by parsing a raw version string.
 func ParseVersionComparator(raw string) (VersionComparator, error) {
 	var version Version
 
@@ -39,17 +51,18 @@ func ParseVersionComparator(raw string) (VersionComparator, error) {
 	}, nil
 }
 
+// Allows check whether the given version fulfills the requirements for the version comparator.
 func (v VersionComparator) Allows(version Version) (bool, error) {
 	switch v.operator {
-	case "=", "==": //Approximately equivalent to version
+	case operatorEqual, operatorEqualDouble: //Approximately equivalent to version
 		return v.version.IsEqualTo(version), nil
-	case ">":
+	case operatorGreaterThan:
 		return v.version.IsOlderThan(version), nil
-	case "<":
+	case operatorLessThan:
 		return v.version.IsNewerThan(version), nil
-	case ">=":
+	case operatorGreaterOrEqualThan:
 		return v.version.IsOlderOrEqualThan(version), nil
-	case "<=":
+	case operatorLessOrEqualThan:
 		return v.version.IsNewerOrEqualThan(version), nil
 	case "":
 		// this is the edge-case that the dogu.json has no version field or an empty version. At this point we allow
@@ -65,22 +78,22 @@ func (v VersionComparator) Allows(version Version) (bool, error) {
 	}
 }
 
-func parseOperator(raw string) (Operator, error) {
-	var operator Operator
+func parseOperator(raw string) (operator, error) {
+	var op operator
 
-	r, _ := regexp.Compile(OperatorRegex)
+	r, _ := regexp.Compile(operatorRegex)
 	if r.MatchString(raw) {
 		idx := r.FindStringIndex(raw)
-		operator = Operator(raw[idx[0]:idx[1]]) //cut operator
-		if len(operator) > 2 {
-			err := errors.Errorf("dependency operator %s of Version %s cannot contain more than two characters. Allowed operators are =,==,>,<,>= and <=", operator, raw)
+		op = operator(raw[idx[0]:idx[1]]) //cut operator
+		if len(op) > 2 {
+			err := errors.Errorf("dependency operator %s of Version %s cannot contain more than two characters. Allowed operators are =,==,>,<,>= and <=", op, raw)
 			GetLogger().Error(err)
 			return "", err
 		}
 	}
-	if len(operator) == 0 {
+	if len(op) == 0 {
 		GetLogger().Debug(errors.Errorf("no dependency operator in %s could be found", raw))
 		return "", nil
 	}
-	return operator, nil
+	return op, nil
 }
