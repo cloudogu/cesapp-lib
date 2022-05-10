@@ -5,8 +5,10 @@ import (
 )
 
 // DoguV1 defines an application for the CES. A dogu defines the image and meta information for
-// the resulting container. This schema is deprecated as it does not contain advanced expressions
-// for dependencies.
+// the resulting container.
+//
+// Deprecated: This schema is deprecated as it does not contain advanced expressions
+// for dependencies. Please use core.DoguV2 instead.
 type DoguV1 struct {
 	Name                 string
 	Version              string
