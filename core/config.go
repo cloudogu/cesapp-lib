@@ -2,13 +2,13 @@ package core
 
 import "strconv"
 
-// Registry struct for cesapp
+// Registry contains Cloudogu EcoSystem registration details.
 type Registry struct {
 	Type      string   `validate:"eq=etcd"`
 	Endpoints []string `validate:"required,min=1"`
 }
 
-// Remote struct for configuration of a remote cesapp
+// Remote contains dogu registry configuration details.
 type Remote struct {
 	Endpoint               string `validate:"url"`
 	AuthenticationEndpoint string `validate:"omitempty,url"`

@@ -30,6 +30,7 @@ type DoguFormatHandler struct {
 	Providers []DoguFormatProvider
 }
 
+// DoguApiVersion contains the Dog API version as integer starting with 1 (which is deprecated).
 type DoguApiVersion int
 
 // formatHandlerInstance is a singleton instance of a DoguFormatHandler.
@@ -43,14 +44,17 @@ func init() {
 	formatHandlerInstance.RegisterFormatProvider(&DoguJsonV1FormatProvider{})
 }
 
+// RegisterFormatProvider adds a new dogu format provider to the format manager.
 func (d *DoguFormatHandler) RegisterFormatProvider(provider DoguFormatProvider) {
 	d.Providers = append(d.Providers, provider)
 }
 
+// GetFormatProviders returns the list or registered format providers.
 func (d *DoguFormatHandler) GetFormatProviders() []DoguFormatProvider {
 	return d.Providers
 }
 
+// ReadDoguFromFile reads a single dogu from a file and returns it along with a dogu API version.
 func ReadDoguFromFile(filePath string) (*Dogu, DoguApiVersion, error) {
 	fileContent, err := GetContentOfFile(filePath)
 	if err != nil {
@@ -60,6 +64,7 @@ func ReadDoguFromFile(filePath string) (*Dogu, DoguApiVersion, error) {
 	return ReadDoguFromString(fileContent)
 }
 
+// ReadDogusFromFile reads all dogus from a given file and returns them along with a their dogu API version.
 func ReadDogusFromFile(filePath string) ([]*Dogu, DoguApiVersion, error) {
 	fileContent, err := GetContentOfFile(filePath)
 	if err != nil {
@@ -69,6 +74,7 @@ func ReadDogusFromFile(filePath string) ([]*Dogu, DoguApiVersion, error) {
 	return ReadDogusFromString(fileContent)
 }
 
+// ReadDoguFromString reads a dogu from a string and returns it along with a dogu API version.
 func ReadDoguFromString(content string) (*Dogu, DoguApiVersion, error) {
 	var firstError error
 	for _, provider := range formatHandlerInstance.Providers {
@@ -83,6 +89,7 @@ func ReadDoguFromString(content string) (*Dogu, DoguApiVersion, error) {
 	return nil, DoguApiVersionUnknown, firstError
 }
 
+// ReadDogusFromString reads multiple dogus from a string and returns them along with a dogu API version.
 func ReadDogusFromString(content string) ([]*Dogu, DoguApiVersion, error) {
 	var firstError error
 	for _, provider := range formatHandlerInstance.Providers {
