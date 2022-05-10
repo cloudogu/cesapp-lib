@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.1.0] - 2022-05-10
 ### Added
-* Extracted `core` into the library providing access to the dogu struct and common functions.
-* Extracted `registry` into the library providing access to a dogu registry.
+- Initial release
+   - Extracted `core` into the library providing access to the dogu struct and common functions.
+   - Extracted `registry` into the library providing access to a dogu registry.
