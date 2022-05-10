@@ -48,8 +48,6 @@ func (ecc *etcdConfigurationContext) set(key, value string, options *client.SetO
 	path := ecc.parent + "/" + key
 	core.GetLogger().Debug("try to set config key", path)
 
-	core.GetLogger().Debugf("write key %s", key)
-
 	_, err := ecc.client.Set(path, value, options)
 	if err != nil {
 		return errors.Wrapf(err, "could not set value %s", path)

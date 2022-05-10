@@ -33,6 +33,7 @@ type DoguV1 struct {
 	OptionalDependencies []string
 }
 
+// CreateV2Copy creates a deep DoguV2 copy from an existing DoguV1 object.
 func (d *DoguV1) CreateV2Copy() Dogu {
 	dogu := Dogu{}
 	dogu.Name = d.Name
@@ -82,12 +83,15 @@ func (d *DoguV1) CreateV2Copy() Dogu {
 	return dogu
 }
 
+// DoguJsonV1FormatProvider provides methods to format Dogu results compatible to v1 API.
 type DoguJsonV1FormatProvider struct{}
 
+// GetVersion returns DoguApiV1 for this implementation.
 func (d *DoguJsonV1FormatProvider) GetVersion() DoguApiVersion {
 	return DoguApiV1
 }
 
+// ReadDoguFromString reads a dogu from a string and returns the API v1 representation.
 func (d *DoguJsonV1FormatProvider) ReadDoguFromString(content string) (*Dogu, error) {
 	var doguV1 *DoguV1
 	err := json.Unmarshal([]byte(content), &doguV1)
@@ -98,6 +102,7 @@ func (d *DoguJsonV1FormatProvider) ReadDoguFromString(content string) (*Dogu, er
 	return &dogu, err
 }
 
+// ReadDogusFromString reads multiple dogus from a string and returns the API v1 representation.
 func (d *DoguJsonV1FormatProvider) ReadDogusFromString(content string) ([]*Dogu, error) {
 	var dogusV1 []*DoguV1
 	err := json.Unmarshal([]byte(content), &dogusV1)
@@ -115,6 +120,7 @@ func (d *DoguJsonV1FormatProvider) ReadDogusFromString(content string) ([]*Dogu,
 	return dogus, err
 }
 
+// WriteDoguToString receives a single dogu and returns the API v1 representation.
 func (d *DoguJsonV1FormatProvider) WriteDoguToString(doguV2 *Dogu) (string, error) {
 	dogu := doguV2.CreateV1Copy()
 
@@ -125,6 +131,7 @@ func (d *DoguJsonV1FormatProvider) WriteDoguToString(doguV2 *Dogu) (string, erro
 	return string(data), err
 }
 
+// WriteDogusToString receives a list of dogus and returns the API v1 representation.
 func (d *DoguJsonV1FormatProvider) WriteDogusToString(doguV2List []*Dogu) (string, error) {
 	var doguV1List []*DoguV1
 	for _, doguV2 := range doguV2List {

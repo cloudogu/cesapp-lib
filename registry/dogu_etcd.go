@@ -48,8 +48,8 @@ func (reg *combinedEtcdDoguRegistry) Enable(dogu *core.Dogu) error {
 	return nil
 }
 
-// Register registers the dogu at the registry backend
-// Registeres the dogu in v1 as well as in v2 registry.
+// Register registers the dogu at the registry backend.
+// Registers the dogu in v1 as well as in v2 registry.
 func (reg *combinedEtcdDoguRegistry) Register(dogu *core.Dogu) error {
 	err := reg.v1DoguRegistry.Register(dogu)
 	if err != nil {
@@ -64,7 +64,7 @@ func (reg *combinedEtcdDoguRegistry) Register(dogu *core.Dogu) error {
 	return nil
 }
 
-// Get returns a dogu from the registry
+// Get returns a dogu from the registry.
 // Gets the dogu from v2 registry. If dogu is not installed in v2 registry, v1 registry is used.
 func (reg *combinedEtcdDoguRegistry) Get(name string) (*core.Dogu, error) {
 	v2dogu, err := reg.v2DoguRegistry.Get(name)
@@ -79,7 +79,7 @@ func (reg *combinedEtcdDoguRegistry) Get(name string) (*core.Dogu, error) {
 	return v2dogu, nil
 }
 
-// GetAll returns all registered dogus
+// GetAll returns all registered dogus.
 // Collects all dogus in v1 as well as in v2 registry.
 func (reg *combinedEtcdDoguRegistry) GetAll() ([]*core.Dogu, error) {
 	var allDogus []*core.Dogu
@@ -105,7 +105,7 @@ func (reg *combinedEtcdDoguRegistry) GetAll() ([]*core.Dogu, error) {
 	return allDogus, nil
 }
 
-// Unregister removes a dogu from the registry
+// Unregister removes a dogu from the registry.
 // Removes in v1 as well as in v2 registry.
 func (reg *combinedEtcdDoguRegistry) Unregister(name string) error {
 	err := reg.v1DoguRegistry.Unregister(name)
@@ -157,7 +157,7 @@ func (reg *etcdDoguRegistry) Register(dogu *core.Dogu) error {
 	// register dogu as json on etcd
 	path := reg.path + "/" + dogu.GetSimpleName() + "/" + dogu.Version
 	core.GetLogger().Debug("set etcd value on", path)
-	_, err = reg.client.Set(path, string(data), nil)
+	_, err = reg.client.Set(path, data, nil)
 	return err
 }
 

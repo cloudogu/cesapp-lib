@@ -94,7 +94,7 @@ type EnvironmentVariable struct {
 	Value string
 }
 
-// EnvironmentVariable toString method
+// String returns a string representation of this EnvironmentVariable
 func (env EnvironmentVariable) String() string {
 	// Formatting of an EnvironmentVariable "ENV1=VALUE1"
 	return env.Key + "=" + env.Value
@@ -367,16 +367,19 @@ func PrintDogus(dogus []*Dogu, ns bool) {
 	GetLogger().Println(table)
 }
 
+// GetSimpleDoguName returns the dogu name without its namespace.
 func GetSimpleDoguName(fullDoguName string) string {
 	dogu := Dogu{Name: fullDoguName}
 	return dogu.GetSimpleName()
 }
 
+// GetNamespace returns a dogu's namespace.
 func GetNamespace(fullDoguName string) string {
 	dogu := Dogu{Name: fullDoguName}
 	return dogu.GetNamespace()
 }
 
+// CreateV1Copy converts this dogu object into a deep-copied DoguV1 object (for legacy reasons).
 func (d *Dogu) CreateV1Copy() DoguV1 {
 	dogu := DoguV1{}
 	dogu.Name = d.Name
@@ -416,24 +419,29 @@ func (d *Dogu) CreateV1Copy() DoguV1 {
 	return dogu
 }
 
+// DoguJsonV2FormatProvider provides methods to format Dogu results compatible to v2 API.
 type DoguJsonV2FormatProvider struct{}
 
+// GetVersion returns DoguApiV2 for this implementation.
 func (d *DoguJsonV2FormatProvider) GetVersion() DoguApiVersion {
 	return DoguApiV2
 }
 
+// ReadDoguFromString reads a dogu from a string and returns the API v2 representation.
 func (d *DoguJsonV2FormatProvider) ReadDoguFromString(content string) (*Dogu, error) {
 	var dogu *Dogu
 	err := json.Unmarshal([]byte(content), &dogu)
 	return dogu, err
 }
 
+// ReadDogusFromString reads multiple dogus from a string and returns the API v2 representation.
 func (d *DoguJsonV2FormatProvider) ReadDogusFromString(content string) ([]*Dogu, error) {
 	var dogus []*Dogu
 	err := json.Unmarshal([]byte(content), &dogus)
 	return dogus, err
 }
 
+// WriteDoguToString receives a single dogu and returns the API v2 representation.
 func (d *DoguJsonV2FormatProvider) WriteDoguToString(dogu *Dogu) (string, error) {
 	data, err := json.Marshal(dogu)
 	if err != nil {
@@ -442,6 +450,7 @@ func (d *DoguJsonV2FormatProvider) WriteDoguToString(dogu *Dogu) (string, error)
 	return string(data), err
 }
 
+// WriteDogusToString receives a list of dogus and returns the API v2 representation.
 func (d *DoguJsonV2FormatProvider) WriteDogusToString(dogu []*Dogu) (string, error) {
 	data, err := json.Marshal(dogu)
 	if err != nil {
