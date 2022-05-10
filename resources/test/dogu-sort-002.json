@@ -1,0 +1,65 @@
+[
+  {
+    "Name": "official/registrator",
+    "Version": "0.6.0-1",
+    "DisplayName": "Registrator",
+    "Description": "Service registry bridge for Docker with pluggable adapters",
+    "Category": "Base",
+    "Tags": [
+      "register", "container"
+    ],
+    "Logo": "https://cloudogu.com/images/dogus/registrator.png",
+    "Url": "http://gliderlabs.com/registrator/latest/",
+    "Image": "registry.cloudogu.com/official/registrator",
+    "Privileged": true
+  },
+  {
+    "Name": "official/icoordinator",
+    "Version": "0.1.0-2",
+    "DisplayName": "iCoordinator",
+    "Description": "iCoordinator is a cloud-based Enterprise File Synchronization and Sharing (EFSS) solution for businesses to store, share and sync files securely across devices meeting the mobility and collaboration needs of all users.",
+    "Category": "Documentation",
+    "Tags": [
+      "doc", "warp"
+    ],
+    "Logo": "https://cloudogu.com/images/dogus/icoordinator.png",
+    "Url": "https://www.icoordinator.com",
+    "Image": "registry.cloudogu.com/official/icoordinator",
+    "Dependencies": [
+      "nginx"
+    ],
+    "HealthCheck": {
+      "Type": "tcp",
+      "Port": 80
+    }
+  },
+  {
+    "Name": "official/nginx",
+    "Version": "1.9.15-3",
+    "DisplayName": "Nginx",
+    "Description": "Nginx WebServer.",
+    "Logo": "https://cloudogu.com/images/dogus/nginx.png",
+    "Category": "Base",
+    "Tags": [
+      "webserver", "proxy", "reverse-proxy"
+    ],
+    "Url": "http://nginx.org/",
+    "Image": "registry.cloudogu.com/official/nginx",
+    "Dependencies": [
+      "registrator"
+    ],
+    "ExposedPorts": [{
+      "Type": "tcp",
+      "Host": 80,
+      "Container": 80
+      },{
+        "Type": "tcp",
+        "Host": 443,
+        "Container": 443
+    }],
+      "HealthCheck": {
+        "Type": "tcp",
+        "Port": 443
+      }
+    }
+]

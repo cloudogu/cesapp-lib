@@ -1,0 +1,16 @@
+{
+  "Name": "volume-test",
+  "Volumes": [
+    {
+      "Name": "withBackup",
+      "NeedsBackup": true
+    },
+    {
+      "Name": "withoutBackup",
+      "NeedsBackup": false
+    },
+    {
+      "Name": "withDefault"
+    }
+  ]
+}

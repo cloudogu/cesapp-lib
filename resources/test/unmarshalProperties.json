@@ -1,0 +1,29 @@
+{
+  "Name": "official/postfix",
+  "Version": "3.1.3-3",
+  "DisplayName": "Postfix",
+  "Description": "Postfix - Mail Transfer Agent",
+  "Logo": "https://cloudogu.com/images/dogus/postfix.png",
+  "Category": "Base",
+  "Tags": [
+    "mail", "smtp"
+  ],
+  "Url": "http://www.postfix.org/",
+  "Image": "registry.cloudogu.com/official/postfix",
+  "Configuration": [{
+    "Name": "relayhost",
+    "Description": "The next-hop destination of non-local mail"
+  }, {
+    "Name": "smtp_tls_security_level",
+    "Description": "The default SMTP TLS security level for the Postfix SMTP client",
+    "Optional": true
+  }],
+  "HealthChecks": [{
+    "Type": "tcp",
+    "Port": 25
+  }],
+  "Properties": {
+    "logoutUrl": "http://test.test",
+    "TestPort": "25"
+  }
+}
