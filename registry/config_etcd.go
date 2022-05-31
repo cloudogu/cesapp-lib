@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -156,6 +157,12 @@ func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
 // found a KeyNotFoundError is returned.
 func Get(parent string, key string, client *resilentEtcdClient) (string, error) {
 	path := parent + "/" + key
+	if parent == "" {
+		if strings.HasPrefix(key, "/") {
+			path = key
+		}
+	}
+
 	core.GetLogger().Debug("try to get config key", path)
 
 	value, err := client.Get(path)
@@ -163,11 +170,6 @@ func Get(parent string, key string, client *resilentEtcdClient) (string, error) 
 		return "", errors.Wrapf(err, "could not get value %s", path)
 	}
 	return value, nil
-}
-
-// GetRecursive returns a map of key value pairs below the given key
-func (ewcc *etcdWatchConfigurationContext) GetRecursive(key string) (map[string]string, error) {
-	return ewcc.client.GetRecursive(key)
 }
 
 // GetChildrenPaths returns an array of all children keys of the given key

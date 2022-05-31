@@ -12,14 +12,16 @@ const (
 // CreateMockRegistry creates a mock registry containing default values for any sub-registry.
 // The doguRegs parameter contains a list with all dogu registries that should be exist. Pass nil if you don't need any dogu registry.
 // Note: AssertExpectations on the registry may fail because of the predefined expectations.
-func CreateMockRegistry(doguRegs []string) (main *Registry, doguConfigs map[string]*ConfigurationContext, doguRegistry *DoguRegistry) {
+func CreateMockRegistry(doguRegs []string) (main *Registry, doguConfigs map[string]*ConfigurationContext, doguRegistry *DoguRegistry, root *WatchConfigurationContext) {
 	registry := &Registry{}
 	globalConfig := &ConfigurationContext{}
 	blueprintConfig := &ConfigurationContext{}
 	doguReg := &DoguRegistry{}
+	rootConfig := &WatchConfigurationContext{}
 	registry.On("GlobalConfig").Return(globalConfig)
 	registry.On("DoguRegistry").Return(doguReg)
 	registry.On("BlueprintRegistry").Return(blueprintConfig)
+	registry.On("RootConfig").Return(rootConfig)
 
 	registries := map[string]*ConfigurationContext{}
 
@@ -30,7 +32,7 @@ func CreateMockRegistry(doguRegs []string) (main *Registry, doguConfigs map[stri
 	registries["_global"] = globalConfig
 	registries["blueprints"] = blueprintConfig
 
-	return registry, registries, doguReg
+	return registry, registries, doguReg, rootConfig
 }
 
 // OnGet provides a helper function to mock the "Get" method of a configuration context

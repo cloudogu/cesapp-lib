@@ -11,7 +11,7 @@ import (
 )
 
 func TestInitializesCorrect(t *testing.T) {
-	reg, registries, doguReg := mocks.CreateMockRegistry([]string{
+	reg, registries, doguReg, _ := mocks.CreateMockRegistry([]string{
 		"myDogu1",
 		"myDogu2",
 	})
@@ -53,6 +53,9 @@ func TestInitializesCorrect(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "testvalue2", val)
 
+	rootConf := reg.RootConfig()
+	require.NotNil(t, rootConf)
+
 	reg.AssertExpectations(t)
 	for _, r := range registries {
 		r.AssertExpectations(t)
@@ -61,12 +64,12 @@ func TestInitializesCorrect(t *testing.T) {
 }
 
 func TestCanPassNilWithoutError(t *testing.T) {
-	_, _, _ = mocks.CreateMockRegistry(nil)
+	_, _, _, _ = mocks.CreateMockRegistry(nil)
 }
 
 func TestOn(t *testing.T) {
 	t.Run("Get", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnGet(registries["_global"], "myKey", "myValue", nil)
 		val, err := reg.GlobalConfig().Get("myKey")
 		require.NoError(t, err)
@@ -74,7 +77,7 @@ func TestOn(t *testing.T) {
 	})
 
 	t.Run("Get with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnGet(registries["_global"], mock.Anything, "myValue", nil)
 		val, err := reg.GlobalConfig().Get("myKey")
 		require.NoError(t, err)
@@ -82,77 +85,77 @@ func TestOn(t *testing.T) {
 	})
 
 	t.Run("Set", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSet(registries["_global"], "myKey", "myValue", nil)
 		err := reg.GlobalConfig().Set("myKey", "myValue")
 		require.NoError(t, err)
 	})
 
 	t.Run("Set with anything as key", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSet(registries["_global"], mock.Anything, "myValue", nil)
 		err := reg.GlobalConfig().Set("myKey", "myValue")
 		require.NoError(t, err)
 	})
 
 	t.Run("Set with anything as value", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSet(registries["_global"], "myKey", mock.Anything, nil)
 		err := reg.GlobalConfig().Set("myKey", "myValue")
 		require.NoError(t, err)
 	})
 
 	t.Run("Set with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSet(registries["_global"], mock.Anything, mock.Anything, nil)
 		err := reg.GlobalConfig().Set("myKey", "myValue")
 		require.NoError(t, err)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnDelete(registries["_global"], "testkey", nil)
 		err := reg.GlobalConfig().Delete("testkey")
 		require.Nil(t, err)
 	})
 
 	t.Run("Delete with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnDelete(registries["_global"], mock.Anything, nil)
 		err := reg.GlobalConfig().Delete("testkey")
 		require.Nil(t, err)
 	})
 
 	t.Run("DeleteRecursive", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnDeleteRecursive(registries["_global"], "testkey", nil)
 		err := reg.GlobalConfig().DeleteRecursive("testkey")
 		require.Nil(t, err)
 	})
 
 	t.Run("DeleteRecursive with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnDeleteRecursive(registries["_global"], mock.Anything, nil)
 		err := reg.GlobalConfig().DeleteRecursive("testkey")
 		require.Nil(t, err)
 	})
 
 	t.Run("Exists", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnExists(registries["_global"], "testkey", true, nil)
 		exists, err := reg.GlobalConfig().Exists("testkey")
 		require.True(t, exists)
 		require.Nil(t, err)
 	})
 	t.Run("Exists with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnExists(registries["_global"], mock.Anything, true, nil)
 		exists, err := reg.GlobalConfig().Exists("testkey")
 		require.True(t, exists)
 		require.Nil(t, err)
 	})
 	t.Run("GetOrFalse", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnGetOrFalse(registries["_global"], "testkey", "testval", true, nil)
 		exists, value, err := reg.GlobalConfig().GetOrFalse("testkey")
 		require.True(t, exists)
@@ -160,7 +163,7 @@ func TestOn(t *testing.T) {
 		require.Nil(t, err)
 	})
 	t.Run("GetOrFalse with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnGetOrFalse(registries["_global"], mock.Anything, "testval", true, nil)
 		exists, value, err := reg.GlobalConfig().GetOrFalse("testkey")
 		require.True(t, exists)
@@ -168,43 +171,43 @@ func TestOn(t *testing.T) {
 		require.Nil(t, err)
 	})
 	t.Run("Refresh", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnRefresh(registries["_global"], "testkey", 5, nil)
 		err := reg.GlobalConfig().Refresh("testkey", 5)
 		require.Nil(t, err)
 	})
 	t.Run("Refresh with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnRefresh(registries["_global"], mock.Anything, mocks.AnyLifetime, nil)
 		err := reg.GlobalConfig().Refresh("testkey", 5)
 		require.Nil(t, err)
 	})
 	t.Run("SetWithLifetime", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSetWithLifetime(registries["_global"], "testkey", "testvalue", 5, nil)
 		err := reg.GlobalConfig().SetWithLifetime("testkey", "testvalue", 5)
 		require.Nil(t, err)
 	})
 	t.Run("SetWithLifetime with key anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSetWithLifetime(registries["_global"], mock.Anything, "testvalue", 5, nil)
 		err := reg.GlobalConfig().SetWithLifetime("testkey", "testvalue", 5)
 		require.Nil(t, err)
 	})
 	t.Run("SetWithLifetime with value anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSetWithLifetime(registries["_global"], "testkey", mock.Anything, 5, nil)
 		err := reg.GlobalConfig().SetWithLifetime("testkey", "testvalue", 5)
 		require.Nil(t, err)
 	})
 	t.Run("SetWithLifetime with anything", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnSetWithLifetime(registries["_global"], mock.Anything, mock.Anything, mocks.AnyLifetime, nil)
 		err := reg.GlobalConfig().SetWithLifetime("testkey", "testvalue", 5)
 		require.Nil(t, err)
 	})
 	t.Run("RemoveAll", func(t *testing.T) {
-		reg, registries, _ := mocks.CreateMockRegistry(nil)
+		reg, registries, _, _ := mocks.CreateMockRegistry(nil)
 		mocks.OnRemoveAll(registries["_global"], nil)
 		err := reg.GlobalConfig().RemoveAll()
 		require.Nil(t, err)

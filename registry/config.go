@@ -33,8 +33,6 @@ type WatchConfigurationContext interface {
 	Watch(key string, recursive bool, eventChannel chan *client.Response)
 	// Get returns a configuration value from the current context
 	Get(key string) (string, error)
-	// GetRecursive returns a map of key value pairs below the given key
-	GetRecursive(key string) (map[string]string, error)
 	// GetChildrenPaths returns an array of all children keys of the given key
 	GetChildrenPaths(key string) ([]string, error)
 }
