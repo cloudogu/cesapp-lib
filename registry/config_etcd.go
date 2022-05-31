@@ -15,7 +15,6 @@ type etcdConfigurationContext struct {
 }
 
 type etcdWatchConfigurationContext struct {
-	parent string
 	client *resilentEtcdClient
 }
 
@@ -150,7 +149,7 @@ func (ewcc *etcdWatchConfigurationContext) Watch(key string, recursive bool, eve
 }
 
 func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
-	return Get(ewcc.parent, key, ewcc.client)
+	return Get("", key, ewcc.client)
 }
 
 // Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
@@ -164,4 +163,14 @@ func Get(parent string, key string, client *resilentEtcdClient) (string, error) 
 		return "", errors.Wrapf(err, "could not get value %s", path)
 	}
 	return value, nil
+}
+
+// GetRecursive returns a map of key value pairs below the given key
+func (ewcc *etcdWatchConfigurationContext) GetRecursive(key string) (map[string]string, error) {
+	return ewcc.client.GetRecursive(key)
+}
+
+// GetChildrenPaths returns an array of all children keys of the given key
+func (ewcc *etcdWatchConfigurationContext) GetChildrenPaths(key string) ([]string, error) {
+	return ewcc.client.GetChildrenPaths(key)
 }

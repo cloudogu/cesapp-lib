@@ -29,8 +29,12 @@ type ConfigurationContext interface {
 
 // WatchConfigurationContext is just able to watch and query the configuration of a single context
 type WatchConfigurationContext interface {
-	// Get returns a configuration value from the current context
-	Get(key string) (string, error)
 	// Watch watches for changes of the provided key and sends the event through the channel
 	Watch(key string, recursive bool, eventChannel chan *client.Response)
+	// Get returns a configuration value from the current context
+	Get(key string) (string, error)
+	// GetRecursive returns a map of key value pairs below the given key
+	GetRecursive(key string) (map[string]string, error)
+	// GetChildrenPaths returns an array of all children keys of the given key
+	GetChildrenPaths(key string) ([]string, error)
 }

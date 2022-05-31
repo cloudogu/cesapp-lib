@@ -67,5 +67,5 @@ func (er *etcdRegistry) BlueprintRegistry() ConfigurationContext {
 
 // RootRegistry returns a ConfigurationContext for the root context
 func (er *etcdRegistry) RootRegistry() WatchConfigurationContext {
-	return &etcdWatchConfigurationContext{"/", er.client}
+	return &etcdWatchConfigurationContext{er.client}
 }
