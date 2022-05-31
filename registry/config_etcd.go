@@ -14,6 +14,11 @@ type etcdConfigurationContext struct {
 	client *resilentEtcdClient
 }
 
+type etcdWatchConfigurationContext struct {
+	parent string
+	client *resilentEtcdClient
+}
+
 // Set sets a configuration value in current context
 func (ecc *etcdConfigurationContext) Set(key, value string) error {
 	return ecc.set(key, value, nil)
@@ -56,17 +61,8 @@ func (ecc *etcdConfigurationContext) set(key, value string, options *client.SetO
 	return err
 }
 
-// Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
-// found a KeyNotFoundError is returned.
 func (ecc *etcdConfigurationContext) Get(key string) (string, error) {
-	path := ecc.parent + "/" + key
-	core.GetLogger().Debug("try to get config key", path)
-
-	value, err := ecc.client.Get(path)
-	if err != nil {
-		return "", errors.Wrapf(err, "could not get value %s", path)
-	}
-	return value, nil
+	return Get(ecc.parent, key, ecc.client)
 }
 
 // GetAll returns a map of key value pairs
@@ -148,7 +144,24 @@ func (ecc *etcdConfigurationContext) GetOrFalse(key string) (bool, string, error
 }
 
 // Watch watches for changes of the provided key and sends the event through the channel
-func (ecc *etcdConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+func (ewcc *etcdWatchConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
 	core.GetLogger().Debugf("starting watcher on key %s", key)
-	ecc.client.Watch(key, recursive, eventChannel)
+	ewcc.client.Watch(key, recursive, eventChannel)
+}
+
+func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
+	return Get(ewcc.parent, key, ewcc.client)
+}
+
+// Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
+// found a KeyNotFoundError is returned.
+func Get(parent string, key string, client *resilentEtcdClient) (string, error) {
+	path := parent + "/" + key
+	core.GetLogger().Debug("try to get config key", path)
+
+	value, err := client.Get(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "could not get value %s", path)
+	}
+	return value, nil
 }

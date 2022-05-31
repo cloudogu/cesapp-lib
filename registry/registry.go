@@ -29,6 +29,8 @@ type Registry interface {
 	DoguRegistry() DoguRegistry
 	// BlueprintRegistry to maintain a blueprint history
 	BlueprintRegistry() ConfigurationContext
+	// RootRegistry returns a WatchConfigurationContext for the root context
+	RootRegistry() WatchConfigurationContext
 }
 
 // New creates a new registry

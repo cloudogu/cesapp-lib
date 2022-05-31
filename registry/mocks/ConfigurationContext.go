@@ -3,7 +3,6 @@
 package mocks
 
 import (
-	client "github.com/coreos/etcd/client"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -187,9 +186,4 @@ func (_m *ConfigurationContext) SetWithLifetime(key string, value string, timeTo
 	}
 
 	return r0
-}
-
-// Watch provides a mock function with given fields: key, recursive, eventChannel
-func (_m *ConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
-	_m.Called(key, recursive, eventChannel)
 }

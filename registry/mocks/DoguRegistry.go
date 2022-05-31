@@ -4,7 +4,6 @@ package mocks
 
 import (
 	core "github.com/cloudogu/cesapp-lib/core"
-	client "github.com/coreos/etcd/client"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -121,9 +120,4 @@ func (_m *DoguRegistry) Unregister(name string) error {
 	}
 
 	return r0
-}
-
-// Watch provides a mock function with given fields: key, recursive, eventChannel
-func (_m *DoguRegistry) Watch(key string, recursive bool, eventChannel chan *client.Response) {
-	_m.Called(key, recursive, eventChannel)
 }

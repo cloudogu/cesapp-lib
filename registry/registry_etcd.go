@@ -64,3 +64,8 @@ func (er *etcdRegistry) DoguRegistry() DoguRegistry {
 func (er *etcdRegistry) BlueprintRegistry() ConfigurationContext {
 	return &etcdConfigurationContext{"/blueprint", er.client}
 }
+
+// RootRegistry returns a ConfigurationContext for the root context
+func (er *etcdRegistry) RootRegistry() WatchConfigurationContext {
+	return &etcdWatchConfigurationContext{"/", er.client}
+}

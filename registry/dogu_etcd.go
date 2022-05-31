@@ -2,7 +2,6 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
 )
 
@@ -128,12 +127,6 @@ func (reg *combinedEtcdDoguRegistry) IsEnabled(name string) (bool, error) {
 	return reg.v1DoguRegistry.IsEnabled(name)
 }
 
-// Watch watches for changes of the provided key and sends the event through the channel
-// Use v1 registry as it contains v1 as well as converted v2 dogus.
-func (reg *combinedEtcdDoguRegistry) Watch(key string, recursive bool, eventChannel chan *client.Response) {
-	reg.v1DoguRegistry.Watch(key, recursive, eventChannel)
-}
-
 type etcdDoguRegistry struct {
 	path           string
 	client         *resilentEtcdClient
@@ -245,10 +238,4 @@ func (reg *etcdDoguRegistry) IsEnabled(name string) (bool, error) {
 	path := reg.path + "/" + name + "/current"
 
 	return reg.client.Exists(path)
-}
-
-// Watch watches for changes of the provided key and sends the event through the channel
-func (reg *etcdDoguRegistry) Watch(key string, recursive bool, eventChannel chan *client.Response) {
-	core.GetLogger().Debugf("starting watcher on key %s", key)
-	reg.client.Watch(reg.path+"/"+key, recursive, eventChannel)
 }
