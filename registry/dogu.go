@@ -1,6 +1,9 @@
 package registry
 
-import "github.com/cloudogu/cesapp-lib/core"
+import (
+	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/coreos/etcd/client"
+)
 
 // DoguRegistry manages dogus on a ecosystem
 type DoguRegistry interface {
@@ -16,4 +19,6 @@ type DoguRegistry interface {
 	GetAll() ([]*core.Dogu, error)
 	// IsEnabled returns true if the dogu is installed
 	IsEnabled(name string) (bool, error)
+	// Watch watches for changes of the provided key and sends the event through the channel
+	Watch(key string, recursive bool, eventChannel chan *client.Response)
 }

@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
 )
 
@@ -71,4 +72,8 @@ func (reg *mockDoguRegistry) IsEnabled(name string) (bool, error) {
 		}
 	}
 	return false, nil
+}
+
+func (reg *mockDoguRegistry) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+
 }
