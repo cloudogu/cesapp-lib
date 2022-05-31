@@ -1,5 +1,7 @@
 package registry
 
+import "github.com/coreos/etcd/client"
+
 // ConfigurationContext is able to manage the configuration of a single context
 type ConfigurationContext interface {
 	// Set sets a configuration value in current context
@@ -23,4 +25,6 @@ type ConfigurationContext interface {
 	// GetOrFalse return false and empty string when the configuration value does not exist.
 	// Otherwise, return true and the configuration value, even when the configuration value is an empty string.
 	GetOrFalse(key string) (bool, string, error)
+	// Watch watches for changes of the provided key and sends the event through the channel
+	Watch(key string, recursive bool, eventChannel chan *client.Response)
 }

@@ -146,3 +146,9 @@ func (ecc *etcdConfigurationContext) GetOrFalse(key string) (bool, string, error
 
 	return true, value, nil
 }
+
+// Watch watches for changes of the provided key and sends the event through the channel
+func (ecc *etcdConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+	core.GetLogger().Debugf("starting watcher on key %s", key)
+	ecc.client.Watch(key, recursive, eventChannel)
+}
