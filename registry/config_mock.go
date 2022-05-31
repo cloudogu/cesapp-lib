@@ -74,3 +74,7 @@ func (mcc *mockConfigurationContext) GetOrFalse(key string) (exists bool, value 
 	}
 	return false, "", nil
 }
+
+func (mcc *mockConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+
+}
