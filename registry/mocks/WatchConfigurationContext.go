@@ -57,6 +57,6 @@ func (_m *WatchConfigurationContext) GetChildrenPaths(key string) ([]string, err
 }
 
 // Watch provides a mock function with given fields: key, recursive, eventChannel, doneChannel
-func (_m *WatchConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel chan struct{}) {
+func (_m *WatchConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel <-chan struct{}) {
 	_m.Called(key, recursive, eventChannel, doneChannel)
 }

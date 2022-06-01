@@ -231,7 +231,7 @@ func (etcd *resilentEtcdClient) DeleteRecursive(key string) error {
 }
 
 // Watch watches for changes of the provided key and sends the event through the channel
-func (etcd *resilentEtcdClient) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel chan struct{}) {
+func (etcd *resilentEtcdClient) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel <-chan struct{}) {
 	options := client.WatcherOptions{AfterIndex: etcd.recentIndex, Recursive: recursive}
 	watcher := etcd.kapi.Watcher(key, &options)
 	for {
