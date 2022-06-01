@@ -6,6 +6,7 @@ package registry
 import (
 	"fmt"
 	"github.com/coreos/etcd/client"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -243,6 +244,49 @@ func Test_resilentEtcdClient_Get(t *testing.T) {
 		require.Empty(t, actual)
 		mockedKeysAPI.AssertExpectations(t)
 	})
+}
+
+func Test_resilentEtcdClient_Watch(t *testing.T) {
+	t.Run("successfull terminated watch with doneChannel", func(t *testing.T) {
+		// given
+		mockedRetrier := retrier.New(
+			retrier.ConstantBackoff(1, time.Millisecond),
+			&etcdClassifier{},
+		)
+		clientResponse := &client.Response{}
+		watcherMock := new(mockWatcher)
+		watcherMock.On("Next", mock.Anything).Return(clientResponse, nil)
+		mockedKeysAPI := new(mockKeysAPI)
+		mockedKeysAPI.On("Watcher", "/key", mock.Anything).Return(watcherMock)
+		underTest := resilentEtcdClient{kapi: mockedKeysAPI, retrier: mockedRetrier}
+		eventChannel := make(chan *client.Response)
+		doneChannel := make(chan struct{})
+
+		timer := time.NewTimer(time.Second * 1)
+		go func() {
+			if <-timer.C; true {
+				doneChannel <- struct{}{}
+			}
+		}()
+
+		go func() {
+			for range eventChannel {
+				assert.True(t, true)
+			}
+		}()
+
+		// when
+		underTest.Watch("/key", false, eventChannel, doneChannel)
+	})
+}
+
+type mockWatcher struct {
+	mock.Mock
+}
+
+func (m *mockWatcher) Next(ctx context.Context) (*client.Response, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(*client.Response), args.Error(1)
 }
 
 type mockKeysAPI struct {
