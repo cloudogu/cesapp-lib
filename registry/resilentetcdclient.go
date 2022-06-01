@@ -231,30 +231,39 @@ func (etcd *resilentEtcdClient) DeleteRecursive(key string) error {
 }
 
 // Watch watches for changes of the provided key and sends the event through the channel
-func (etcd *resilentEtcdClient) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+func (etcd *resilentEtcdClient) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel chan struct{}) {
 	options := client.WatcherOptions{AfterIndex: etcd.recentIndex, Recursive: recursive}
 	watcher := etcd.kapi.Watcher(key, &options)
 	for {
-		resp, err := watcher.Next(context.Background())
-		if err != nil {
-			if strings.Contains(err.Error(), "etcd cluster is unavailable or misconfigured") {
-				core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 300 seconds. Error: %v", err)
-				etcd.indexMutex.Lock()
-				defer etcd.indexMutex.Unlock()
-				etcd.recentIndex = 0
-				time.Sleep(time.Minute * 5)
-				return
-			} else {
-				core.GetLogger().Infof("Could not get event. Try again in 30 seconds. Error: %v", err)
-				etcd.indexMutex.Lock()
-				defer etcd.indexMutex.Unlock()
-				etcd.recentIndex = 0
-				time.Sleep(time.Second * 30)
-				return
-			}
+		select {
+		case <-doneChannel:
+			return
+		default:
+			etcd.doWatch(watcher, eventChannel)
 		}
-		eventChannel <- resp
 	}
+}
+
+func (etcd *resilentEtcdClient) doWatch(watcher client.Watcher, eventChannel chan *client.Response) {
+	resp, err := watcher.Next(context.Background())
+	if err != nil {
+		if strings.Contains(err.Error(), "etcd cluster is unavailable or misconfigured") {
+			core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 300 seconds. Error: %v", err)
+			etcd.indexMutex.Lock()
+			defer etcd.indexMutex.Unlock()
+			etcd.recentIndex = 0
+			time.Sleep(time.Minute * 5)
+			return
+		} else {
+			core.GetLogger().Infof("Could not get event. Try again in 30 seconds. Error: %v", err)
+			etcd.indexMutex.Lock()
+			defer etcd.indexMutex.Unlock()
+			etcd.recentIndex = 0
+			time.Sleep(time.Second * 30)
+			return
+		}
+	}
+	eventChannel <- resp
 }
 
 // We only update the recent index iff it is 0; which happens only in 2 cases:
