@@ -231,21 +231,21 @@ func (etcd *resilentEtcdClient) DeleteRecursive(key string) error {
 }
 
 // Watch watches for changes of the provided key and sends the event through the channel
-func (etcd *resilentEtcdClient) Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel <-chan struct{}) {
+func (etcd *resilentEtcdClient) Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response) {
 	options := client.WatcherOptions{AfterIndex: etcd.recentIndex, Recursive: recursive}
 	watcher := etcd.kapi.Watcher(key, &options)
 	for {
 		select {
-		case <-doneChannel:
+		case <-ctx.Done():
 			return
 		default:
-			etcd.doWatch(watcher, eventChannel)
+			etcd.doWatch(ctx, watcher, eventChannel)
 		}
 	}
 }
 
-func (etcd *resilentEtcdClient) doWatch(watcher client.Watcher, eventChannel chan *client.Response) {
-	resp, err := watcher.Next(context.Background())
+func (etcd *resilentEtcdClient) doWatch(ctx context.Context, watcher client.Watcher, eventChannel chan *client.Response) {
+	resp, err := watcher.Next(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "etcd cluster is unavailable or misconfigured") {
 			core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 300 seconds. Error: %v", err)

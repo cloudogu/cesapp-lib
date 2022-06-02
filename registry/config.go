@@ -1,6 +1,9 @@
 package registry
 
-import "github.com/coreos/etcd/client"
+import (
+	"context"
+	"github.com/coreos/etcd/client"
+)
 
 // ConfigurationContext is able to manage the configuration of a single context
 type ConfigurationContext interface {
@@ -30,7 +33,7 @@ type ConfigurationContext interface {
 // WatchConfigurationContext is just able to watch and query the configuration of a single context
 type WatchConfigurationContext interface {
 	// Watch watches for changes of the provided key and sends the event through the channel
-	Watch(key string, recursive bool, eventChannel chan *client.Response, doneChannel <-chan struct{})
+	Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response)
 	// Get returns a configuration value from the current context
 	Get(key string) (string, error)
 	// GetChildrenPaths returns an array of all children keys of the given key

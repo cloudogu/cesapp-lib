@@ -133,22 +133,22 @@ func TestSetWithTTL(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	client, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilentEtcdClient([]string{server.URL})
 	require.Nil(t, err)
 
-	_, err = client.Set("/test/one", "1", setOptions)
+	_, err = etcdClient.Set("/test/one", "1", setOptions)
 	require.Nil(t, err)
 
-	exists, err := client.Exists("/test/one")
+	exists, err := etcdClient.Exists("/test/one")
 	require.Nil(t, err)
 	require.True(t, exists)
 
-	value, err := client.Get("/test/one")
+	value, err := etcdClient.Get("/test/one")
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
 	// Refresh to have the maximum ttl
-	value, err = client.Set("/test/one", "", refreshOptions)
+	value, err = etcdClient.Set("/test/one", "", refreshOptions)
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
@@ -159,14 +159,14 @@ func TestSetWithTTL(t *testing.T) {
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
 
-	value, err = client.Set("/test/one", "", refreshOptions)
+	value, err = etcdClient.Set("/test/one", "", refreshOptions)
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
 	// Wait again ttl-2 seconds and make sure that the value still exists
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
-	value, err = client.Get("/test/one")
+	value, err = etcdClient.Get("/test/one")
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
@@ -177,7 +177,7 @@ func TestSetWithTTL(t *testing.T) {
 	fmt.Printf("Waiting %d seconds...\n", expireDuration)
 	time.Sleep(expireDurationParsed)
 
-	exists, err = client.Exists("/test/one")
+	exists, err = etcdClient.Exists("/test/one")
 	require.Nil(t, err)
 	require.False(t, exists)
 }
@@ -188,38 +188,38 @@ func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	client, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilentEtcdClient([]string{server.URL})
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child0/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child0/cchild1", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild1", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child1/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child1/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child2", "1", nil)
+	_, err = etcdClient.Set("/parent/child2", "1", nil)
 	require.Nil(t, err)
 
-	childrenPaths, err := client.GetChildrenPaths("/parent")
+	childrenPaths, err := etcdClient.GetChildrenPaths("/parent")
 	require.Nil(t, err)
 
 	require.Contains(t, childrenPaths, "/parent/child0")
 	require.Contains(t, childrenPaths, "/parent/child1")
 
-	children, err := client.GetRecursive("/parent")
+	children, err := etcdClient.GetRecursive("/parent")
 	require.Nil(t, err)
 
 	require.Equal(t, "1", children["child0/cchild0"])
 	require.Equal(t, "1", children["child0/cchild1"])
 	require.Equal(t, "1", children["child1/cchild0"])
 
-	err = client.DeleteRecursive("/parent")
+	err = etcdClient.DeleteRecursive("/parent")
 	require.Nil(t, err)
 
-	node, err := client.Get("/parent")
+	node, err := etcdClient.Get("/parent")
 	require.NotNil(t, err)
 	require.Equal(t, "", node)
 }
@@ -247,7 +247,7 @@ func Test_resilentEtcdClient_Get(t *testing.T) {
 }
 
 func Test_resilentEtcdClient_Watch(t *testing.T) {
-	t.Run("successfull terminated watch with doneChannel", func(t *testing.T) {
+	t.Run("successfull terminated watch with context timeout", func(t *testing.T) {
 		// given
 		mockedRetrier := retrier.New(
 			retrier.ConstantBackoff(1, time.Millisecond),
@@ -260,14 +260,8 @@ func Test_resilentEtcdClient_Watch(t *testing.T) {
 		mockedKeysAPI.On("Watcher", "/key", mock.Anything).Return(watcherMock)
 		underTest := resilentEtcdClient{kapi: mockedKeysAPI, retrier: mockedRetrier}
 		eventChannel := make(chan *client.Response)
-		doneChannel := make(chan struct{})
 
-		timer := time.NewTimer(time.Second * 1)
-		go func() {
-			if <-timer.C; true {
-				doneChannel <- struct{}{}
-			}
-		}()
+		ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
 
 		go func() {
 			for range eventChannel {
@@ -276,7 +270,8 @@ func Test_resilentEtcdClient_Watch(t *testing.T) {
 		}()
 
 		// when
-		underTest.Watch("/key", false, eventChannel, doneChannel)
+		underTest.Watch(ctx, "/key", false, eventChannel)
+		cancelFunc()
 	})
 }
 
