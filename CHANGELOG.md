@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Watch context used to watch registry keys that notifies the client when they are are changed. 
 
 ## [v0.1.0] - 2022-05-10
 ### Added
