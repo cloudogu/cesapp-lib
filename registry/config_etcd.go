@@ -11,13 +11,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+type etcdClient interface {
+	Exists(key string) (bool, error)
+	Get(key string) (string, error)
+	GetRecursive(key string) (map[string]string, error)
+	GetChildrenPaths(key string) ([]string, error)
+	Set(key string, value string, options *client.SetOptions) (string, error)
+	Delete(key string, options *client.DeleteOptions) error
+	DeleteRecursive(key string) error
+	Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response)
+}
+
 type etcdConfigurationContext struct {
 	parent string
-	client *resilentEtcdClient
+	client etcdClient
 }
 
 type etcdWatchConfigurationContext struct {
-	client *resilentEtcdClient
+	client etcdClient
 }
 
 // Set sets a configuration value in current context
@@ -156,7 +167,7 @@ func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
 
 // Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
 // found a KeyNotFoundError is returned.
-func Get(parent string, key string, client *resilentEtcdClient) (string, error) {
+func Get(parent string, key string, client etcdClient) (string, error) {
 	path := parent + "/" + key
 	if parent == "" {
 		if strings.HasPrefix(key, "/") {
