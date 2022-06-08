@@ -64,6 +64,29 @@ func newFaultyServer() *httptest.Server {
 	return httptest.NewServer(reverseProxyHandler)
 }
 
+func newServer() *httptest.Server {
+	// initialize rand
+	rand.Seed(time.Now().UnixNano())
+
+	reverseProxyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// create etcd address, for local execution and on ci
+		etcd := os.Getenv("ETCD")
+		if etcd == "" {
+			etcd = "localhost"
+		}
+
+		// proxy request to local etcd
+		director := func(req *http.Request) {
+			path := "http://" + etcd + ":4001" + r.URL.RequestURI()
+			req.URL, _ = url.Parse(path)
+		}
+		proxy := &httputil.ReverseProxy{Director: director}
+		proxy.ServeHTTP(w, r)
+	})
+
+	return httptest.NewServer(reverseProxyHandler)
+}
+
 func TestGetSetDeleteWithRetry(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
@@ -113,6 +136,46 @@ func TestGetSetDeleteWithRetry(t *testing.T) {
 	exists, err = cl.Exists("/mydir/key/one")
 	require.Nil(t, err)
 	require.False(t, exists)
+}
+
+func TestWatch(t *testing.T) {
+
+	// start http reverse proxy on random port
+	server := newServer()
+	defer server.Close()
+
+	cl, err := newResilentEtcdClient([]string{server.URL})
+	require.Nil(t, err)
+
+	myResponseChannel := make(chan *client.Response)
+	ctx, clearFunc := context.WithTimeout(context.Background(), time.Second*10)
+
+	// schedule a key change event in 2 seconds
+	changeKeyTimer := time.NewTimer(time.Second * 2)
+	go func() {
+		<-changeKeyTimer.C
+		_, err = cl.Set("/mywatchkey", "myvalue", &client.SetOptions{})
+		require.NoError(t, err)
+		changeKeyTimer.Stop()
+	}()
+
+	go cl.Watch(ctx, "/mywatchkey", false, myResponseChannel)
+
+	for {
+		select {
+		case response := <-myResponseChannel:
+			t.Logf("Watch result: %+v", response)
+			assert.Equal(t, "set", response.Action)
+			assert.Equal(t, "/mywatchkey", response.Node.Key)
+			clearFunc()
+			return
+		case <-ctx.Done():
+			t.Logf("Test failed as it should detect the change in the /mywatchkey")
+			clearFunc()
+			t.Fail()
+			return
+		}
+	}
 }
 
 func TestSetWithTTL(t *testing.T) {
