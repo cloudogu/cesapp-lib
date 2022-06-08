@@ -1,6 +1,8 @@
 package registry
 
-import "github.com/cloudogu/cesapp-lib/core"
+import (
+	"github.com/cloudogu/cesapp-lib/core"
+)
 
 // DoguRegistry manages dogus on a ecosystem
 type DoguRegistry interface {

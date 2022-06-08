@@ -3,6 +3,7 @@ package registry
 import (
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
+	"sync"
 	"time"
 
 	"context"
@@ -33,8 +34,9 @@ func newResilentEtcdClient(endpoints []string) (*resilentEtcdClient, error) {
 	}
 
 	return &resilentEtcdClient{
-		kapi:    client.NewKeysAPI(conn),
-		retrier: r,
+		kapi:        client.NewKeysAPI(conn),
+		retrier:     r,
+		recentIndex: 0,
 	}, nil
 }
 
@@ -49,8 +51,10 @@ func (classifier *etcdClassifier) Classify(err error) retrier.Action {
 }
 
 type resilentEtcdClient struct {
-	kapi    client.KeysAPI
-	retrier *retrier.Retrier
+	kapi        client.KeysAPI
+	retrier     *retrier.Retrier
+	indexMutex  sync.Mutex
+	recentIndex uint64
 }
 
 // Exists returns true if the key exists
@@ -88,6 +92,8 @@ func (etcd *resilentEtcdClient) Get(key string) (string, error) {
 		if err != nil {
 			return err
 		}
+
+		etcd.updateIndexIfNecessary(response.Index)
 
 		result = response.Node.Value
 		return nil
@@ -222,4 +228,56 @@ func (etcd *resilentEtcdClient) DeleteRecursive(key string) error {
 	return etcd.Delete(key, &client.DeleteOptions{
 		Recursive: true,
 	})
+}
+
+// Watch watches for changes of the provided key and sends the event through the channel
+func (etcd *resilentEtcdClient) Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response) {
+	options := client.WatcherOptions{AfterIndex: etcd.recentIndex, Recursive: recursive}
+	watcher := etcd.kapi.Watcher(key, &options)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			etcd.doWatch(ctx, watcher, eventChannel)
+		}
+	}
+}
+
+func (etcd *resilentEtcdClient) doWatch(ctx context.Context, watcher client.Watcher, eventChannel chan *client.Response) {
+	resp, err := watcher.Next(ctx)
+	if err != nil {
+		if strings.Contains(err.Error(), "etcd cluster is unavailable or misconfigured") {
+			core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 300 seconds. Error: %v", err)
+			etcd.indexMutex.Lock()
+			defer etcd.indexMutex.Unlock()
+			etcd.recentIndex = 0
+			time.Sleep(time.Minute * 5)
+			return
+		} else {
+			core.GetLogger().Infof("Could not get event. Try again in 30 seconds. Error: %v", err)
+			etcd.indexMutex.Lock()
+			defer etcd.indexMutex.Unlock()
+			etcd.recentIndex = 0
+			time.Sleep(time.Second * 30)
+			return
+		}
+	}
+	eventChannel <- resp
+}
+
+// We only update the recent index iff it is 0; which happens only in 2 cases:
+// 1. At startup
+// 2. In case of an error during watch
+// We do this, to not miss any changes made to etcd between
+// 1. Startup and starting the watcher
+// 2. An error and the restart of the watcher
+func (etcd *resilentEtcdClient) updateIndexIfNecessary(index uint64) {
+	if etcd.recentIndex == 0 {
+		etcd.indexMutex.Lock()
+		defer etcd.indexMutex.Unlock()
+		if etcd.recentIndex == 0 {
+			etcd.recentIndex = index
+		}
+	}
 }
