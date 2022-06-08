@@ -6,6 +6,7 @@ package registry
 import (
 	"fmt"
 	"github.com/coreos/etcd/client"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -45,6 +46,29 @@ func newFaultyServer() *httptest.Server {
 		// reset error counter
 		errCounter = 0
 
+		// create etcd address, for local execution and on ci
+		etcd := os.Getenv("ETCD")
+		if etcd == "" {
+			etcd = "localhost"
+		}
+
+		// proxy request to local etcd
+		director := func(req *http.Request) {
+			path := "http://" + etcd + ":4001" + r.URL.RequestURI()
+			req.URL, _ = url.Parse(path)
+		}
+		proxy := &httputil.ReverseProxy{Director: director}
+		proxy.ServeHTTP(w, r)
+	})
+
+	return httptest.NewServer(reverseProxyHandler)
+}
+
+func newServer() *httptest.Server {
+	// initialize rand
+	rand.Seed(time.Now().UnixNano())
+
+	reverseProxyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// create etcd address, for local execution and on ci
 		etcd := os.Getenv("ETCD")
 		if etcd == "" {
@@ -114,6 +138,46 @@ func TestGetSetDeleteWithRetry(t *testing.T) {
 	require.False(t, exists)
 }
 
+func TestWatch(t *testing.T) {
+
+	// start http reverse proxy on random port
+	server := newServer()
+	defer server.Close()
+
+	cl, err := newResilentEtcdClient([]string{server.URL})
+	require.Nil(t, err)
+
+	myResponseChannel := make(chan *client.Response)
+	ctx, clearFunc := context.WithTimeout(context.Background(), time.Second*10)
+
+	// schedule a key change event in 2 seconds
+	changeKeyTimer := time.NewTimer(time.Second * 2)
+	go func() {
+		<-changeKeyTimer.C
+		_, err = cl.Set("/mywatchkey", "myvalue", &client.SetOptions{})
+		require.NoError(t, err)
+		changeKeyTimer.Stop()
+	}()
+
+	go cl.Watch(ctx, "/mywatchkey", false, myResponseChannel)
+
+	for {
+		select {
+		case response := <-myResponseChannel:
+			t.Logf("Watch result: %+v", response)
+			assert.Equal(t, "set", response.Action)
+			assert.Equal(t, "/mywatchkey", response.Node.Key)
+			clearFunc()
+			return
+		case <-ctx.Done():
+			t.Logf("Test failed as it should detect the change in the /mywatchkey")
+			clearFunc()
+			t.Fail()
+			return
+		}
+	}
+}
+
 func TestSetWithTTL(t *testing.T) {
 	ttl := 5
 	ttlParsed, err := time.ParseDuration(fmt.Sprintf("%ds", ttl))
@@ -132,22 +196,22 @@ func TestSetWithTTL(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	client, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilentEtcdClient([]string{server.URL})
 	require.Nil(t, err)
 
-	_, err = client.Set("/test/one", "1", setOptions)
+	_, err = etcdClient.Set("/test/one", "1", setOptions)
 	require.Nil(t, err)
 
-	exists, err := client.Exists("/test/one")
+	exists, err := etcdClient.Exists("/test/one")
 	require.Nil(t, err)
 	require.True(t, exists)
 
-	value, err := client.Get("/test/one")
+	value, err := etcdClient.Get("/test/one")
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
 	// Refresh to have the maximum ttl
-	value, err = client.Set("/test/one", "", refreshOptions)
+	value, err = etcdClient.Set("/test/one", "", refreshOptions)
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
@@ -158,14 +222,14 @@ func TestSetWithTTL(t *testing.T) {
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
 
-	value, err = client.Set("/test/one", "", refreshOptions)
+	value, err = etcdClient.Set("/test/one", "", refreshOptions)
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
 	// Wait again ttl-2 seconds and make sure that the value still exists
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
-	value, err = client.Get("/test/one")
+	value, err = etcdClient.Get("/test/one")
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
@@ -176,7 +240,7 @@ func TestSetWithTTL(t *testing.T) {
 	fmt.Printf("Waiting %d seconds...\n", expireDuration)
 	time.Sleep(expireDurationParsed)
 
-	exists, err = client.Exists("/test/one")
+	exists, err = etcdClient.Exists("/test/one")
 	require.Nil(t, err)
 	require.False(t, exists)
 }
@@ -187,38 +251,38 @@ func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	client, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilentEtcdClient([]string{server.URL})
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child0/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child0/cchild1", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild1", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child1/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child1/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = client.Set("/parent/child2", "1", nil)
+	_, err = etcdClient.Set("/parent/child2", "1", nil)
 	require.Nil(t, err)
 
-	childrenPaths, err := client.GetChildrenPaths("/parent")
+	childrenPaths, err := etcdClient.GetChildrenPaths("/parent")
 	require.Nil(t, err)
 
 	require.Contains(t, childrenPaths, "/parent/child0")
 	require.Contains(t, childrenPaths, "/parent/child1")
 
-	children, err := client.GetRecursive("/parent")
+	children, err := etcdClient.GetRecursive("/parent")
 	require.Nil(t, err)
 
 	require.Equal(t, "1", children["child0/cchild0"])
 	require.Equal(t, "1", children["child0/cchild1"])
 	require.Equal(t, "1", children["child1/cchild0"])
 
-	err = client.DeleteRecursive("/parent")
+	err = etcdClient.DeleteRecursive("/parent")
 	require.Nil(t, err)
 
-	node, err := client.Get("/parent")
+	node, err := etcdClient.Get("/parent")
 	require.NotNil(t, err)
 	require.Equal(t, "", node)
 }
@@ -243,6 +307,44 @@ func Test_resilentEtcdClient_Get(t *testing.T) {
 		require.Empty(t, actual)
 		mockedKeysAPI.AssertExpectations(t)
 	})
+}
+
+func Test_resilentEtcdClient_Watch(t *testing.T) {
+	t.Run("successfull terminated watch with context timeout", func(t *testing.T) {
+		// given
+		mockedRetrier := retrier.New(
+			retrier.ConstantBackoff(1, time.Millisecond),
+			&etcdClassifier{},
+		)
+		clientResponse := &client.Response{}
+		watcherMock := new(mockWatcher)
+		watcherMock.On("Next", mock.Anything).Return(clientResponse, nil)
+		mockedKeysAPI := new(mockKeysAPI)
+		mockedKeysAPI.On("Watcher", "/key", mock.Anything).Return(watcherMock)
+		underTest := resilentEtcdClient{kapi: mockedKeysAPI, retrier: mockedRetrier}
+		eventChannel := make(chan *client.Response)
+
+		ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*2)
+
+		go func() {
+			for range eventChannel {
+				assert.True(t, true)
+			}
+		}()
+
+		// when
+		underTest.Watch(ctx, "/key", false, eventChannel)
+		cancelFunc()
+	})
+}
+
+type mockWatcher struct {
+	mock.Mock
+}
+
+func (m *mockWatcher) Next(ctx context.Context) (*client.Response, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(*client.Response), args.Error(1)
 }
 
 type mockKeysAPI struct {

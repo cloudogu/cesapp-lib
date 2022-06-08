@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.2.0] - 2022-06-08
+### Added
+- Watch context used to watch registry keys that notifies the client when they are are changed. 
+
 ## [v0.1.0] - 2022-05-10
 ### Added
 - Initial release

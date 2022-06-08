@@ -1,17 +1,34 @@
 package registry
 
 import (
+	"context"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
+	"strings"
 	"time"
 
 	"github.com/pkg/errors"
 )
 
+type etcdClient interface {
+	Exists(key string) (bool, error)
+	Get(key string) (string, error)
+	GetRecursive(key string) (map[string]string, error)
+	GetChildrenPaths(key string) ([]string, error)
+	Set(key string, value string, options *client.SetOptions) (string, error)
+	Delete(key string, options *client.DeleteOptions) error
+	DeleteRecursive(key string) error
+	Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response)
+}
+
 type etcdConfigurationContext struct {
 	parent string
-	client *resilentEtcdClient
+	client etcdClient
+}
+
+type etcdWatchConfigurationContext struct {
+	client etcdClient
 }
 
 // Set sets a configuration value in current context
@@ -56,17 +73,8 @@ func (ecc *etcdConfigurationContext) set(key, value string, options *client.SetO
 	return err
 }
 
-// Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
-// found a KeyNotFoundError is returned.
 func (ecc *etcdConfigurationContext) Get(key string) (string, error) {
-	path := ecc.parent + "/" + key
-	core.GetLogger().Debug("try to get config key", path)
-
-	value, err := ecc.client.Get(path)
-	if err != nil {
-		return "", errors.Wrapf(err, "could not get value %s", path)
-	}
-	return value, nil
+	return Get(ecc.parent, key, ecc.client)
 }
 
 // GetAll returns a map of key value pairs
@@ -145,4 +153,38 @@ func (ecc *etcdConfigurationContext) GetOrFalse(key string) (bool, string, error
 	}
 
 	return true, value, nil
+}
+
+// Watch watches for changes of the provided key and sends the event through the channel
+func (ewcc *etcdWatchConfigurationContext) Watch(ctx context.Context, key string, recursive bool, eventChannel chan *client.Response) {
+	core.GetLogger().Debugf("starting watcher on key %s", key)
+	ewcc.client.Watch(ctx, key, recursive, eventChannel)
+}
+
+func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
+	return Get("", key, ewcc.client)
+}
+
+// Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
+// found a KeyNotFoundError is returned.
+func Get(parent string, key string, client etcdClient) (string, error) {
+	path := parent + "/" + key
+	if parent == "" {
+		if strings.HasPrefix(key, "/") {
+			path = key
+		}
+	}
+
+	core.GetLogger().Debug("try to get config key", path)
+
+	value, err := client.Get(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "could not get value %s", path)
+	}
+	return value, nil
+}
+
+// GetChildrenPaths returns an array of all children keys of the given key
+func (ewcc *etcdWatchConfigurationContext) GetChildrenPaths(key string) ([]string, error) {
+	return ewcc.client.GetChildrenPaths(key)
 }
