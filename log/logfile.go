@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 )
 
@@ -22,25 +21,18 @@ type logFile struct {
 	size int64
 }
 
-func openDoguLogFile(doguName string) (*logFile, error) {
-	return openDoguLogFileFor(doguName, doguLogFilesPath)
+func SelectLogFile(logfilePath string) (*logFile, error) {
+	return openDoguLogFileFor(logfilePath)
 }
 
-func openDoguLogFileFor(doguName string, pathPrefix string) (*logFile, error) {
-	fileName := fmt.Sprintf("%s.%s", doguName, logFileExtension)
-	fullLogFilePath := path.Join(pathPrefix, fileName)
+func openDoguLogFileFor(logfilePath string) (*logFile, error) {
 
-	cleanedFullLogFilePath, err := cleanFilePath(fullLogFilePath, pathPrefix)
+	fileInfo, err := os.Stat(logfilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	fileInfo, err := os.Stat(cleanedFullLogFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	file, err := os.OpenFile(cleanedFullLogFilePath, os.O_RDONLY, os.ModePerm)
+	file, err := os.OpenFile(logfilePath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +58,17 @@ func (lf *logFile) getReader() io.Reader {
 	return &reader
 }
 
-func cleanFilePath(path, allowedDirectoryPrefix string) (string, error) {
-	cleanedFilepath := filepath.Clean(path)
-	if strings.HasPrefix(cleanedFilepath, allowedDirectoryPrefix) {
-		return cleanedFilepath, nil
+func (lf *logFile) GetLogfilePathFromDoguName(doguName string) (string, error) {
+	fileName := doguName
+	if !strings.HasSuffix(doguName, ".log") {
+		fileName = fmt.Sprintf("%s.%s", fileName, logFileExtension)
 	}
-	return "", fmt.Errorf("cannot access dogu log file outside its log directory: %s", cleanedFilepath)
+
+	fullLogFilePath := path.Join(doguLogFilesPath, fileName)
+
+	_, err := os.Stat(fullLogFilePath)
+	if err != nil {
+		return "", err
+	}
+	return fullLogFilePath, nil
 }
