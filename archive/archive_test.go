@@ -148,75 +148,76 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 
 }
 
-func TestSupportArchiveHandler_WriteLogFileIntoArchive_Success(t *testing.T) {
-	handler := SupportArchiveHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &defaultFileHandler{},
-	}
+//func TestSupportArchiveHandler_WriteLogFileIntoArchive_Success(t *testing.T) {
+//	handler := SupportArchiveHandler{
+//		fileCreator: &mockFileCreator{},
+//		fileOpener:  &defaultFileHandler{},
+//		fileCopier:  &defaultFileHandler{},
+//	}
+//
+//	zipFile, _ := ioutil.TempFile("", "*.zip")
+//	assert.NotNil(t, zipFile)
+//
+//	handler.InitialiseZipWriter(zipFile)
+//
+//	tmpLogFile, _ := ioutil.TempFile("", "*.archive")
+//	assert.NotNil(t, tmpLogFile)
+//	defer tmpLogFile.Close()
+//
+//	_, err := tmpLogFile.WriteString("test entry in logfile data")
+//	assert.NoError(t, err)
+//
+//	handler.WriteFilesIntoArchive(tmpLogFile.Name())
+//	handler.Close()
+//
+//	assert.FileExists(t, zipFile.Name())
+//	fi, err := zipFile.Stat()
+//	if err != nil {
+//		fmt.Print("Unable to get info about temporary zip file")
+//		t.Fail()
+//	}
+//	assert.True(t, 25 < fi.Size()) // empty zip archive is around ~20
+//
+//}
+//
+//func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
+//	// first point of failure: Cannot open file
+//	handler := SupportArchiveHandler{
+//		fileCreator: &mockFileCreator{},
+//		fileOpener:  &mockFailedFileOpener{},
+//	}
+//
+//	err := handler.WriteLogFileIntoArchive("not_a_valid_file.archive")
+//	assert.Error(t, err)
+//	assert.Contains(t, err.Error(), "no such file or directory")
+//
+//	// second point of failure: Cannot open file
+//	handler = SupportArchiveHandler{
+//		fileCreator: &mockFileCreator{},
+//		fileOpener:  &defaultFileHandler{},
+//		writer:      &mockZipWriter{},
+//	}
+//	tmpFile, _ := ioutil.TempFile("", "test.archive")
+//	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
+//	assert.Error(t, err)
+//	assert.Contains(t, err.Error(), "failed to create file with writer")
+//
+//	// third point of failure: Cannot copy file into zip archive
+//	handler = SupportArchiveHandler{
+//		fileCreator: &mockFileCreator{},
+//		fileOpener:  &defaultFileHandler{},
+//		fileCopier:  &mockFailedFileCopier{},
+//	}
+//	zipFile, _ := ioutil.TempFile("", "*.zip")
+//	handler.InitialiseZipWriter(zipFile)
+//	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
+//	assert.Error(t, err)
+//	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
+//
+//}
+//
 
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	assert.NotNil(t, zipFile)
-
-	handler.InitialiseZipWriter(zipFile)
-
-	tmpLogFile, _ := ioutil.TempFile("", "*.archive")
-	assert.NotNil(t, tmpLogFile)
-	defer tmpLogFile.Close()
-
-	_, err := tmpLogFile.WriteString("test entry in logfile data")
-	assert.NoError(t, err)
-
-	handler.WriteLogFileIntoArchive(tmpLogFile.Name())
-	handler.Close()
-
-	assert.FileExists(t, zipFile.Name())
-	fi, err := zipFile.Stat()
-	if err != nil {
-		fmt.Print("Unable to get info about temporary zip file")
-		t.Fail()
-	}
-	assert.True(t, 25 < fi.Size()) // empty zip archive is around ~20
-
-}
-
-func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
-	// first point of failure: Cannot open file
-	handler := SupportArchiveHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &mockFailedFileOpener{},
-	}
-
-	err := handler.WriteLogFileIntoArchive("not_a_valid_file.archive")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "no such file or directory")
-
-	// second point of failure: Cannot open file
-	handler = SupportArchiveHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		writer:      &mockZipWriter{},
-	}
-	tmpFile, _ := ioutil.TempFile("", "test.archive")
-	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to create file with writer")
-
-	// third point of failure: Cannot copy file into zip archive
-	handler = SupportArchiveHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &mockFailedFileCopier{},
-	}
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitialiseZipWriter(zipFile)
-	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
-
-}
-
-func TestSupportArchiveHandler_WriteLogFilesIntoArchive(t *testing.T) {
+func TestSupportArchiveHandler_WriteFilesIntoArchive(t *testing.T) {
 	handler := SupportArchiveHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &defaultFileHandler{},
@@ -254,7 +255,7 @@ func TestSupportArchiveHandler_WriteLogFilesIntoArchive(t *testing.T) {
 
 	logFiles := []string{tmpLogFile1.Name(), tmpLogFile2.Name()}
 
-	handler.WriteLogFilesIntoArchive(logFiles, true)
+	handler.WriteFilesIntoArchive(logFiles, true)
 
 	assert.FileExists(t, zipFile.Name())
 	fi, err := zipFile.Stat()

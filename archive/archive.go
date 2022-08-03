@@ -108,9 +108,9 @@ func (ar *SupportArchiveHandler) Close() error {
 	return nil
 }
 
-func (ar *SupportArchiveHandler) WriteLogFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
+func (ar *SupportArchiveHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
 	for _, filePath := range filePaths {
-		err := ar.WriteLogFileIntoArchive(filePath)
+		err := ar.AppendFileToArchive(filePath, filePath)
 		if err != nil {
 			return fmt.Errorf("failed to write logfiles into archive: %w", err)
 		}
@@ -121,26 +121,26 @@ func (ar *SupportArchiveHandler) WriteLogFilesIntoArchive(filePaths []string, cl
 	return nil
 }
 
-// WriteLogFileIntoArchive Takes the path to a single logfile and write it to an initialized and created zip-archive.
-// The zipped file's dir structure matches the on the real filesystem.
-func (ar *SupportArchiveHandler) WriteLogFileIntoArchive(filePath string) error {
-
-	fmt.Printf("opening file: %s\n", filePath)
-	doguLogFile, err := SelectLogFile(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read logfile: %w", err)
-	}
-
-	defer doguLogFile.file.Close()
-
-	createdFileInZip, err := ar.writer.Create(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to create file in archive: %w", err)
-	}
-
-	if _, err := ar.fileCopier.copy(createdFileInZip, doguLogFile.file); err != nil {
-		return fmt.Errorf("failed to copy file into archive: %w", err)
-	}
-
-	return nil
-}
+//// WriteLogFileIntoArchive Takes the path to a single logfile and write it to an initialized and created zip-archive.
+//// The zipped file's dir structure matches the on the real filesystem.
+//func (ar *SupportArchiveHandler) WriteLogFileIntoArchive(filePath string) error {
+//
+//	fmt.Printf("opening file: %s\n", filePath)
+//	doguLogFile, err := SelectLogFile(filePath)
+//	if err != nil {
+//		return fmt.Errorf("failed to read logfile: %w", err)
+//	}
+//
+//	defer doguLogFile.file.Close()
+//
+//	createdFileInZip, err := ar.writer.Create(filePath)
+//	if err != nil {
+//		return fmt.Errorf("failed to create file in archive: %w", err)
+//	}
+//
+//	if _, err := ar.fileCopier.copy(createdFileInZip, doguLogFile.file); err != nil {
+//		return fmt.Errorf("failed to copy file into archive: %w", err)
+//	}
+//
+//	return nil
+//}
