@@ -1,4 +1,4 @@
-package log
+package archive
 
 import (
 	"archive/zip"

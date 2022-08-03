@@ -1,4 +1,4 @@
-package log
+package archive
 
 import (
 	"fmt"
@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	// doguLogFilesPath contains the path to the dogu log files.
-	doguLogFilesPath = "/var/log/docker/"
-	// logFileExtension contains the extension name used for log files.
-	logFileExtension = "log"
+	// doguLogFilesPath contains the path to the dogu archive files.
+	doguLogFilesPath = "/var/archive/docker/"
+	// logFileExtension contains the extension name used for archive files.
+	logFileExtension = "archive"
 )
 
 type logFile struct {
@@ -60,7 +60,7 @@ func (lf *logFile) getReader() io.Reader {
 
 func (lf *logFile) GetLogfilePathFromDoguName(doguName string) (string, error) {
 	fileName := doguName
-	if !strings.HasSuffix(doguName, ".log") {
+	if !strings.HasSuffix(doguName, ".archive") {
 		fileName = fmt.Sprintf("%s.%s", fileName, logFileExtension)
 	}
 

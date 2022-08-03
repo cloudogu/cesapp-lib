@@ -1,4 +1,4 @@
-package log
+package archive
 
 import (
 	"fmt"
@@ -160,7 +160,7 @@ func TestSupportArchiveHandler_WriteLogFileIntoArchive_Success(t *testing.T) {
 
 	handler.InitialiseZipWriter(zipFile)
 
-	tmpLogFile, _ := ioutil.TempFile("", "*.log")
+	tmpLogFile, _ := ioutil.TempFile("", "*.archive")
 	assert.NotNil(t, tmpLogFile)
 	defer tmpLogFile.Close()
 
@@ -187,7 +187,7 @@ func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
 		fileOpener:  &mockFailedFileOpener{},
 	}
 
-	err := handler.WriteLogFileIntoArchive("not_a_valid_file.log")
+	err := handler.WriteLogFileIntoArchive("not_a_valid_file.archive")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "no such file or directory")
 
@@ -197,7 +197,7 @@ func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
 		fileOpener:  &defaultFileHandler{},
 		writer:      &mockZipWriter{},
 	}
-	tmpFile, _ := ioutil.TempFile("", "test.log")
+	tmpFile, _ := ioutil.TempFile("", "test.archive")
 	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to create file with writer")
@@ -228,7 +228,7 @@ func TestSupportArchiveHandler_WriteLogFilesIntoArchive(t *testing.T) {
 
 	handler.InitialiseZipWriter(zipFile)
 
-	tmpLogFile1, err := ioutil.TempFile("", "*.log")
+	tmpLogFile1, err := ioutil.TempFile("", "*.archive")
 	if err != nil {
 		fmt.Println("Failed to create temp zipFile: ", tmpLogFile1.Name())
 		t.Fail()
@@ -240,7 +240,7 @@ func TestSupportArchiveHandler_WriteLogFilesIntoArchive(t *testing.T) {
 		t.Fail()
 	}
 
-	tmpLogFile2, err := ioutil.TempFile("", "*.log")
+	tmpLogFile2, err := ioutil.TempFile("", "*.archive")
 	if err != nil {
 		fmt.Println("Failed to create temp zipFile: ", tmpLogFile2.Name())
 		t.Fail()
