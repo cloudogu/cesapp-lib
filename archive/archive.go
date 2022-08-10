@@ -42,21 +42,29 @@ type ArchiveHandler interface {
 	Close() error
 }
 
-// SupportArchiveHandler
+type SupportArchiveHandler interface {
+	CreateZipArchiveFile(zipFilePath string) (io.Writer, error)
+	InitialiseZipWriter(zipFile io.Writer)
+	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
+	Close() error
+	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
+}
+
+// DefaultSupportArchiveHandler
 // The normal procedure should look like this.
 // 		1. CreateZipArchiveFile
 // 		2. InitialiseZipWriter
 // 		3. AppendFileToArchive (n times)
 // 		4. Close
-type SupportArchiveHandler struct {
+type DefaultSupportArchiveHandler struct {
 	writer      zipWriter
 	fileCreator fileCreator
 	fileOpener  fileOpener
 	fileCopier  fileCopier
 }
 
-func New() *SupportArchiveHandler {
-	return &SupportArchiveHandler{
+func New() SupportArchiveHandler {
+	return &DefaultSupportArchiveHandler{
 		fileCreator: &defaultFileHandler{},
 		fileOpener:  &defaultFileHandler{},
 		fileCopier:  &defaultFileHandler{},
@@ -66,7 +74,7 @@ func New() *SupportArchiveHandler {
 // CreateZipArchiveFile creates the file that will be the zip archive.
 // The zipFilePath expects a complete path with the correct file extension (.zip).
 // If you not intend to create an io.Writer beforehand this method can be the input of InitialiseZipWriter.
-func (ar *SupportArchiveHandler) CreateZipArchiveFile(zipFilePath string) (io.Writer, error) {
+func (ar *DefaultSupportArchiveHandler) CreateZipArchiveFile(zipFilePath string) (io.Writer, error) {
 	zippedArchiveFile, err := ar.fileCreator.create(zipFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create archive file: %w", err)
@@ -75,14 +83,14 @@ func (ar *SupportArchiveHandler) CreateZipArchiveFile(zipFilePath string) (io.Wr
 }
 
 // InitialiseZipWriter takes an existing io.Writer and initializes a zip.Writer based on it.
-func (ar *SupportArchiveHandler) InitialiseZipWriter(zipFile io.Writer) {
+func (ar *DefaultSupportArchiveHandler) InitialiseZipWriter(zipFile io.Writer) {
 	zipWriter := zip.NewWriter(zipFile)
 	ar.writer = zipWriter
 }
 
 // AppendFileToArchive takes a path to file that is read and appended to an archive.
 // make sure to call the Close method when you're done with appending files to the archive.
-func (ar *SupportArchiveHandler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
+func (ar *DefaultSupportArchiveHandler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
 	file, err := ar.fileOpener.open(fileToZipPath)
 	if err != nil {
 		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
@@ -100,7 +108,7 @@ func (ar *SupportArchiveHandler) AppendFileToArchive(fileToZipPath string, filep
 	return nil
 }
 
-func (ar *SupportArchiveHandler) Close() error {
+func (ar *DefaultSupportArchiveHandler) Close() error {
 	err := ar.writer.Close()
 	if err != nil {
 		return fmt.Errorf("could not close archive file: %w", err)
@@ -108,7 +116,7 @@ func (ar *SupportArchiveHandler) Close() error {
 	return nil
 }
 
-func (ar *SupportArchiveHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
+func (ar *DefaultSupportArchiveHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
 	for _, filePath := range filePaths {
 		err := ar.AppendFileToArchive(filePath, filePath)
 		if err != nil {
@@ -123,7 +131,7 @@ func (ar *SupportArchiveHandler) WriteFilesIntoArchive(filePaths []string, close
 
 //// WriteLogFileIntoArchive Takes the path to a single logfile and write it to an initialized and created zip-archive.
 //// The zipped file's dir structure matches the on the real filesystem.
-//func (ar *SupportArchiveHandler) WriteLogFileIntoArchive(filePath string) error {
+//func (ar *DefaultSupportArchiveHandler) WriteLogFileIntoArchive(filePath string) error {
 //
 //	fmt.Printf("opening file: %s\n", filePath)
 //	doguLogFile, err := SelectLogFile(filePath)
