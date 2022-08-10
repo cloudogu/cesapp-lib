@@ -43,23 +43,23 @@ func (mzw *mockFailedFileCopier) copy(dst io.Writer, src io.Reader) (written int
 
 func TestSupportArchiveHandler_CreateZipArchiveFile(t *testing.T) {
 	//test success
-	handler := DefaultSupportArchiveHandler{fileCreator: &mockFileCreator{}}
+	handler := DefaultHandler{fileCreator: &mockFileCreator{}}
 	file, err := handler.CreateZipArchiveFile("test.zip")
 	assert.NoError(t, err)
 	assert.NotNil(t, file)
 	// test failure
-	handler = DefaultSupportArchiveHandler{fileCreator: &mockFailedFileCreator{}}
+	handler = DefaultHandler{fileCreator: &mockFailedFileCreator{}}
 	_, err = handler.CreateZipArchiveFile("test.zip")
 	require.Error(t, err)
 }
 
 func TestSupportArchiveHandler_New(t *testing.T) {
-	supportArchiveHandler := New()
+	supportArchiveHandler := NewHandler()
 	assert.NotNil(t, supportArchiveHandler)
 }
 
 func TestSupportArchiveHandler_Close(t *testing.T) {
-	handler := DefaultSupportArchiveHandler{
+	handler := DefaultHandler{
 		writer: &mockZipWriter{},
 	}
 
@@ -73,7 +73,7 @@ func TestSupportArchiveHandler_Close(t *testing.T) {
 }
 
 func TestSupportArchiveHandler_InitialiseZipWriter(t *testing.T) {
-	handler := DefaultSupportArchiveHandler{fileCreator: &mockFileCreator{}}
+	handler := DefaultHandler{fileCreator: &mockFileCreator{}}
 	file, _ := handler.CreateZipArchiveFile("test.zip")
 	handler.InitialiseZipWriter(file)
 
@@ -81,7 +81,7 @@ func TestSupportArchiveHandler_InitialiseZipWriter(t *testing.T) {
 }
 
 func TestSupportArchiveHandler_AppendFileToArchive_Success(t *testing.T) {
-	handler := DefaultSupportArchiveHandler{
+	handler := DefaultHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &defaultFileHandler{},
 		fileCopier:  &defaultFileHandler{},
@@ -114,7 +114,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Success(t *testing.T) {
 
 func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 	// first point of failure: Cannot open file
-	handler := DefaultSupportArchiveHandler{
+	handler := DefaultHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &mockFailedFileOpener{},
 	}
@@ -125,7 +125,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to open file")
 
 	// second point of failure: Cannot open file
-	handler = DefaultSupportArchiveHandler{
+	handler = DefaultHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &defaultFileHandler{},
 		writer:      &mockZipWriter{},
@@ -135,7 +135,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to create file with writer")
 
 	// third point of failure: Cannot copy file into zip archive
-	handler = DefaultSupportArchiveHandler{
+	handler = DefaultHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &defaultFileHandler{},
 		fileCopier:  &mockFailedFileCopier{},
@@ -149,7 +149,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 }
 
 //func TestSupportArchiveHandler_WriteLogFileIntoArchive_Success(t *testing.T) {
-//	handler := DefaultSupportArchiveHandler{
+//	handler := DefaultHandler{
 //		fileCreator: &mockFileCreator{},
 //		fileOpener:  &defaultFileHandler{},
 //		fileCopier:  &defaultFileHandler{},
@@ -182,7 +182,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //
 //func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
 //	// first point of failure: Cannot open file
-//	handler := DefaultSupportArchiveHandler{
+//	handler := DefaultHandler{
 //		fileCreator: &mockFileCreator{},
 //		fileOpener:  &mockFailedFileOpener{},
 //	}
@@ -192,7 +192,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //	assert.Contains(t, err.Error(), "no such file or directory")
 //
 //	// second point of failure: Cannot open file
-//	handler = DefaultSupportArchiveHandler{
+//	handler = DefaultHandler{
 //		fileCreator: &mockFileCreator{},
 //		fileOpener:  &defaultFileHandler{},
 //		writer:      &mockZipWriter{},
@@ -203,7 +203,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //	assert.Contains(t, err.Error(), "failed to create file with writer")
 //
 //	// third point of failure: Cannot copy file into zip archive
-//	handler = DefaultSupportArchiveHandler{
+//	handler = DefaultHandler{
 //		fileCreator: &mockFileCreator{},
 //		fileOpener:  &defaultFileHandler{},
 //		fileCopier:  &mockFailedFileCopier{},
@@ -218,7 +218,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //
 
 func TestSupportArchiveHandler_WriteFilesIntoArchive(t *testing.T) {
-	handler := DefaultSupportArchiveHandler{
+	handler := DefaultHandler{
 		fileCreator: &mockFileCreator{},
 		fileOpener:  &defaultFileHandler{},
 		fileCopier:  &defaultFileHandler{},
