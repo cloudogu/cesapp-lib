@@ -3,7 +3,6 @@ package archive
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/prometheus/common/log"
 	"io"
 	"os"
 )
@@ -126,11 +125,7 @@ func (ar *DefaultHandler) Close() error {
 func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
 	if closeAfterFinish {
 		defer func() {
-			log.Debug("Closing archive handler...")
-			err := ar.Close()
-			if err != nil {
-				log.Error(err)
-			}
+			_ = ar.Close()
 		}()
 	}
 
