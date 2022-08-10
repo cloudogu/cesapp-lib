@@ -128,27 +128,3 @@ func (ar *DefaultSupportArchiveHandler) WriteFilesIntoArchive(filePaths []string
 	}
 	return nil
 }
-
-//// WriteLogFileIntoArchive Takes the path to a single logfile and write it to an initialized and created zip-archive.
-//// The zipped file's dir structure matches the on the real filesystem.
-//func (ar *DefaultSupportArchiveHandler) WriteLogFileIntoArchive(filePath string) error {
-//
-//	fmt.Printf("opening file: %s\n", filePath)
-//	doguLogFile, err := SelectLogFile(filePath)
-//	if err != nil {
-//		return fmt.Errorf("failed to read logfile: %w", err)
-//	}
-//
-//	defer doguLogFile.file.Close()
-//
-//	createdFileInZip, err := ar.writer.Create(filePath)
-//	if err != nil {
-//		return fmt.Errorf("failed to create file in archive: %w", err)
-//	}
-//
-//	if _, err := ar.fileCopier.copy(createdFileInZip, doguLogFile.file); err != nil {
-//		return fmt.Errorf("failed to copy file into archive: %w", err)
-//	}
-//
-//	return nil
-//}
