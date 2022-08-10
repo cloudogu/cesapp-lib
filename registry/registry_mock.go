@@ -65,3 +65,8 @@ func (mr *MockRegistry) BlueprintRegistry() ConfigurationContext {
 	}
 	return mr.global
 }
+
+// RootConfig was added to deprecated mock for legacy code support and has no functionality
+func (mr *MockRegistry) RootConfig() WatchConfigurationContext {
+	return nil
+}
