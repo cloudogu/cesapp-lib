@@ -65,7 +65,7 @@ func NewHandler() Handler {
 	}
 }
 
-func InitArchiveInPath(filePath string) (Handler, error) {
+func InitInPath(filePath string) (Handler, error) {
 	supportArchiveHandler := NewHandler()
 	supportArchive, err := supportArchiveHandler.CreateZipArchiveFile(filePath)
 	if err != nil {
