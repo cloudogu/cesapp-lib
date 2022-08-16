@@ -65,7 +65,7 @@ func (_m *Handler) CreateZipArchiveFile(zipFilePath string) (io.Writer, error) {
 }
 
 // InitialiseZipWriter provides a mock function with given fields: zipFile
-func (_m *Handler) InitialiseZipWriter(zipFile io.Writer) {
+func (_m *Handler) InitializeZipWriter(zipFile io.Writer) {
 	_m.Called(zipFile)
 }
 

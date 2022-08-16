@@ -38,7 +38,7 @@ func (d *defaultFileHandler) copy(dst io.Writer, src io.Reader) (written int64, 
 
 type Handler interface {
 	CreateZipArchiveFile(zipFilePath string) (io.Writer, error)
-	InitialiseZipWriter(zipFile io.Writer)
+	InitializeZipWriter(zipFile io.Writer)
 	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
 	Close() error
 	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
@@ -72,7 +72,7 @@ func InitInPath(filePath string) (Handler, error) {
 		return nil, fmt.Errorf("failed to create support archive file: %w", err)
 	}
 
-	supportArchiveHandler.InitialiseZipWriter(supportArchive)
+	supportArchiveHandler.InitializeZipWriter(supportArchive)
 
 	return supportArchiveHandler, nil
 }
@@ -88,8 +88,8 @@ func (ar *DefaultHandler) CreateZipArchiveFile(zipFilePath string) (io.Writer, e
 	return zippedArchiveFile, nil
 }
 
-// InitialiseZipWriter takes an existing io.Writer and initializes a zip.Writer based on it.
-func (ar *DefaultHandler) InitialiseZipWriter(zipFile io.Writer) {
+// InitializeZipWriter takes an existing io.Writer and initializes a zip.Writer based on it.
+func (ar *DefaultHandler) InitializeZipWriter(zipFile io.Writer) {
 	zipWriter := zip.NewWriter(zipFile)
 	ar.writer = zipWriter
 }

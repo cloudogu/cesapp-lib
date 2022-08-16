@@ -67,7 +67,7 @@ func TestSupportArchiveHandler_Close(t *testing.T) {
 	assert.Error(t, err)
 
 	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitialiseZipWriter(zipFile)
+	handler.InitializeZipWriter(zipFile)
 	err = handler.Close()
 	assert.NoError(t, err)
 }
@@ -75,7 +75,7 @@ func TestSupportArchiveHandler_Close(t *testing.T) {
 func TestSupportArchiveHandler_InitialiseZipWriter(t *testing.T) {
 	handler := DefaultHandler{fileCreator: &mockFileCreator{}}
 	file, _ := handler.CreateZipArchiveFile("test.zip")
-	handler.InitialiseZipWriter(file)
+	handler.InitializeZipWriter(file)
 
 	assert.NotNil(t, handler.writer)
 }
@@ -87,7 +87,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Success(t *testing.T) {
 		fileCopier:  &defaultFileHandler{},
 	}
 	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitialiseZipWriter(zipFile)
+	handler.InitializeZipWriter(zipFile)
 
 	tmpFile, err := ioutil.TempFile("", "test.txt")
 	if err != nil {
@@ -141,7 +141,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 		fileCopier:  &mockFailedFileCopier{},
 	}
 	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitialiseZipWriter(zipFile)
+	handler.InitializeZipWriter(zipFile)
 	err = handler.AppendFileToArchive(tmpFile.Name(), "/test.txt")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
@@ -158,7 +158,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //	zipFile, _ := ioutil.TempFile("", "*.zip")
 //	assert.NotNil(t, zipFile)
 //
-//	handler.InitialiseZipWriter(zipFile)
+//	handler.InitializeZipWriter(zipFile)
 //
 //	tmpLogFile, _ := ioutil.TempFile("", "*.archive")
 //	assert.NotNil(t, tmpLogFile)
@@ -209,7 +209,7 @@ func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
 //		fileCopier:  &mockFailedFileCopier{},
 //	}
 //	zipFile, _ := ioutil.TempFile("", "*.zip")
-//	handler.InitialiseZipWriter(zipFile)
+//	handler.InitializeZipWriter(zipFile)
 //	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
 //	assert.Error(t, err)
 //	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
@@ -227,7 +227,7 @@ func TestSupportArchiveHandler_WriteFilesIntoArchive(t *testing.T) {
 	zipFile, _ := ioutil.TempFile("", "*.zip")
 	assert.NotNil(t, zipFile)
 
-	handler.InitialiseZipWriter(zipFile)
+	handler.InitializeZipWriter(zipFile)
 
 	tmpLogFile1, err := ioutil.TempFile("", "*.archive")
 	if err != nil {
