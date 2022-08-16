@@ -42,6 +42,7 @@ type Handler interface {
 	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
 	Close() error
 	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
+	ReadFile(filePath string) error
 }
 
 // DefaultHandler
@@ -101,7 +102,11 @@ func (ar *DefaultHandler) AppendFileToArchive(fileToZipPath string, filepathInZi
 	if err != nil {
 		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if tempErr := file.Close(); tempErr != nil {
+			err = tempErr
+		}
+	}()
 
 	fileInZip, err := ar.writer.Create(filepathInZip)
 	if err != nil {
@@ -111,7 +116,7 @@ func (ar *DefaultHandler) AppendFileToArchive(fileToZipPath string, filepathInZi
 	if _, err := ar.fileCopier.copy(fileInZip, file); err != nil {
 		return fmt.Errorf("failed to copy file into archive: %w", err)
 	}
-	return nil
+	return err
 }
 
 func (ar *DefaultHandler) Close() error {
@@ -137,4 +142,18 @@ func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFi
 	}
 
 	return nil
+}
+
+func (ar *DefaultHandler) ReadFile(filePath string) error {
+	file, err := ar.fileOpener.open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
+	}
+	defer func() {
+		if tempErr := file.Close(); tempErr != nil {
+			err = tempErr
+		}
+	}()
+
+	return err
 }
