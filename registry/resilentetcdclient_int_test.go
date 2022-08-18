@@ -116,15 +116,38 @@ func Test_getMainNode_inttest(t *testing.T) {
 		if node.Key == "/dir_test" {
 			found = true
 			assert.Len(t, node.Nodes, 2)
-			assert.Equal(t, "/dir_test/key1", node.Nodes[0].Key)
-			assert.Len(t, node.Nodes[0].Nodes, 2)
-			assert.Equal(t, "/dir_test/key1/subkey1", node.Nodes[0].Nodes[0].Key)
-			assert.Equal(t, "/dir_test/key1/subkey2", node.Nodes[0].Nodes[1].Key)
-			assert.Equal(t, "/dir_test/key2", node.Nodes[1].Key)
+			key1Node := node.Nodes[0]
+			key2Node := node.Nodes[1]
+			// slice is randomly sorted. Make sure to test the correct nodes
+			if node.Nodes[1].Key == "/dir_test/key1" {
+				key1Node = node.Nodes[1]
+				key2Node = node.Nodes[0]
+			}
+			assert.Equal(t, "/dir_test/key1", key1Node.Key)
+			assert.Equal(t, "/dir_test/key2", key2Node.Key)
+			assert.Len(t, key1Node.Nodes, 2)
+			subkey1Node := key1Node.Nodes[0]
+			subkey2Node := key1Node.Nodes[1]
+			// slice is randomly sorted. Make sure to test the correct nodes
+			if subkey1Node.Nodes[1].Key == "/dir_test/key1/subkey1" {
+				subkey1Node = subkey1Node.Nodes[1]
+				subkey2Node = subkey2Node.Nodes[0]
+			}
+			assert.Equal(t, "/dir_test/key1/subkey1", subkey1Node.Key)
+			assert.Equal(t, "/dir_test/key1/subkey2", subkey2Node.Key)
 		}
 	}
 
 	assert.True(t, found)
+}
+
+func findChildByKey(node *client.Node, key string) *client.Node {
+	for _, n := range node.Nodes {
+		if n.Key == key {
+			return n
+		}
+	}
+	return nil
 }
 
 func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
