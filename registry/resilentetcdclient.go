@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
 	"sync"
@@ -142,7 +143,7 @@ func (etcd *resilentEtcdClient) addNodeDirValuesToMap(keyValuePairs map[string]s
 func (etcd *resilentEtcdClient) getMainNode() (*client.Node, error) {
 	response, err := etcd.kapi.Get(context.Background(), "/", &client.GetOptions{Recursive: true})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get main node from etcd: %w", err)
 	}
 
 	return response.Node, err

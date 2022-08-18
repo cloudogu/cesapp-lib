@@ -5,6 +5,7 @@ package registry
 
 import (
 	"fmt"
+	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -88,27 +89,33 @@ func newServer() *httptest.Server {
 }
 
 func Test_getMainNode_inttest(t *testing.T) {
-	// start http reverse proxy on random port
-	server := newFaultyServer()
-	defer server.Close()
+	// create etcd address, for local execution and on ci
+	etcd := os.Getenv("ETCD")
+	if etcd == "" {
+		etcd = "localhost"
+	}
 
-	cl, err := newResilentEtcdClient([]string{server.URL})
-	require.Nil(t, err)
+	client, err := createEtcdClient(core.Registry{
+		Type: "etcd",
+		Endpoints: []string{
+			"http://" + etcd + ":4001",
+		},
+	})
 
 	defer func() {
-		_ = cl.DeleteRecursive("/dir_test")
+		_ = client.DeleteRecursive("/dir_test")
 	}()
 
-	_, err = cl.Set("/dir_test/key1/subkey1", "val1", nil)
+	_, err = client.Set("/dir_test/key1/subkey1", "val1", nil)
 	require.Nil(t, err)
 
-	_, err = cl.Set("/dir_test/key1/subkey2", "val2", nil)
+	_, err = client.Set("/dir_test/key1/subkey2", "val2", nil)
 	require.Nil(t, err)
 
-	_, err = cl.Set("/dir_test/key2", "val3", nil)
+	_, err = client.Set("/dir_test/key2", "val3", nil)
 	require.Nil(t, err)
 
-	node, err := cl.getMainNode()
+	node, err := client.getMainNode()
 	require.NoError(t, err)
 
 	found := false

@@ -4,48 +4,56 @@
 package registry
 
 import (
+	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"os"
 	"testing"
 )
 
 func Test_mapEtcdNodeToRegistryNode(t *testing.T) {
-	// start http reverse proxy on random port
-	server := newFaultyServer()
-	defer server.Close()
+	// create etcd address, for local execution and on ci
+	etcd := os.Getenv("ETCD")
+	if etcd == "" {
+		etcd = "localhost"
+	}
 
-	cl, err := newResilentEtcdClient([]string{server.URL})
-	require.Nil(t, err)
+	client, err := createEtcdClient(core.Registry{
+		Type: "etcd",
+		Endpoints: []string{
+			"http://" + etcd + ":4001",
+		},
+	})
 
 	defer func() {
-		_ = cl.DeleteRecursive("/dir_test")
+		_ = client.DeleteRecursive("/dir_test")
 	}()
 
-	_, err = cl.Set("/dir_test/key1/subkey1", "val1", nil)
+	_, err = client.Set("/dir_test/key1/subkey1", "val1", nil)
 	require.Nil(t, err)
 
-	_, err = cl.Set("/dir_test/key1/subkey2", "val2", nil)
+	_, err = client.Set("/dir_test/key1/subkey2", "val2", nil)
 	require.Nil(t, err)
 
-	_, err = cl.Set("/dir_test/key2", "val3", nil)
+	_, err = client.Set("/dir_test/key2", "val3", nil)
 	require.Nil(t, err)
 
-	node, err := cl.getMainNode()
+	node, err := client.getMainNode()
 	require.NoError(t, err)
 
 	result := mapEtcdNodeToRegistryNode(node, nil)
 
 	assert.Nil(t, result.GetParent())
 
-	assert.Len(t, result.GetSubNodes(), 1)
-	assert.Len(t, result.GetSubNodes()[0].GetSubNodes(), 2)
-	assert.Len(t, result.GetSubNodes()[0].GetSubNode("key1").GetSubNodes(), 2)
-	assert.Len(t, result.GetSubNodes()[0].GetSubNode("key2").GetSubNodes(), 0)
+	assert.GreaterOrEqual(t, len(result.GetSubNodes()), 1)
+	assert.Len(t, result.GetSubNode("dir_test").GetSubNodes(), 2)
+	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNodes(), 2)
+	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key2").GetSubNodes(), 0)
 
 	t.Run("result is correctly setup", func(t *testing.T) {
 		assert.Equal(t, "", result.GetKey())
 		assert.Equal(t, "dir_test", result.GetSubNode("dir_test").GetKey())
-		assert.Equal(t, "dir_test", result.GetSubNodes()[0].GetKey())
+		assert.Equal(t, "dir_test", result.GetSubNode("dir_test").GetKey())
 		assert.Equal(t, "", result.GetSubNode("dir_test").GetParent().GetKey())
 	})
 
