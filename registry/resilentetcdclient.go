@@ -139,6 +139,15 @@ func (etcd *resilentEtcdClient) addNodeDirValuesToMap(keyValuePairs map[string]s
 	}
 }
 
+func (etcd *resilentEtcdClient) getMainNode() (*client.Node, error) {
+	response, err := etcd.kapi.Get(context.Background(), "/", &client.GetOptions{Recursive: true})
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Node, err
+}
+
 func (etcd *resilentEtcdClient) createKey(parent string, nodeKey string) string {
 	key := parent
 	if parent != "" {

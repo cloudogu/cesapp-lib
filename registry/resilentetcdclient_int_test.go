@@ -87,6 +87,46 @@ func newServer() *httptest.Server {
 	return httptest.NewServer(reverseProxyHandler)
 }
 
+func Test_getMainNode_inttest(t *testing.T) {
+	// start http reverse proxy on random port
+	server := newFaultyServer()
+	defer server.Close()
+
+	cl, err := newResilentEtcdClient([]string{server.URL})
+	require.Nil(t, err)
+
+	defer func() {
+		_ = cl.DeleteRecursive("/dir_test")
+	}()
+
+	_, err = cl.Set("/dir_test/key1/subkey1", "val1", nil)
+	require.Nil(t, err)
+
+	_, err = cl.Set("/dir_test/key1/subkey2", "val2", nil)
+	require.Nil(t, err)
+
+	_, err = cl.Set("/dir_test/key2", "val3", nil)
+	require.Nil(t, err)
+
+	node, err := cl.getMainNode()
+	require.NoError(t, err)
+
+	found := false
+	for _, node := range node.Nodes {
+		if node.Key == "/dir_test" {
+			found = true
+			assert.Len(t, node.Nodes, 2)
+			assert.Equal(t, "/dir_test/key1", node.Nodes[0].Key)
+			assert.Len(t, node.Nodes[0].Nodes, 2)
+			assert.Equal(t, "/dir_test/key1/subkey1", node.Nodes[0].Nodes[0].Key)
+			assert.Equal(t, "/dir_test/key1/subkey2", node.Nodes[0].Nodes[1].Key)
+			assert.Equal(t, "/dir_test/key2", node.Nodes[1].Key)
+		}
+	}
+
+	assert.True(t, found)
+}
+
 func TestGetSetDeleteWithRetry(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
