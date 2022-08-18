@@ -129,7 +129,7 @@ func Test_getMainNode_inttest(t *testing.T) {
 			subkey1Node := key1Node.Nodes[0]
 			subkey2Node := key1Node.Nodes[1]
 			// slice is randomly sorted. Make sure to test the correct nodes
-			if subkey1Node.Nodes[1].Key == "/dir_test/key1/subkey1" {
+			if subkey2Node.Key == "/dir_test/key1/subkey1" {
 				subkey1Node = subkey1Node.Nodes[1]
 				subkey2Node = subkey2Node.Nodes[0]
 			}

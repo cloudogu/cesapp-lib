@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
+	"github.com/coreos/etcd/client"
 	"os"
 
 	"github.com/pkg/errors"
@@ -68,4 +69,29 @@ func (er *etcdRegistry) BlueprintRegistry() ConfigurationContext {
 // RootConfig returns a ConfigurationContext for the root context
 func (er *etcdRegistry) RootConfig() WatchConfigurationContext {
 	return &etcdWatchConfigurationContext{er.client}
+}
+
+// GetNode returns a ConfigurationContext for the root context
+func (er *etcdRegistry) GetNode() (RegistryNode, error) {
+	mainNode, err := er.client.getMainNode()
+	if err != nil {
+		return nil, err
+	}
+	return mapEtcdNodeToRegistryNode(mainNode, nil), nil
+}
+
+func mapEtcdNodeToRegistryNode(node *client.Node, parent *defaultRegistryNode) RegistryNode {
+	result := &defaultRegistryNode{
+		subnodes: []RegistryNode{},
+		isDir:    node.Dir,
+		fullKey:  node.Key,
+		value:    node.Value,
+		parent:   parent,
+	}
+
+	for _, child := range node.Nodes {
+		result.subnodes = append(result.subnodes, mapEtcdNodeToRegistryNode(child, result))
+	}
+
+	return result
 }
