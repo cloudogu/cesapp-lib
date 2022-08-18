@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLimitVersions(t *testing.T) {
+func TestLimitVersions_inttest(t *testing.T) {
 	latest := core.Version{
 		Raw: "0.3",
 	}
@@ -57,7 +57,7 @@ func TestLimitVersions(t *testing.T) {
 	})
 }
 
-func TestDoguVersionPrinter_PrintForAllDogus(t *testing.T) {
+func TestDoguVersionPrinter_PrintForAllDogus_inttest(t *testing.T) {
 	realStdOut := os.Stdout
 	//core.GetLogger().InitForUnitTests(logrus.InfoLevel)
 
@@ -143,7 +143,7 @@ func TestDoguVersionPrinter_PrintForAllDogus(t *testing.T) {
 	})
 }
 
-func TestDoguVersionPrinter_PrintForSingleDogu(t *testing.T) {
+func TestDoguVersionPrinter_PrintForSingleDogu_inttest(t *testing.T) {
 	realStdOut := os.Stdout
 	//logging.InitForUnitTests(logrus.InfoLevel)
 
@@ -222,7 +222,7 @@ func TestDoguVersionPrinter_PrintForSingleDogu(t *testing.T) {
 	})
 }
 
-func TestDoguVersionPrinter_PrintInDefaultFormat(t *testing.T) {
+func TestDoguVersionPrinter_PrintInDefaultFormat_inttest(t *testing.T) {
 	realStdOut := os.Stdout
 	//logging.InitForUnitTests(logrus.InfoLevel)
 

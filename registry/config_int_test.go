@@ -14,15 +14,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGlobalConfig(t *testing.T) {
+func TestGlobalConfig_inttest(t *testing.T) {
 	testConfigurationContext(t, reg.GlobalConfig())
 }
 
-func TestDoguConfig(t *testing.T) {
+func TestDoguConfig_inttest(t *testing.T) {
 	testConfigurationContext(t, reg.DoguConfig("unit-test-1"))
 }
 
-func TestDoguConfigRemoveAll(t *testing.T) {
+func TestDoguConfigRemoveAll_inttest(t *testing.T) {
 	cc := reg.DoguConfig("unit-test-2")
 
 	err := cc.Set("key-1", "value-1")
@@ -50,7 +50,7 @@ func TestDoguConfigRemoveAll(t *testing.T) {
 	assert.False(t, exists)
 }
 
-func TestEtcdDoguConfigGetAll(t *testing.T) {
+func TestEtcdDoguConfigGetAll_inttest(t *testing.T) {
 	cc := reg.DoguConfig("unit-test-3")
 	defer cc.RemoveAll()
 

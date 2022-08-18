@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDogu(t *testing.T) {
+func TestDogu_inttest(t *testing.T) {
 	doguReg := reg.DoguRegistry()
 
 	enabled, err := doguReg.IsEnabled("test")
@@ -42,7 +42,7 @@ func TestDogu(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestDogus(t *testing.T) {
+func TestDogus_inttest(t *testing.T) {
 	doguReg := reg.DoguRegistry()
 
 	dogu := &core.Dogu{Name: "test-1", Version: "42.0"}

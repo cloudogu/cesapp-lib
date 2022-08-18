@@ -127,7 +127,7 @@ func Test_getMainNode_inttest(t *testing.T) {
 	assert.True(t, found)
 }
 
-func TestGetSetDeleteWithRetry(t *testing.T) {
+func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
 	defer server.Close()
@@ -178,7 +178,7 @@ func TestGetSetDeleteWithRetry(t *testing.T) {
 	require.False(t, exists)
 }
 
-func TestWatch(t *testing.T) {
+func TestWatch_inttest(t *testing.T) {
 
 	// start http reverse proxy on random port
 	server := newServer()
@@ -218,7 +218,7 @@ func TestWatch(t *testing.T) {
 	}
 }
 
-func TestSetWithTTL(t *testing.T) {
+func TestSetWithTTL_inttest(t *testing.T) {
 	ttl := 5
 	ttlParsed, err := time.ParseDuration(fmt.Sprintf("%ds", ttl))
 	require.Nil(t, err)
@@ -285,7 +285,7 @@ func TestSetWithTTL(t *testing.T) {
 	require.False(t, exists)
 }
 
-func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
+func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 
 	// start http reverse proxy on random port
 	server := newFaultyServer()
@@ -327,7 +327,7 @@ func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
 	require.Equal(t, "", node)
 }
 
-func Test_resilentEtcdClient_Get(t *testing.T) {
+func Test_resilentEtcdClient_Get_inttest(t *testing.T) {
 	t.Run("should return error which can be tested with IsKeyNotFoundError ", func(t *testing.T) {
 		mockedRetrier := retrier.New(
 			retrier.ConstantBackoff(1, time.Millisecond),
@@ -349,7 +349,7 @@ func Test_resilentEtcdClient_Get(t *testing.T) {
 	})
 }
 
-func Test_resilentEtcdClient_Watch(t *testing.T) {
+func Test_resilentEtcdClient_Watch_inttest(t *testing.T) {
 	t.Run("successfull terminated watch with context timeout", func(t *testing.T) {
 		// given
 		mockedRetrier := retrier.New(
