@@ -42,7 +42,6 @@ type Handler interface {
 	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
 	Close() error
 	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
-	ReadFile(filePath string) error
 }
 
 // DefaultHandler
@@ -142,18 +141,4 @@ func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFi
 	}
 
 	return nil
-}
-
-func (ar *DefaultHandler) ReadFile(filePath string) error {
-	file, err := ar.fileOpener.open(filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
-	}
-	defer func() {
-		if tempErr := file.Close(); tempErr != nil {
-			err = tempErr
-		}
-	}()
-
-	return err
 }
