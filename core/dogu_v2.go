@@ -2,15 +2,11 @@ package core
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"strings"
 
 	"encoding/json"
 	"github.com/gosuri/uitable"
 )
-
-// GetLogger is an alias function to provide a different logger for the core.
-var GetLogger = func() logrus.FieldLogger { return logrus.StandardLogger() }
 
 // Volume is the volume struct of a dogu and will be used to define docker
 // volumes
@@ -364,7 +360,7 @@ func PrintDogus(dogus []*Dogu, ns bool) {
 		table.AddRow(name, dogu.Version, dogu.DisplayName, dogu.Description)
 	}
 
-	GetLogger().Println(table)
+	GetLogger().Print(table)
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.

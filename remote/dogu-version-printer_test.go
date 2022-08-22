@@ -94,7 +94,7 @@ func TestDoguVersionPrinter_PrintForAllDogus(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
@@ -127,7 +127,7 @@ func TestDoguVersionPrinter_PrintForAllDogus(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
@@ -179,7 +179,7 @@ func TestDoguVersionPrinter_PrintForSingleDogu(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
@@ -206,7 +206,7 @@ func TestDoguVersionPrinter_PrintForSingleDogu(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
@@ -251,7 +251,7 @@ func TestDoguVersionPrinter_PrintInDefaultFormat(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
@@ -287,7 +287,7 @@ func TestDoguVersionPrinter_PrintInDefaultFormat(t *testing.T) {
 		defer func() { core.GetLogger = originalLogger }()
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		core.GetLogger = func() logrus.FieldLogger {
+		core.GetLogger = func() core.Logger {
 			return myLogger
 		}
 
