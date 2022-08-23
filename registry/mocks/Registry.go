@@ -61,7 +61,7 @@ func (_m *Registry) DoguRegistry() registry.DoguRegistry {
 }
 
 // GetNode provides a mock function with given fields:
-func (_m *Registry) GetNode() registry.RegistryNode {
+func (_m *Registry) GetNode() (registry.RegistryNode, error) {
 	ret := _m.Called()
 
 	var r0 registry.RegistryNode
@@ -73,7 +73,14 @@ func (_m *Registry) GetNode() registry.RegistryNode {
 		}
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GlobalConfig provides a mock function with given fields:
