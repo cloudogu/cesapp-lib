@@ -360,7 +360,7 @@ func PrintDogus(dogus []*Dogu, ns bool) {
 		table.AddRow(name, dogu.Version, dogu.DisplayName, dogu.Description)
 	}
 
-	GetLogger().Print(table)
+	GetLogger().Print(fmt.Sprintf("%s\n", table))
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.
