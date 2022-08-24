@@ -31,7 +31,7 @@ func CreateMockRegistry(doguRegs []string) RegistryMocks {
 	registry.On("DoguRegistry").Return(doguReg)
 	registry.On("BlueprintRegistry").Return(blueprintConfig)
 	registry.On("RootConfig").Return(rootConfig)
-	registry.On("GetNode").Return(registryNode)
+	registry.On("GetNode").Return(registryNode, nil)
 
 	registries := map[string]*ConfigurationContext{}
 

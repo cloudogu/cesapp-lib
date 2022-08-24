@@ -59,7 +59,8 @@ func TestInitializesCorrect(t *testing.T) {
 	rootConf := reg.RootConfig()
 	require.NotNil(t, rootConf)
 
-	node := reg.GetNode()
+	node, err := reg.GetNode()
+	require.Nil(t, err)
 	require.NotNil(t, node)
 
 	reg.AssertExpectations(t)
