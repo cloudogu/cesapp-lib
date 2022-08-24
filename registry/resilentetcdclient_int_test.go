@@ -137,8 +137,8 @@ func Test_getMainNode_inttest(t *testing.T) {
 			subkey2Node := key1Node.Nodes[1]
 			// slice is randomly sorted. Make sure to test the correct nodes
 			if subkey2Node.Key == "/dir_test/key1/subkey1" {
-				subkey1Node = subkey1Node.Nodes[1]
-				subkey2Node = subkey2Node.Nodes[0]
+				subkey1Node = key1Node.Nodes[1]
+				subkey2Node = key1Node.Nodes[0]
 			}
 			assert.Equal(t, "/dir_test/key1/subkey1", subkey1Node.Key)
 			assert.Equal(t, "/dir_test/key1/subkey2", subkey2Node.Key)
