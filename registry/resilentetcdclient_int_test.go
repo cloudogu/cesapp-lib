@@ -104,6 +104,7 @@ func Test_getMainNode_inttest(t *testing.T) {
 
 	defer func() {
 		_ = client.DeleteRecursive("/dir_test")
+		_ = client.DeleteRecursive("/config")
 	}()
 
 	_, err = client.Set("/dir_test/key1/subkey1", "val1", nil)
@@ -115,6 +116,14 @@ func Test_getMainNode_inttest(t *testing.T) {
 	_, err = client.Set("/dir_test/key2", "val3", nil)
 	require.Nil(t, err)
 
+	// Does not fail when config/_global is unset
+	_, err = client.getMainNode()
+	require.NoError(t, err)
+
+	_, err = client.Set("/config/_global/key", "val4", nil)
+	require.Nil(t, err)
+
+	// Does not fail when config/_global is set
 	node, err := client.getMainNode()
 	require.NoError(t, err)
 

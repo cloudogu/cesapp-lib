@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/coreos/etcd/client"
+	"github.com/prometheus/common/log"
 	"sync"
 	"time"
 
@@ -144,6 +145,20 @@ func (etcd *resilentEtcdClient) getMainNode() (*client.Node, error) {
 	response, err := etcd.kapi.Get(context.Background(), "/", &client.GetOptions{Recursive: true})
 	if err != nil {
 		return nil, fmt.Errorf("cannot get main node from etcd: %w", err)
+	}
+
+	// `config/_global` is a hidden directory and has to be queried explicit. There is no other way to list hidden dirs.
+	for _, node := range response.Node.Nodes {
+		if node.Key == "/config" {
+			globalConfig, err := etcd.kapi.Get(context.Background(), "/config/_global", &client.GetOptions{Recursive: true})
+			if err == nil {
+				node.Nodes = append(node.Nodes, globalConfig.Node)
+			} else if !strings.Contains(err.Error(), "Key not found (/config/_global)") {
+				return nil, fmt.Errorf("cannot get global node from etcd: %w", err)
+			} else {
+				log.Warn("Key '/config/_global' not found.")
+			}
+		}
 	}
 
 	return response.Node, err

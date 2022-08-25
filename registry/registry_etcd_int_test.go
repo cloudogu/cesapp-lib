@@ -27,6 +27,7 @@ func Test_mapEtcdNodeToRegistryNode(t *testing.T) {
 
 	defer func() {
 		_ = client.DeleteRecursive("/dir_test")
+		_ = client.DeleteRecursive("/config/_global")
 	}()
 
 	_, err = client.Set("/dir_test/key1/subkey1", "val1", nil)
@@ -36,6 +37,9 @@ func Test_mapEtcdNodeToRegistryNode(t *testing.T) {
 	require.Nil(t, err)
 
 	_, err = client.Set("/dir_test/key2", "val3", nil)
+	require.Nil(t, err)
+
+	_, err = client.Set("/config/_global/key", "val4", nil)
 	require.Nil(t, err)
 
 	node, err := client.getMainNode()
@@ -49,6 +53,11 @@ func Test_mapEtcdNodeToRegistryNode(t *testing.T) {
 	assert.Len(t, result.GetSubNode("dir_test").GetSubNodes(), 2)
 	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNodes(), 2)
 	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key2").GetSubNodes(), 0)
+
+	t.Run("global config is included", func(t *testing.T) {
+		assert.Equal(t, "/config/_global", result.GetSubNode("config").GetSubNode("_global").GetFullKey())
+		assert.Equal(t, "/config/_global/key", result.GetSubNode("config").GetSubNode("_global").GetSubNode("key").GetFullKey())
+	})
 
 	t.Run("result is correctly setup", func(t *testing.T) {
 		assert.Equal(t, "", result.GetKey())
