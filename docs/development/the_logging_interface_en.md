@@ -51,13 +51,11 @@ func (l *libraryLogger) Debug(args ...interface{}) { ... }
 func (l *libraryLogger) Info(args ...interface{}) { ... }
 func (l *libraryLogger) Warning(args ...interface{}) { ... }
 func (l *libraryLogger) Error(args ...interface{}) { ... }
-func (l *libraryLogger) Print(args ...interface{}) { ... }
 
 func (l *libraryLogger) Debugf(format string, args ...interface{}) { ... }
 func (l *libraryLogger) Infof(format string, args ...interface{}) { ... }
 func (l *libraryLogger) Warningf(format string, args ...interface{}) { ... }
 func (l *libraryLogger) Errorf(format string, args ...interface{}) { ... }
-func (l *libraryLogger) Printf(format string, args ...interface{}) { ... }
 ```
 
 Now a reference of the own interface implementation overwrites the logger in the library:
@@ -139,8 +137,6 @@ In order to identify relevant log messages (e.g. for debugging) more quickly, ma
 
 These are divided into five groups:
 
-- `Print`
-   - is always printed, especially interesting for CLI applications
 - `Error`
    - an application error has occurred, a stack trace may give information about the code path where the error occurred
 - `Warn`
@@ -161,20 +157,20 @@ The API is oriented to methods of `logrus` / `Log4J`. The abstraction from an ac
 
 ### User circle
 
-The user base here is not the general public, but rather developers at Cloudogu or open source committers.
+The user base here is not the public, but rather developers at Cloudogu or open source committers.
 
 ## Applied Use-cases
 
-1. Logging in CLI-Apps
-   1. Logging für zusätzliche Information auf der CLI
-   2. Log-Splitting (z. B. `cesapp`) 
-      - Syslog-Stream: ALLE Logs (Print- und Level-Logs (Error...Debug))
+1. Logging in CLI applications
+   1. Logging für additional Information on the CLI
+   2. Log-Splitting (f. i. `cesapp`) 
+      - Syslog stream: ALL logs (Level-Logs (Error...Debug))
       - StdOut:
-        - ALLE Print-Logs (`logger.Printx()`) werden ausgegeben
-          - ersetzt `fmt.Printx()` damit auch TTY-Ausgaben im Logfile erscheinen
-        - Level-Logs werden je nach eingestelltem Log-Level (Filtering) ausgegeben
-2. Logging in systemd-Services
-   1. Syslog-Stream: Level-Logs je nach eingestelltem Log-Level (Filtering) 
-3. Logging in Containern (Dogus, K8s-Komponenten)
-   1. StdOut: Level-Logs je nach eingestelltem Log-Level (Filtering)
+        - ALL print outputs (`logger.Printx()`) will be shown
+          - replace `fmt.Printx()` so that TTY messages show up in a log file as well
+        - show Leveled logs according the set log level (filtering)
+2. Logging in systemd services
+   1. Syslog stream: Show leveled logs according the set log level (filtering) 
+3. Logging in containers (f. i. dogus, K8s components)
+   1. StdOut: show Leveled logs according the set log level (filtering)
 
