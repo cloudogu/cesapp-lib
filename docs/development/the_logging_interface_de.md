@@ -51,13 +51,11 @@ func (l *libraryLogger) Debug(args ...interface{})   { ... }
 func (l *libraryLogger) Info(args ...interface{})    { ... }
 func (l *libraryLogger) Warning(args ...interface{}) { ... }
 func (l *libraryLogger) Error(args ...interface{})   { ... }
-func (l *libraryLogger) Print(args ...interface{})   { ... }
 
 func (l *libraryLogger) Debugf(format string, args ...interface{})   { ... }
 func (l *libraryLogger) Infof(format string, args ...interface{})    { ... }
 func (l *libraryLogger) Warningf(format string, args ...interface{}) { ... }
 func (l *libraryLogger) Errorf(format string, args ...interface{})   { ... }
-func (l *libraryLogger) Printf(format string, args ...interface{})   { ... }
 ```
 
 Nun überschreibt eine Referenz der eigenen Interface-Implementierung den Logger in der Bibliothek:
@@ -139,8 +137,6 @@ Um relevante Log-Meldungen (z. B. bei Debugging) schneller zu identifizieren, so
 
 Diese werden in fünf Gruppen eingeteilt:
 
-- `Print`
-  - wird stets ausgegeben, besonders interessant für CLI-Anwendungen
 - `Error`
   - ein Anwendungsfehler ist aufgetreten, ein Stacktrace gibt evtl. Aufschluss über den Codepfad, in dem der Fehler aufgetreten ist
 - `Warn`
@@ -168,9 +164,9 @@ Der Benutzerkreis liegt hierbei nicht auf der Allgemeinheit, sondern eher auf En
 1. Logging in CLI-Apps
    1. Logging für zusätzliche Information auf der CLI
    2. Log-Splitting (z. B. `cesapp`) 
-      - Syslog-Stream: ALLE Logs (Print- und Level-Logs (Error...Debug))
+      - Syslog-Stream: ALLE Logs (Printausgaben und Level-Logs (Error...Debug))
       - StdOut:
-        - ALLE Print-Logs (`logger.Printx()`) werden ausgegeben
+        - ALLE Print-Ausgaben (`logger.Printx()`) werden ausgegeben
           - ersetzt `fmt.Printx()` damit auch TTY-Ausgaben im Logfile erscheinen
         - Level-Logs werden je nach eingestelltem Log-Level (Filtering) ausgegeben
 2. Logging in systemd-Services
