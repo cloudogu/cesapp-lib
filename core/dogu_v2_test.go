@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"sort"
@@ -211,87 +210,6 @@ func TestGetRegistryName(t *testing.T) {
 		require.Equal(t, "registry/cloudogu/com", dogu.GetRegistryServerURI())
 	})
 
-}
-
-func TestPrintDogus(t *testing.T) {
-	realStdOut := os.Stdout
-
-	dogu1 := &Dogu{
-		Name:        "namespace/dogu1",
-		Description: "dogu1desc",
-		Version:     "dogu1version",
-		DisplayName: "dogu1displayname",
-	}
-	dogu2 := &Dogu{
-		Name:        "namespace/dogu2",
-		Description: "dogu2desc",
-		Version:     "dogu2version",
-		DisplayName: "dogu2displayname",
-	}
-
-	t.Run("should print table correctly with namespace", func(t *testing.T) {
-		originalLogger := GetLogger
-		defer func() { GetLogger = originalLogger }()
-
-		defer restoreOriginalStdout(realStdOut)
-		fakeReader, fakeWriter := routeStdoutToReplacement()
-
-		myLogger := logrus.New()
-		myLogger.Out = fakeWriter
-		GetLogger = func() logrus.FieldLogger {
-			return myLogger
-		}
-
-		PrintDogus([]*Dogu{dogu1, dogu2}, true)
-
-		// then
-		actualOutput := captureOutput(fakeReader, fakeWriter, realStdOut)
-		assert.Contains(t, actualOutput, "NAME")
-		assert.Contains(t, actualOutput, "VERSION")
-		assert.Contains(t, actualOutput, "DESCRIPTION")
-		assert.Contains(t, actualOutput, "DISPLAYNAME")
-		assert.Contains(t, actualOutput, dogu1.DisplayName)
-		assert.Contains(t, actualOutput, dogu1.Description)
-		assert.Contains(t, actualOutput, dogu1.Version)
-		assert.Contains(t, actualOutput, dogu1.Name)
-		assert.Contains(t, actualOutput, dogu2.DisplayName)
-		assert.Contains(t, actualOutput, dogu2.Description)
-		assert.Contains(t, actualOutput, dogu2.Version)
-		assert.Contains(t, actualOutput, dogu2.Name)
-	})
-
-	t.Run("should print table correctly without namespace", func(t *testing.T) {
-		originalLogger := GetLogger
-		defer func() { GetLogger = originalLogger }()
-
-		defer restoreOriginalStdout(realStdOut)
-		fakeReader, fakeWriter := routeStdoutToReplacement()
-
-		myLogger := logrus.New()
-		myLogger.Out = fakeWriter
-		GetLogger = func() logrus.FieldLogger {
-			return myLogger
-		}
-
-		PrintDogus([]*Dogu{dogu1, dogu2}, false)
-
-		// then
-		actualOutput := captureOutput(fakeReader, fakeWriter, realStdOut)
-		assert.Contains(t, actualOutput, "NAME")
-		assert.Contains(t, actualOutput, "VERSION")
-		assert.Contains(t, actualOutput, "DESCRIPTION")
-		assert.Contains(t, actualOutput, "DISPLAYNAME")
-		assert.Contains(t, actualOutput, dogu1.DisplayName)
-		assert.Contains(t, actualOutput, dogu1.Description)
-		assert.Contains(t, actualOutput, dogu1.Version)
-		assert.NotContains(t, actualOutput, dogu1.Name)
-		assert.Contains(t, actualOutput, dogu1.GetSimpleName())
-		assert.Contains(t, actualOutput, dogu2.DisplayName)
-		assert.Contains(t, actualOutput, dogu2.Description)
-		assert.Contains(t, actualOutput, dogu2.Version)
-		assert.NotContains(t, actualOutput, dogu2.Name)
-		assert.Contains(t, actualOutput, dogu2.GetSimpleName())
-	})
 }
 
 func restoreOriginalStdout(stdout *os.File) {
