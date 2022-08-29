@@ -238,7 +238,7 @@ func TestPrintDogus(t *testing.T) {
 
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		GetLogger = func() logrus.FieldLogger {
+		GetLogger = func() Logger {
 			return myLogger
 		}
 
@@ -269,7 +269,7 @@ func TestPrintDogus(t *testing.T) {
 
 		myLogger := logrus.New()
 		myLogger.Out = fakeWriter
-		GetLogger = func() logrus.FieldLogger {
+		GetLogger = func() Logger {
 			return myLogger
 		}
 

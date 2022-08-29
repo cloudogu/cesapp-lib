@@ -68,14 +68,14 @@ func TestExists(t *testing.T) {
 	assert.True(t, Exists("../Makefile"), "should return true")
 }
 
-func initPackageLoggerWithDefaultLogger() func() logrus.FieldLogger {
+func initPackageLoggerWithDefaultLogger() func() core.Logger {
 	originalLogger := core.GetLogger()
 
 	newLogger := logrus.New()
 	newLogger.SetLevel(logrus.DebugLevel)
-	core.GetLogger = func() logrus.FieldLogger { return newLogger }
+	core.GetLogger = func() core.Logger { return newLogger }
 
-	resetOriginalLogger := func() logrus.FieldLogger { return originalLogger }
+	resetOriginalLogger := func() core.Logger { return originalLogger }
 
 	return resetOriginalLogger
 }
@@ -127,7 +127,7 @@ func TestCloseButLogError_shouldNotCloseAndLogInstead(t *testing.T) {
 	defer func() { core.GetLogger = originalLogger }()
 	myLogger := logrus.New()
 	myLogger.Out = fakeWriterPipe
-	core.GetLogger = func() logrus.FieldLogger {
+	core.GetLogger = func() core.Logger {
 		return myLogger
 	}
 
