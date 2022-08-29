@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"encoding/json"
-	"github.com/gosuri/uitable"
 )
 
 // Volume is the volume struct of a dogu and will be used to define docker
@@ -340,27 +339,6 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 	}
 
 	return version.IsNewerThan(otherVersion), nil
-}
-
-// PrintDogus prints out dogu name, version, display name and description in a table
-func PrintDogus(dogus []*Dogu, ns bool) {
-	table := uitable.New()
-	table.Separator = "  "
-	table.MaxColWidth = 50
-
-	table.AddRow("")
-	table.AddRow("NAME", "VERSION", "DISPLAYNAME", "DESCRIPTION")
-	for _, dogu := range dogus {
-		var name string
-		if ns {
-			name = dogu.GetFullName()
-		} else {
-			name = dogu.GetSimpleName()
-		}
-		table.AddRow(name, dogu.Version, dogu.DisplayName, dogu.Description)
-	}
-
-	GetLogger().Print(fmt.Sprintf("%s\n", table))
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.
