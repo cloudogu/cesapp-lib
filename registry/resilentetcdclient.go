@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"sync"
 	"time"
 

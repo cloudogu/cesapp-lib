@@ -5,7 +5,7 @@ package mocks
 import (
 	context "context"
 
-	client "github.com/coreos/etcd/client"
+	client "go.etcd.io/etcd/client/v2"
 
 	mock "github.com/stretchr/testify/mock"
 )

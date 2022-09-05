@@ -5,8 +5,8 @@ package registry
 
 import (
 	"fmt"
-	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/etcd/client/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
