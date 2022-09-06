@@ -23,8 +23,15 @@ func TestIsKeyNotFoundError(t *testing.T) {
 
 		require.False(t, actual)
 	})
-	t.Run("should return true if error is an original client error with code 100", func(t *testing.T) {
+	t.Run("should return true if error is a pointer error to an original client error with code 100", func(t *testing.T) {
 		originalErr := &client.Error{Code: client.ErrorCodeKeyNotFound}
+
+		actual := IsKeyNotFoundError(originalErr)
+
+		require.True(t, actual)
+	})
+	t.Run("should return true if error is a pointer-less original client error with code 100", func(t *testing.T) {
+		originalErr := client.Error{Code: client.ErrorCodeKeyNotFound}
 
 		actual := IsKeyNotFoundError(originalErr)
 

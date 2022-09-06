@@ -17,6 +17,9 @@ func IsKeyNotFoundError(err error) bool {
 }
 
 func isKeyNotFound(err error) bool {
+	if cErr, ok := err.(client.Error); ok {
+		return cErr.Code == client.ErrorCodeKeyNotFound
+	}
 	if cErr, ok := err.(*client.Error); ok {
 		return cErr.Code == client.ErrorCodeKeyNotFound
 	}
