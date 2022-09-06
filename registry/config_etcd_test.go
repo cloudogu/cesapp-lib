@@ -2,10 +2,10 @@ package registry
 
 import (
 	"context"
-	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.etcd.io/etcd/client/v2"
 	"testing"
 	"time"
 )

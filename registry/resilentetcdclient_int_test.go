@@ -6,8 +6,8 @@ package registry
 import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/etcd/client/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"

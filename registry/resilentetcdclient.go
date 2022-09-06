@@ -3,8 +3,7 @@ package registry
 import (
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
-	"github.com/prometheus/common/log"
+	"go.etcd.io/etcd/client/v2"
 	"sync"
 	"time"
 
@@ -16,7 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// newResilentEtcdClient is build up on the the kapi of etcd and adds constant retries for every failed request.
+var log = core.GetLogger()
+
+// newResilentEtcdClient is build up on the kapi of etcd and adds constant retries for every failed request.
 func newResilentEtcdClient(endpoints []string) (*resilentEtcdClient, error) {
 	core.GetLogger().Debug("create etcd client for endpoints", endpoints)
 
@@ -156,7 +157,7 @@ func (etcd *resilentEtcdClient) getMainNode() (*client.Node, error) {
 			} else if !strings.Contains(err.Error(), "Key not found (/config/_global)") {
 				return nil, fmt.Errorf("cannot get global node from etcd: %w", err)
 			} else {
-				log.Warn("Key '/config/_global' not found.")
+				log.Warning("Key '/config/_global' not found.")
 			}
 		}
 	}

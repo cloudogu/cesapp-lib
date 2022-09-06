@@ -2,7 +2,7 @@ package registry
 
 import (
 	"errors"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"strconv"
 	"testing"
 

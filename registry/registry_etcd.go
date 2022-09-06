@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"os"
 
 	"github.com/pkg/errors"
@@ -13,11 +13,11 @@ type etcdRegistry struct {
 }
 
 func newEtcdRegistry(configuration core.Registry) (*etcdRegistry, error) {
-	client, err := createEtcdClient(configuration)
+	etcdClient, err := createEtcdClient(configuration)
 	if err != nil {
 		return nil, err
 	}
-	return &etcdRegistry{client}, nil
+	return &etcdRegistry{etcdClient}, nil
 }
 
 func createEtcdClient(configuration core.Registry) (*resilentEtcdClient, error) {
