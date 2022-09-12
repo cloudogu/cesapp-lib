@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAllReturnsV1AsWellAsV2(t *testing.T) {
+func TestGetAllReturnsV1AsWellAsV2_inttest(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
 	defer server.Close()
@@ -62,7 +62,7 @@ func TestGetAllReturnsV1AsWellAsV2(t *testing.T) {
 	assert.True(t, core.ContainsDoguWithName(allDogusResult, "official/dogue"))
 }
 
-func TestCombinedEtcdDoguRegistryWritesToV1AndV2(t *testing.T) {
+func TestCombinedEtcdDoguRegistryWritesToV1AndV2_inttest(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
 	defer server.Close()

@@ -70,3 +70,8 @@ func (mr *MockRegistry) BlueprintRegistry() ConfigurationContext {
 func (mr *MockRegistry) RootConfig() WatchConfigurationContext {
 	return nil
 }
+
+// GetNode was added to deprecated mock for legacy code support and has no functionality
+func (mr *MockRegistry) GetNode() (Node, error) {
+	return Node{}, nil
+}

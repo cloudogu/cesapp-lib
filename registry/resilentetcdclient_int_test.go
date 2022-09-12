@@ -5,8 +5,9 @@ package registry
 
 import (
 	"fmt"
-	"github.com/coreos/etcd/client"
+	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/stretchr/testify/assert"
+	"go.etcd.io/etcd/client/v2"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -87,7 +88,76 @@ func newServer() *httptest.Server {
 	return httptest.NewServer(reverseProxyHandler)
 }
 
-func TestGetSetDeleteWithRetry(t *testing.T) {
+func Test_getMainNode_inttest(t *testing.T) {
+	// create etcd address, for local execution and on ci
+	etcd := os.Getenv("ETCD")
+	if etcd == "" {
+		etcd = "localhost"
+	}
+
+	client, err := createEtcdClient(core.Registry{
+		Type: "etcd",
+		Endpoints: []string{
+			"http://" + etcd + ":4001",
+		},
+	})
+
+	defer func() {
+		_ = client.DeleteRecursive("/dir_test")
+		_ = client.DeleteRecursive("/config")
+	}()
+
+	_, err = client.Set("/dir_test/key1/subkey1", "val1", nil)
+	require.Nil(t, err)
+
+	_, err = client.Set("/dir_test/key1/subkey2", "val2", nil)
+	require.Nil(t, err)
+
+	_, err = client.Set("/dir_test/key2", "val3", nil)
+	require.Nil(t, err)
+
+	// Does not fail when config/_global is unset
+	_, err = client.getMainNode()
+	require.NoError(t, err)
+
+	_, err = client.Set("/config/_global/key", "val4", nil)
+	require.Nil(t, err)
+
+	// Does not fail when config/_global is set
+	node, err := client.getMainNode()
+	require.NoError(t, err)
+
+	found := false
+	for _, node := range node.Nodes {
+		if node.Key == "/dir_test" {
+			found = true
+			assert.Len(t, node.Nodes, 2)
+			key1Node := node.Nodes[0]
+			key2Node := node.Nodes[1]
+			// slice is randomly sorted. Make sure to test the correct nodes
+			if node.Nodes[1].Key == "/dir_test/key1" {
+				key1Node = node.Nodes[1]
+				key2Node = node.Nodes[0]
+			}
+			assert.Equal(t, "/dir_test/key1", key1Node.Key)
+			assert.Equal(t, "/dir_test/key2", key2Node.Key)
+			assert.Len(t, key1Node.Nodes, 2)
+			subkey1Node := key1Node.Nodes[0]
+			subkey2Node := key1Node.Nodes[1]
+			// slice is randomly sorted. Make sure to test the correct nodes
+			if subkey2Node.Key == "/dir_test/key1/subkey1" {
+				subkey1Node = key1Node.Nodes[1]
+				subkey2Node = key1Node.Nodes[0]
+			}
+			assert.Equal(t, "/dir_test/key1/subkey1", subkey1Node.Key)
+			assert.Equal(t, "/dir_test/key1/subkey2", subkey2Node.Key)
+		}
+	}
+
+	assert.True(t, found)
+}
+
+func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()
 	defer server.Close()
@@ -138,7 +208,7 @@ func TestGetSetDeleteWithRetry(t *testing.T) {
 	require.False(t, exists)
 }
 
-func TestWatch(t *testing.T) {
+func TestWatch_inttest(t *testing.T) {
 
 	// start http reverse proxy on random port
 	server := newServer()
@@ -178,7 +248,7 @@ func TestWatch(t *testing.T) {
 	}
 }
 
-func TestSetWithTTL(t *testing.T) {
+func TestSetWithTTL_inttest(t *testing.T) {
 	ttl := 5
 	ttlParsed, err := time.ParseDuration(fmt.Sprintf("%ds", ttl))
 	require.Nil(t, err)
@@ -245,7 +315,7 @@ func TestSetWithTTL(t *testing.T) {
 	require.False(t, exists)
 }
 
-func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
+func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 
 	// start http reverse proxy on random port
 	server := newFaultyServer()
@@ -287,7 +357,7 @@ func TestGetChildrenPathsAndRecursiveOperations(t *testing.T) {
 	require.Equal(t, "", node)
 }
 
-func Test_resilentEtcdClient_Get(t *testing.T) {
+func Test_resilentEtcdClient_Get_inttest(t *testing.T) {
 	t.Run("should return error which can be tested with IsKeyNotFoundError ", func(t *testing.T) {
 		mockedRetrier := retrier.New(
 			retrier.ConstantBackoff(1, time.Millisecond),
@@ -309,7 +379,7 @@ func Test_resilentEtcdClient_Get(t *testing.T) {
 	})
 }
 
-func Test_resilentEtcdClient_Watch(t *testing.T) {
+func Test_resilentEtcdClient_Watch_inttest(t *testing.T) {
 	t.Run("successfull terminated watch with context timeout", func(t *testing.T) {
 		// given
 		mockedRetrier := retrier.New(

@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.5.0] - 2022-09-12
+### Added
+- Function to get the whole registry content as RegistryNode (#6)
+
+### Changed
+- Set default make goal to 'compile'
+- switch etcd client lib to `go.etcd.io/etcd/client/v2` (#6)
+
 ## [v0.4.0] - 2022-08-29
 ### Added
 - [#7] Added general logging interface. See [Logger-Interface](core/logger.go) for more information.

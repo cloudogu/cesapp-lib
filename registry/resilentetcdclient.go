@@ -1,8 +1,9 @@
 package registry
 
 import (
+	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"sync"
 	"time"
 
@@ -14,7 +15,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// newResilentEtcdClient is build up on the the kapi of etcd and adds constant retries for every failed request.
+var log = core.GetLogger()
+
+// newResilentEtcdClient is build up on the kapi of etcd and adds constant retries for every failed request.
 func newResilentEtcdClient(endpoints []string) (*resilentEtcdClient, error) {
 	core.GetLogger().Debug("create etcd client for endpoints", endpoints)
 
@@ -106,7 +109,7 @@ func (etcd *resilentEtcdClient) Get(key string) (string, error) {
 	return result, nil
 }
 
-// GetRecursive returns a map of key value pairs below the given key
+// GetRecursive returns a map of key Value pairs below the given key
 func (etcd *resilentEtcdClient) GetRecursive(key string) (map[string]string, error) {
 	var result map[string]string
 	err := etcd.retrier.Run(func() error {
@@ -137,6 +140,29 @@ func (etcd *resilentEtcdClient) addNodeDirValuesToMap(keyValuePairs map[string]s
 			keyValuePairs[childKey] = child.Value
 		}
 	}
+}
+
+func (etcd *resilentEtcdClient) getMainNode() (*client.Node, error) {
+	response, err := etcd.kapi.Get(context.Background(), "/", &client.GetOptions{Recursive: true})
+	if err != nil {
+		return nil, fmt.Errorf("cannot get main node from etcd: %w", err)
+	}
+
+	// `config/_global` is a hidden directory and has to be queried explicit. There is no other way to list hidden dirs.
+	for _, node := range response.Node.Nodes {
+		if node.Key == "/config" {
+			globalConfig, err := etcd.kapi.Get(context.Background(), "/config/_global", &client.GetOptions{Recursive: true})
+			if err == nil {
+				node.Nodes = append(node.Nodes, globalConfig.Node)
+			} else if !strings.Contains(err.Error(), "Key not found (/config/_global)") {
+				return nil, fmt.Errorf("cannot get global node from etcd: %w", err)
+			} else {
+				log.Warning("Key '/config/_global' not found.")
+			}
+		}
+	}
+
+	return response.Node, err
 }
 
 func (etcd *resilentEtcdClient) createKey(parent string, nodeKey string) string {

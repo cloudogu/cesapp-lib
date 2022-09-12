@@ -2,6 +2,7 @@ package registry
 
 import (
 	"github.com/cloudogu/cesapp-lib/core"
+	"go.etcd.io/etcd/client/v2"
 	"os"
 
 	"github.com/pkg/errors"
@@ -12,11 +13,11 @@ type etcdRegistry struct {
 }
 
 func newEtcdRegistry(configuration core.Registry) (*etcdRegistry, error) {
-	client, err := createEtcdClient(configuration)
+	etcdClient, err := createEtcdClient(configuration)
 	if err != nil {
 		return nil, err
 	}
-	return &etcdRegistry{client}, nil
+	return &etcdRegistry{etcdClient}, nil
 }
 
 func createEtcdClient(configuration core.Registry) (*resilentEtcdClient, error) {
@@ -68,4 +69,28 @@ func (er *etcdRegistry) BlueprintRegistry() ConfigurationContext {
 // RootConfig returns a ConfigurationContext for the root context
 func (er *etcdRegistry) RootConfig() WatchConfigurationContext {
 	return &etcdWatchConfigurationContext{er.client}
+}
+
+// GetNode returns a ConfigurationContext for the root context
+func (er *etcdRegistry) GetNode() (Node, error) {
+	mainNode, err := er.client.getMainNode()
+	if err != nil {
+		return Node{}, err
+	}
+	return mapEtcdNodeToRegistryNode(mainNode), nil
+}
+
+func mapEtcdNodeToRegistryNode(node *client.Node) Node {
+	result := Node{
+		SubNodes: []Node{},
+		IsDir:    node.Dir,
+		FullKey:  node.Key,
+		Value:    node.Value,
+	}
+
+	for _, child := range node.Nodes {
+		result.SubNodes = append(result.SubNodes, mapEtcdNodeToRegistryNode(child))
+	}
+
+	return result
 }
