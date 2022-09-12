@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
+	"go.etcd.io/etcd/client/v2"
 )
 
 // IsKeyNotFoundError returns true if the given error is a or contains a registry keyNotFoundError, otherwise false.

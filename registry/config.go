@@ -2,7 +2,7 @@ package registry
 
 import (
 	"context"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 )
 
 // ConfigurationContext is able to manage the configuration of a single context

@@ -3,8 +3,7 @@ package registry
 
 import (
 	context "context"
-
-	client "github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 
 	mock "github.com/stretchr/testify/mock"
 )

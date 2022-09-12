@@ -31,6 +31,8 @@ type Registry interface {
 	BlueprintRegistry() ConfigurationContext
 	// RootConfig returns a WatchConfigurationContext for the root context
 	RootConfig() WatchConfigurationContext
+	// GetNode returns all keys that are included in any path, packed as Node
+	GetNode() (Node, error)
 }
 
 // New creates a new registry

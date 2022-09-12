@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/coreos/etcd/client"
+	"go.etcd.io/etcd/client/v2"
 	"strings"
 	"time"
 

@@ -1,8 +1,8 @@
 package registry
 
 import (
-	"github.com/coreos/etcd/client"
 	"github.com/pkg/errors"
+	"go.etcd.io/etcd/client/v2"
 )
 
 func createMockConfigurationContext() *mockConfigurationContext {
@@ -37,7 +37,7 @@ func (mcc *mockConfigurationContext) Get(key string) (string, error) {
 	return "", client.Error{Code: client.ErrorCodeKeyNotFound}
 }
 
-func (mcc *mockConfigurationContext) Refresh(key string, timeToLiveInSeconds int) error {
+func (mcc *mockConfigurationContext) Refresh(_ string, _ int) error {
 	// Nothing to be done here because mock etcd does not support timeout anyway
 	return nil
 }
@@ -54,7 +54,7 @@ func (mcc *mockConfigurationContext) Delete(key string) error {
 	return errors.Errorf("key %s does not exist", key)
 }
 
-func (mcc *mockConfigurationContext) DeleteRecursive(key string) error {
+func (mcc *mockConfigurationContext) DeleteRecursive(_ string) error {
 	return nil
 }
 
@@ -75,6 +75,6 @@ func (mcc *mockConfigurationContext) GetOrFalse(key string) (exists bool, value 
 	return false, "", nil
 }
 
-func (mcc *mockConfigurationContext) Watch(key string, recursive bool, eventChannel chan *client.Response) {
+func (mcc *mockConfigurationContext) Watch(_ string, _ bool, _ chan *client.Response) {
 
 }
