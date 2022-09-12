@@ -72,6 +72,6 @@ func (mr *MockRegistry) RootConfig() WatchConfigurationContext {
 }
 
 // GetNode was added to deprecated mock for legacy code support and has no functionality
-func (mr *MockRegistry) GetNode() (RegistryNode, error) {
+func (mr *MockRegistry) GetNode() (*Node, error) {
 	return nil, nil
 }

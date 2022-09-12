@@ -4,42 +4,31 @@ import (
 	"strings"
 )
 
-type RegistryNode interface {
-	IsDir() bool
-	HasSubNodes() bool
-	GetSubNodes() []RegistryNode
-	GetFullKey() string
-	GetKey() string
-	GetValue() string
-	GetParent() RegistryNode
-	GetSubNode(key string) RegistryNode
-}
-
-type defaultRegistryNode struct {
-	subnodes []RegistryNode
+type Node struct {
+	subnodes []*Node
 	isDir    bool
 	fullKey  string
 	value    string
-	parent   *defaultRegistryNode
+	parent   *Node
 }
 
-func (drn *defaultRegistryNode) IsDir() bool {
+func (drn *Node) IsDir() bool {
 	return drn.isDir
 }
 
-func (drn *defaultRegistryNode) HasSubNodes() bool {
+func (drn *Node) HasSubNodes() bool {
 	return len(drn.GetSubNodes()) > 0
 }
 
-func (drn *defaultRegistryNode) GetSubNodes() []RegistryNode {
+func (drn *Node) GetSubNodes() []*Node {
 	return drn.subnodes
 }
 
-func (drn *defaultRegistryNode) GetFullKey() string {
+func (drn *Node) GetFullKey() string {
 	return drn.fullKey
 }
 
-func (drn *defaultRegistryNode) GetKey() string {
+func (drn *Node) GetKey() string {
 	if strings.Contains(drn.fullKey, "/") {
 		splitted := strings.Split(drn.fullKey, "/")
 		return splitted[len(splitted)-1]
@@ -48,15 +37,15 @@ func (drn *defaultRegistryNode) GetKey() string {
 	return drn.fullKey
 }
 
-func (drn *defaultRegistryNode) GetValue() string {
+func (drn *Node) GetValue() string {
 	return drn.value
 }
 
-func (drn *defaultRegistryNode) GetParent() RegistryNode {
+func (drn *Node) GetParent() *Node {
 	return drn.parent
 }
 
-func (drn *defaultRegistryNode) GetSubNode(key string) RegistryNode {
+func (drn *Node) GetSubNode(key string) *Node {
 	for _, subnode := range drn.subnodes {
 		if subnode.GetKey() == key {
 			return subnode

@@ -72,7 +72,7 @@ func (er *etcdRegistry) RootConfig() WatchConfigurationContext {
 }
 
 // GetNode returns a ConfigurationContext for the root context
-func (er *etcdRegistry) GetNode() (RegistryNode, error) {
+func (er *etcdRegistry) GetNode() (*Node, error) {
 	mainNode, err := er.client.getMainNode()
 	if err != nil {
 		return nil, err
@@ -80,9 +80,9 @@ func (er *etcdRegistry) GetNode() (RegistryNode, error) {
 	return mapEtcdNodeToRegistryNode(mainNode, nil), nil
 }
 
-func mapEtcdNodeToRegistryNode(node *client.Node, parent *defaultRegistryNode) RegistryNode {
-	result := &defaultRegistryNode{
-		subnodes: []RegistryNode{},
+func mapEtcdNodeToRegistryNode(node *client.Node, parent *Node) *Node {
+	result := &Node{
+		subnodes: []*Node{},
 		isDir:    node.Dir,
 		fullKey:  node.Key,
 		value:    node.Value,

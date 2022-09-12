@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"github.com/cloudogu/cesapp-lib/registry"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -14,36 +15,36 @@ type RegistryMocks struct {
 	SubRegistries map[string]*ConfigurationContext
 	DoguRegistry  *DoguRegistry
 	WatchContext  *WatchConfigurationContext
-	Node          *RegistryNode
+	Node          *registry.Node
 }
 
 // CreateMockRegistry creates a mock registry containing default values for any sub-registry.
 // The doguRegs parameter contains a list with all dogu registries that should be exist. Pass nil if you don't need any dogu registry.
 // Note: AssertExpectations on the registry may fail because of the predefined expectations.
 func CreateMockRegistry(doguRegs []string) RegistryMocks {
-	registry := &Registry{}
+	reg := &Registry{}
 	globalConfig := &ConfigurationContext{}
 	blueprintConfig := &ConfigurationContext{}
 	doguReg := &DoguRegistry{}
 	rootConfig := &WatchConfigurationContext{}
-	registryNode := &RegistryNode{}
-	registry.On("GlobalConfig").Return(globalConfig)
-	registry.On("DoguRegistry").Return(doguReg)
-	registry.On("BlueprintRegistry").Return(blueprintConfig)
-	registry.On("RootConfig").Return(rootConfig)
-	registry.On("GetNode").Return(registryNode, nil)
+	registryNode := &registry.Node{}
+	reg.On("GlobalConfig").Return(globalConfig)
+	reg.On("DoguRegistry").Return(doguReg)
+	reg.On("BlueprintRegistry").Return(blueprintConfig)
+	reg.On("RootConfig").Return(rootConfig)
+	reg.On("GetNode").Return(registryNode, nil)
 
 	registries := map[string]*ConfigurationContext{}
 
 	for _, doguReg := range doguRegs {
-		registries[doguReg] = addDoguRegistry(registry, doguReg)
+		registries[doguReg] = addDoguRegistry(reg, doguReg)
 	}
 
 	registries["_global"] = globalConfig
 	registries["blueprints"] = blueprintConfig
 
 	return RegistryMocks{
-		Registry:      registry,
+		Registry:      reg,
 		SubRegistries: registries,
 		DoguRegistry:  doguReg,
 		WatchContext:  rootConfig,
