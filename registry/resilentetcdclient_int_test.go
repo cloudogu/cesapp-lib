@@ -157,15 +157,6 @@ func Test_getMainNode_inttest(t *testing.T) {
 	assert.True(t, found)
 }
 
-func findChildByKey(node *client.Node, key string) *client.Node {
-	for _, n := range node.Nodes {
-		if n.Key == key {
-			return n
-		}
-	}
-	return nil
-}
-
 func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
 	// start http reverse proxy on random port
 	server := newFaultyServer()

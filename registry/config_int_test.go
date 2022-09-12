@@ -80,6 +80,7 @@ func TestEtcdDoguConfigGetAll_inttest(t *testing.T) {
 }
 
 func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
+	t.Helper()
 	defer cc.RemoveAll()
 
 	exists, err := cc.Exists("key-1")

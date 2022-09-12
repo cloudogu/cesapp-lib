@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func Test_mapEtcdNodeToRegistryNode(t *testing.T) {
+func Test_mapEtcdNodeToRegistryNode_inttest(t *testing.T) {
 	// create etcd address, for local execution and on ci
 	etcd := os.Getenv("ETCD")
 	if etcd == "" {
