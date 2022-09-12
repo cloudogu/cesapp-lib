@@ -15,7 +15,7 @@ type RegistryMocks struct {
 	SubRegistries map[string]*ConfigurationContext
 	DoguRegistry  *DoguRegistry
 	WatchContext  *WatchConfigurationContext
-	Node          *registry.Node
+	Node          registry.Node
 }
 
 // CreateMockRegistry creates a mock registry containing default values for any sub-registry.
@@ -27,7 +27,7 @@ func CreateMockRegistry(doguRegs []string) RegistryMocks {
 	blueprintConfig := &ConfigurationContext{}
 	doguReg := &DoguRegistry{}
 	rootConfig := &WatchConfigurationContext{}
-	registryNode := &registry.Node{}
+	registryNode := registry.Node{}
 	reg.On("GlobalConfig").Return(globalConfig)
 	reg.On("DoguRegistry").Return(doguReg)
 	reg.On("BlueprintRegistry").Return(blueprintConfig)

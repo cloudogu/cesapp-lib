@@ -139,7 +139,7 @@ func (reg *etcdDoguRegistry) Enable(dogu *core.Dogu) error {
 	core.GetLogger().Infof("enable dogu %s:%s", dogu.GetSimpleName(), dogu.Version)
 
 	path := reg.path + "/" + dogu.GetSimpleName() + "/current"
-	core.GetLogger().Debug("set etcd value at", path)
+	core.GetLogger().Debug("set etcd Value at", path)
 	_, err := reg.client.Set(path, dogu.Version, nil)
 	return err
 }
@@ -156,7 +156,7 @@ func (reg *etcdDoguRegistry) Register(dogu *core.Dogu) error {
 
 	// register dogu as json on etcd
 	path := reg.path + "/" + dogu.GetSimpleName() + "/" + dogu.Version
-	core.GetLogger().Debug("set etcd value on", path)
+	core.GetLogger().Debug("set etcd Value on", path)
 	_, err = reg.client.Set(path, data, nil)
 	return err
 }
@@ -177,7 +177,7 @@ func (reg *etcdDoguRegistry) Get(name string) (*core.Dogu, error) {
 
 func getCurrentValue(client *resilentEtcdClient, parent string) (string, error) {
 	path := parent + "/current"
-	core.GetLogger().Debug("get etcd value from", path)
+	core.GetLogger().Debug("get etcd Value from", path)
 
 	version, err := client.Get(path)
 	if err != nil {
@@ -186,7 +186,7 @@ func getCurrentValue(client *resilentEtcdClient, parent string) (string, error) 
 	}
 
 	path = parent + "/" + version
-	core.GetLogger().Debug("get etcd value from", path)
+	core.GetLogger().Debug("get etcd Value from", path)
 
 	doguJSON, err := client.Get(path)
 	if err != nil {

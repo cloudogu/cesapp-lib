@@ -31,12 +31,12 @@ type etcdWatchConfigurationContext struct {
 	client etcdClient
 }
 
-// Set sets a configuration value in current context
+// Set sets a configuration Value in current context
 func (ecc *etcdConfigurationContext) Set(key, value string) error {
 	return ecc.set(key, value, nil)
 }
 
-// SetWithLifetime sets a configuration value in current context with the given lifetime
+// SetWithLifetime sets a configuration Value in current context with the given lifetime
 func (ecc *etcdConfigurationContext) SetWithLifetime(key, value string, timeToLiveInSeconds int) error {
 	duration, err := time.ParseDuration(fmt.Sprintf("%ds", timeToLiveInSeconds))
 	if err != nil {
@@ -67,7 +67,7 @@ func (ecc *etcdConfigurationContext) set(key, value string, options *client.SetO
 
 	_, err := ecc.client.Set(path, value, options)
 	if err != nil {
-		return errors.Wrapf(err, "could not set value %s", path)
+		return errors.Wrapf(err, "could not set Value %s", path)
 	}
 
 	return err
@@ -77,26 +77,26 @@ func (ecc *etcdConfigurationContext) Get(key string) (string, error) {
 	return Get(ecc.parent, key, ecc.client)
 }
 
-// GetAll returns a map of key value pairs
+// GetAll returns a map of key Value pairs
 func (ecc *etcdConfigurationContext) GetAll() (map[string]string, error) {
 	core.GetLogger().Debugf("try to get all configuration keys and values from %s", ecc.parent)
 
 	keyValuePairs, err := ecc.client.GetRecursive(ecc.parent)
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not get key value pairs recursive from %s", ecc.parent)
+		return nil, errors.Wrapf(err, "could not get key Value pairs recursive from %s", ecc.parent)
 	}
 
 	return keyValuePairs, nil
 }
 
-// Delete removes a configuration key and value from the current context
+// Delete removes a configuration key and Value from the current context
 func (ecc *etcdConfigurationContext) Delete(key string) error {
 	path := ecc.parent + "/" + key
 	core.GetLogger().Debug("try to delete config key", path)
 
 	err := ecc.client.Delete(path, nil)
 	if err != nil {
-		return errors.Wrapf(err, "could not delete value at %s", path)
+		return errors.Wrapf(err, "could not delete Value at %s", path)
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (ecc *etcdConfigurationContext) DeleteRecursive(key string) error {
 
 	err := ecc.client.DeleteRecursive(path)
 	if err != nil {
-		return errors.Wrapf(err, "could not delete value at %s", path)
+		return errors.Wrapf(err, "could not delete Value at %s", path)
 	}
 	return nil
 }
@@ -135,8 +135,8 @@ func (ecc *etcdConfigurationContext) RemoveAll() error {
 	return nil
 }
 
-// GetOrFalse return false and empty string when the configuration value does not exist.
-// Otherwise return true and the configuration value, even when the configuration value is an empty string.
+// GetOrFalse return false and empty string when the configuration Value does not exist.
+// Otherwise return true and the configuration Value, even when the configuration Value is an empty string.
 func (ecc *etcdConfigurationContext) GetOrFalse(key string) (bool, string, error) {
 	exists, err := ecc.Exists(key)
 	if err != nil {
@@ -165,7 +165,7 @@ func (ewcc *etcdWatchConfigurationContext) Get(key string) (string, error) {
 	return Get("", key, ewcc.client)
 }
 
-// Get returns a configuration value from the current context, otherwise it returns an error. If the given key cannot be
+// Get returns a configuration Value from the current context, otherwise it returns an error. If the given key cannot be
 // found a KeyNotFoundError is returned.
 func Get(parent string, key string, client etcdClient) (string, error) {
 	path := parent + "/" + key
@@ -179,7 +179,7 @@ func Get(parent string, key string, client etcdClient) (string, error) {
 
 	value, err := client.Get(path)
 	if err != nil {
-		return "", errors.Wrapf(err, "could not get value %s", path)
+		return "", errors.Wrapf(err, "could not get Value %s", path)
 	}
 	return value, nil
 }

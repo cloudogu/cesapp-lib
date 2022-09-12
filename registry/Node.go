@@ -5,52 +5,31 @@ import (
 )
 
 type Node struct {
-	subnodes []*Node
-	isDir    bool
-	fullKey  string
-	value    string
-	parent   *Node
+	SubNodes []Node
+	IsDir    bool
+	FullKey  string
+	Value    string
 }
 
-func (drn *Node) IsDir() bool {
-	return drn.isDir
+func (drn Node) HasSubNodes() bool {
+	return len(drn.SubNodes) > 0
 }
 
-func (drn *Node) HasSubNodes() bool {
-	return len(drn.GetSubNodes()) > 0
-}
-
-func (drn *Node) GetSubNodes() []*Node {
-	return drn.subnodes
-}
-
-func (drn *Node) GetFullKey() string {
-	return drn.fullKey
-}
-
-func (drn *Node) GetKey() string {
-	if strings.Contains(drn.fullKey, "/") {
-		splitted := strings.Split(drn.fullKey, "/")
+func (drn Node) Key() string {
+	if strings.Contains(drn.FullKey, "/") {
+		splitted := strings.Split(drn.FullKey, "/")
 		return splitted[len(splitted)-1]
 	}
 
-	return drn.fullKey
+	return drn.FullKey
 }
 
-func (drn *Node) GetValue() string {
-	return drn.value
-}
-
-func (drn *Node) GetParent() *Node {
-	return drn.parent
-}
-
-func (drn *Node) GetSubNode(key string) *Node {
-	for _, subnode := range drn.subnodes {
-		if subnode.GetKey() == key {
+func (drn Node) SubNodeByName(key string) Node {
+	for _, subnode := range drn.SubNodes {
+		if subnode.Key() == key {
 			return subnode
 		}
 	}
 
-	return nil
+	return Node{}
 }

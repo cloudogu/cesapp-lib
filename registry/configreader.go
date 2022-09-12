@@ -11,12 +11,12 @@ func NewConfigurationReader(configuration ConfigurationContext) *ConfigurationRe
 	return &ConfigurationReader{configuration}
 }
 
-// ConfigurationReader is a simple abstraction for reading and converting registry value
+// ConfigurationReader is a simple abstraction for reading and converting registry Value
 type ConfigurationReader struct {
 	Configuration ConfigurationContext
 }
 
-// GetBool reads the configuration value and converts it to a boolean. If the key could not be found, the function
+// GetBool reads the configuration Value and converts it to a boolean. If the key could not be found, the function
 // will return false.
 func (configReader *ConfigurationReader) GetBool(key string) (bool, error) {
 	stringValue, err := configReader.GetString(key)
@@ -36,7 +36,7 @@ func (configReader *ConfigurationReader) GetBool(key string) (bool, error) {
 	return value, nil
 }
 
-// GetInt reads the configuration value and converts it to an integer. If the key could not be found, the function
+// GetInt reads the configuration Value and converts it to an integer. If the key could not be found, the function
 // will return 0.
 func (configReader *ConfigurationReader) GetInt(key string) (int, error) {
 	stringValue, err := configReader.GetString(key)

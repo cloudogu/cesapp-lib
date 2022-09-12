@@ -25,13 +25,13 @@ func TestDoguConfig_inttest(t *testing.T) {
 func TestDoguConfigRemoveAll_inttest(t *testing.T) {
 	cc := reg.DoguConfig("unit-test-2")
 
-	err := cc.Set("key-1", "value-1")
+	err := cc.Set("key-1", "Value-1")
 	assert.Nil(t, err)
 
-	err = cc.Set("key-2", "value-2")
+	err = cc.Set("key-2", "Value-2")
 	assert.Nil(t, err)
 
-	err = cc.Set("key-3", "value-3")
+	err = cc.Set("key-3", "Value-3")
 	assert.Nil(t, err)
 
 	err = cc.RemoveAll()
@@ -54,26 +54,26 @@ func TestEtcdDoguConfigGetAll_inttest(t *testing.T) {
 	cc := reg.DoguConfig("unit-test-3")
 	defer cc.RemoveAll()
 
-	err := cc.Set("key-1", "value-1")
+	err := cc.Set("key-1", "Value-1")
 	assert.Nil(t, err)
 
-	err = cc.Set("key-2", "value-2")
+	err = cc.Set("key-2", "Value-2")
 	assert.Nil(t, err)
 
-	err = cc.Set("key-3", "value-3")
+	err = cc.Set("key-3", "Value-3")
 	assert.Nil(t, err)
 
-	err = cc.Set("keys/4", "value-4")
+	err = cc.Set("keys/4", "Value-4")
 	assert.Nil(t, err)
 
 	keyValuePairs, err := cc.GetAll()
 	assert.Nil(t, err)
 
 	assert.Equal(t, 4, len(keyValuePairs))
-	assert.Equal(t, "value-1", keyValuePairs["key-1"])
-	assert.Equal(t, "value-2", keyValuePairs["key-2"])
-	assert.Equal(t, "value-3", keyValuePairs["key-3"])
-	assert.Equal(t, "value-4", keyValuePairs["keys/4"])
+	assert.Equal(t, "Value-1", keyValuePairs["key-1"])
+	assert.Equal(t, "Value-2", keyValuePairs["key-2"])
+	assert.Equal(t, "Value-3", keyValuePairs["key-3"])
+	assert.Equal(t, "Value-4", keyValuePairs["keys/4"])
 
 	err = cc.RemoveAll()
 	assert.Nil(t, err)
@@ -92,10 +92,10 @@ func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
 	assert.Empty(t, value2)
 	assert.NoError(t, err)
 
-	err = cc.Set("key-1", "value-1")
+	err = cc.Set("key-1", "Value-1")
 	assert.Nil(t, err)
 
-	err = cc.Set("dir1/key1", "value-1")
+	err = cc.Set("dir1/key1", "Value-1")
 	assert.Nil(t, err)
 
 	exists, err = cc.Exists("key-1")
@@ -104,11 +104,11 @@ func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
 
 	value, err := cc.Get("key-1")
 	assert.Nil(t, err)
-	assert.Equal(t, "value-1", value)
+	assert.Equal(t, "Value-1", value)
 
 	exists2, value2, err = cc.GetOrFalse("key-1")
 	assert.True(t, exists2)
-	assert.Equal(t, "value-1", value2)
+	assert.Equal(t, "Value-1", value2)
 	assert.NoError(t, err)
 
 	err = cc.Delete("key-1")
@@ -128,7 +128,7 @@ func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
 	ttl := 5
 	require.Nil(t, err)
 
-	err = cc.SetWithLifetime("key-2", "value-2", ttl)
+	err = cc.SetWithLifetime("key-2", "Value-2", ttl)
 	assert.Nil(t, err)
 
 	exists, err = cc.Exists("key-2")
@@ -137,7 +137,7 @@ func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
 
 	value, err = cc.Get("key-2")
 	assert.Nil(t, err)
-	assert.Equal(t, "value-2", value)
+	assert.Equal(t, "Value-2", value)
 
 	// Refresh to have the maximum ttl
 	err = cc.Refresh("key-2", ttl)
@@ -153,12 +153,12 @@ func testConfigurationContext(t *testing.T, cc registry.ConfigurationContext) {
 	err = cc.Refresh("key-2", ttl)
 	require.Nil(t, err)
 
-	// Wait again ttl-2 seconds and make sure that the value still exists
+	// Wait again ttl-2 seconds and make sure that the Value still exists
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
 	value, err = cc.Get("key-2")
 	require.Nil(t, err)
-	require.Equal(t, "value-2", value)
+	require.Equal(t, "Value-2", value)
 
 	// Wait until expiration
 	expireDuration := ttl + 1

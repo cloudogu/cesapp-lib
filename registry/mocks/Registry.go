@@ -61,16 +61,14 @@ func (_m *Registry) DoguRegistry() registry.DoguRegistry {
 }
 
 // GetNode provides a mock function with given fields:
-func (_m *Registry) GetNode() (*registry.Node, error) {
+func (_m *Registry) GetNode() (registry.Node, error) {
 	ret := _m.Called()
 
-	var r0 *registry.Node
-	if rf, ok := ret.Get(0).(func() *registry.Node); ok {
+	var r0 registry.Node
+	if rf, ok := ret.Get(0).(func() registry.Node); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*registry.Node)
-		}
+		r0 = ret.Get(0).(registry.Node)
 	}
 
 	var r1 error

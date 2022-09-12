@@ -45,71 +45,53 @@ func Test_mapEtcdNodeToRegistryNode_inttest(t *testing.T) {
 	node, err := client.getMainNode()
 	require.NoError(t, err)
 
-	result := mapEtcdNodeToRegistryNode(node, nil)
+	result := mapEtcdNodeToRegistryNode(node)
 
-	assert.Nil(t, result.GetParent())
-
-	assert.GreaterOrEqual(t, len(result.GetSubNodes()), 1)
-	assert.Len(t, result.GetSubNode("dir_test").GetSubNodes(), 2)
-	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNodes(), 2)
-	assert.Len(t, result.GetSubNode("dir_test").GetSubNode("key2").GetSubNodes(), 0)
+	assert.GreaterOrEqual(t, len(result.SubNodes), 1)
+	assert.Len(t, result.SubNodeByName("dir_test").SubNodes, 2)
+	assert.Len(t, result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodes, 2)
+	assert.Len(t, result.SubNodeByName("dir_test").SubNodeByName("key2").SubNodes, 0)
 
 	t.Run("global config is included", func(t *testing.T) {
-		assert.Equal(t, "/config/_global", result.GetSubNode("config").GetSubNode("_global").GetFullKey())
-		assert.Equal(t, "/config/_global/key", result.GetSubNode("config").GetSubNode("_global").GetSubNode("key").GetFullKey())
+		assert.Equal(t, "/config/_global", result.SubNodeByName("config").SubNodeByName("_global").FullKey)
+		assert.Equal(t, "/config/_global/key", result.SubNodeByName("config").SubNodeByName("_global").SubNodeByName("key").FullKey)
 	})
 
 	t.Run("result is correctly setup", func(t *testing.T) {
-		assert.Equal(t, "", result.GetKey())
-		assert.Equal(t, "dir_test", result.GetSubNode("dir_test").GetKey())
-		assert.Equal(t, "dir_test", result.GetSubNode("dir_test").GetKey())
-		assert.Equal(t, "", result.GetSubNode("dir_test").GetParent().GetKey())
+		assert.Equal(t, "", result.Key())
+		assert.Equal(t, "dir_test", result.SubNodeByName("dir_test").Key())
+		assert.Equal(t, "dir_test", result.SubNodeByName("dir_test").Key())
 	})
 
 	t.Run("keys are set correctly", func(t *testing.T) {
-		assert.Equal(t, "key1", result.GetSubNode("dir_test").GetSubNode("key1").GetKey())
-		assert.Equal(t, "/dir_test/key1", result.GetSubNode("dir_test").GetSubNode("key1").GetFullKey())
-		assert.Equal(t, "/dir_test/key1/subkey1", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").GetFullKey())
-		assert.Equal(t, "subkey1", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").GetKey())
-		assert.Equal(t, "val1", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").GetValue())
-		assert.Equal(t, "/dir_test/key1/subkey2", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey2").GetFullKey())
-		assert.Equal(t, "subkey2", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey2").GetKey())
-		assert.Equal(t, "val2", result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey2").GetValue())
-		assert.Equal(t, "/dir_test/key2", result.GetSubNode("dir_test").GetSubNode("key2").GetFullKey())
-		assert.Equal(t, "key2", result.GetSubNode("dir_test").GetSubNode("key2").GetKey())
-		assert.Equal(t, "val3", result.GetSubNode("dir_test").GetSubNode("key2").GetValue())
+		assert.Equal(t, "key1", result.SubNodeByName("dir_test").SubNodeByName("key1").Key())
+		assert.Equal(t, "/dir_test/key1", result.SubNodeByName("dir_test").SubNodeByName("key1").FullKey)
+		assert.Equal(t, "/dir_test/key1/subkey1", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey1").FullKey)
+		assert.Equal(t, "subkey1", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey1").Key())
+		assert.Equal(t, "val1", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey1").Value)
+		assert.Equal(t, "/dir_test/key1/subkey2", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey2").FullKey)
+		assert.Equal(t, "subkey2", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey2").Key())
+		assert.Equal(t, "val2", result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey2").Value)
+		assert.Equal(t, "/dir_test/key2", result.SubNodeByName("dir_test").SubNodeByName("key2").FullKey)
+		assert.Equal(t, "key2", result.SubNodeByName("dir_test").SubNodeByName("key2").Key())
+		assert.Equal(t, "val3", result.SubNodeByName("dir_test").SubNodeByName("key2").Value)
 	})
 
-	t.Run("IsDir returns correct value", func(t *testing.T) {
-		assert.True(t, result.IsDir())
-		assert.True(t, result.GetSubNode("dir_test").IsDir())
-		assert.True(t, result.GetSubNode("dir_test").GetSubNode("key1").IsDir())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").IsDir())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey2").IsDir())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key2").IsDir())
+	t.Run("IsDir returns correct Value", func(t *testing.T) {
+		assert.True(t, result.IsDir)
+		assert.True(t, result.SubNodeByName("dir_test").IsDir)
+		assert.True(t, result.SubNodeByName("dir_test").SubNodeByName("key1").IsDir)
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey1").IsDir)
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey2").IsDir)
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key2").IsDir)
 	})
 
 	t.Run("HasSubNodes works", func(t *testing.T) {
 		assert.True(t, result.HasSubNodes())
-		assert.True(t, result.GetSubNode("dir_test").HasSubNodes())
-		assert.True(t, result.GetSubNode("dir_test").GetSubNode("key1").HasSubNodes())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").HasSubNodes())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey2").HasSubNodes())
-		assert.False(t, result.GetSubNode("dir_test").GetSubNode("key2").HasSubNodes())
+		assert.True(t, result.SubNodeByName("dir_test").HasSubNodes())
+		assert.True(t, result.SubNodeByName("dir_test").SubNodeByName("key1").HasSubNodes())
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey1").HasSubNodes())
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key1").SubNodeByName("subkey2").HasSubNodes())
+		assert.False(t, result.SubNodeByName("dir_test").SubNodeByName("key2").HasSubNodes())
 	})
-
-	t.Run("can follow parent-child flow", func(t *testing.T) {
-		deepestNode := result.GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1")
-		assert.Equal(t, "/dir_test/key1/subkey1", deepestNode.GetFullKey())
-		assert.Equal(t, "/dir_test/key1", deepestNode.GetParent().GetFullKey())
-		assert.Equal(t, "key1", deepestNode.GetParent().GetKey())
-		assert.Equal(t, "/dir_test", deepestNode.GetParent().GetParent().GetFullKey())
-		assert.Equal(t, "dir_test", deepestNode.GetParent().GetParent().GetKey())
-		assert.Equal(t, "", deepestNode.GetParent().GetParent().GetParent().GetFullKey())
-		assert.Equal(t, "", deepestNode.GetParent().GetParent().GetParent().GetKey())
-		assert.Equal(t,
-			"/dir_test/key1/subkey1",
-			deepestNode.GetParent().GetParent().GetParent().GetSubNode("dir_test").GetSubNode("key1").GetSubNode("subkey1").GetFullKey())
-	})
-
 }

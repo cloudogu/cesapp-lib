@@ -85,7 +85,7 @@ func (etcd *resilentEtcdClient) Exists(key string) (bool, error) {
 	return exists, nil
 }
 
-// Get returns the value of the given node, otherwise it returns an error. If the given key cannot be found a
+// Get returns the Value of the given node, otherwise it returns an error. If the given key cannot be found a
 // KeyNotFoundError is returned.
 func (etcd *resilentEtcdClient) Get(key string) (string, error) {
 	var result string
@@ -109,7 +109,7 @@ func (etcd *resilentEtcdClient) Get(key string) (string, error) {
 	return result, nil
 }
 
-// GetRecursive returns a map of key value pairs below the given key
+// GetRecursive returns a map of key Value pairs below the given key
 func (etcd *resilentEtcdClient) GetRecursive(key string) (map[string]string, error) {
 	var result map[string]string
 	err := etcd.retrier.Run(func() error {
@@ -208,7 +208,7 @@ func (etcd *resilentEtcdClient) GetChildrenPaths(key string) ([]string, error) {
 	return children, nil
 }
 
-// Set sets the key to the given value
+// Set sets the key to the given Value
 func (etcd *resilentEtcdClient) Set(key string, value string, options *client.SetOptions) (string, error) {
 	var result string
 	err := etcd.retrier.Run(func() error {
