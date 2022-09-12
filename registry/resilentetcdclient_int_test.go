@@ -296,7 +296,7 @@ func TestSetWithTTL_inttest(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, "1", value)
 
-	// Wait again ttl-2 seconds and make sure that the Value still exists
+	// Wait again ttl-2 seconds and make sure that the value still exists
 	fmt.Printf("Waiting %d seconds...\n", refreshWaitDuration)
 	time.Sleep(refreshWaitDurationParsed)
 	value, err = etcdClient.Get("/test/one")
@@ -324,35 +324,35 @@ func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 	etcdClient, err := newResilentEtcdClient([]string{server.URL})
 	require.Nil(t, err)
 
-	_, err = etcdClient.Set("/Parent/child0/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = etcdClient.Set("/Parent/child0/cchild1", "1", nil)
+	_, err = etcdClient.Set("/parent/child0/cchild1", "1", nil)
 	require.Nil(t, err)
 
-	_, err = etcdClient.Set("/Parent/child1/cchild0", "1", nil)
+	_, err = etcdClient.Set("/parent/child1/cchild0", "1", nil)
 	require.Nil(t, err)
 
-	_, err = etcdClient.Set("/Parent/child2", "1", nil)
+	_, err = etcdClient.Set("/parent/child2", "1", nil)
 	require.Nil(t, err)
 
-	childrenPaths, err := etcdClient.GetChildrenPaths("/Parent")
+	childrenPaths, err := etcdClient.GetChildrenPaths("/parent")
 	require.Nil(t, err)
 
-	require.Contains(t, childrenPaths, "/Parent/child0")
-	require.Contains(t, childrenPaths, "/Parent/child1")
+	require.Contains(t, childrenPaths, "/parent/child0")
+	require.Contains(t, childrenPaths, "/parent/child1")
 
-	children, err := etcdClient.GetRecursive("/Parent")
+	children, err := etcdClient.GetRecursive("/parent")
 	require.Nil(t, err)
 
 	require.Equal(t, "1", children["child0/cchild0"])
 	require.Equal(t, "1", children["child0/cchild1"])
 	require.Equal(t, "1", children["child1/cchild0"])
 
-	err = etcdClient.DeleteRecursive("/Parent")
+	err = etcdClient.DeleteRecursive("/parent")
 	require.Nil(t, err)
 
-	node, err := etcdClient.Get("/Parent")
+	node, err := etcdClient.Get("/parent")
 	require.NotNil(t, err)
 	require.Equal(t, "", node)
 }

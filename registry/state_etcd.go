@@ -10,7 +10,7 @@ type etcdState struct {
 	client *resilentEtcdClient
 }
 
-// Get returns the current state Value
+// Get returns the current state value
 func (es *etcdState) Get() (string, error) {
 	core.GetLogger().Debug("try to get state key at", es.path)
 	keyExists, err := es.client.Exists(es.path)
@@ -23,7 +23,7 @@ func (es *etcdState) Get() (string, error) {
 	}
 	state, err := es.client.Get(es.path)
 	if err != nil {
-		return "", errors.Wrapf(err, "could not get state Value at %s", es.path)
+		return "", errors.Wrapf(err, "could not get state value at %s", es.path)
 	}
 	return state, nil
 }
@@ -33,7 +33,7 @@ func (es *etcdState) Set(value string) error {
 	core.GetLogger().Debug("try to set state key", es.path)
 	_, err := es.client.Set(es.path, value, nil)
 	if err != nil {
-		return errors.Wrapf(err, "could not set state Value at %s", es.path)
+		return errors.Wrapf(err, "could not set state value at %s", es.path)
 	}
 	return nil
 }

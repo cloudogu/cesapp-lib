@@ -129,7 +129,7 @@ func (_m *etcdClientMock) GetRecursive(key string) (map[string]string, error) {
 	return r0, r1
 }
 
-// Set provides a mock function with given fields: key, Value, options
+// Set provides a mock function with given fields: key, value, options
 func (_m *etcdClientMock) Set(key string, value string, options *client.SetOptions) (string, error) {
 	ret := _m.Called(key, value, options)
 
