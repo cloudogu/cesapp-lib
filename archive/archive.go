@@ -84,7 +84,7 @@ func (ar *Handler) AppendFileToArchive(fileToZipPath string, filepathInZip strin
 		_ = file.Close()
 	}()
 
-	handler, err := ar.fileHandler.GetFileInfoHeader(filepathInZip)
+	handler, err := ar.fileHandler.GetFileInfoHeader(fileToZipPath)
 	if err != nil {
 		return err
 	}
