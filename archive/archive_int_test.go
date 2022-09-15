@@ -28,6 +28,9 @@ func TestSupportArchiveHandler_WriteFilesIntoArchive_inttest(t *testing.T) {
 	assert.NotNil(t, zipFile)
 
 	handler, err := InitIn(zipFile.Name())
+	defer func() {
+		_ = os.Remove(zipFile.Name())
+	}()
 	require.NoError(t, err)
 
 	tmpLogFile1, err := ioutil.TempFile("", "*.archive")
