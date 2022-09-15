@@ -70,7 +70,7 @@ func (_m *Handler) InitializeZipWriter(zipFile io.Writer) {
 }
 
 // WriteFilesIntoArchive provides a mock function with given fields: filePaths, closeAfterFinish
-func (_m *Handler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
+func (_m *Handler) AppendFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
 	ret := _m.Called(filePaths, closeAfterFinish)
 
 	var r0 error

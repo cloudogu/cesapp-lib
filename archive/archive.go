@@ -3,126 +3,105 @@ package archive
 import (
 	"archive/zip"
 	"fmt"
+	"github.com/cloudogu/cesapp-lib/core"
 	"io"
 	"os"
+	"strings"
 )
 
-type fileCreator interface {
-	create(filename string) (*os.File, error)
-}
-type fileOpener interface {
-	open(filename string) (*os.File, error)
-}
-type fileCopier interface {
-	copy(dst io.Writer, src io.Reader) (written int64, err error)
+var log = core.GetLogger()
+
+type fileHandler interface {
+	Create(filename string) (*os.File, error)
+	Open(filename string) (*os.File, error)
+	Copy(dst io.Writer, src io.Reader) (written int64, err error)
+	GetFileInfoHeader(filePath string) (*zip.FileHeader, error)
 }
 
 type zipWriter interface {
-	Create(name string) (io.Writer, error)
+	CreateHeader(fh *zip.FileHeader) (io.Writer, error)
 	Close() error
 }
 
-type defaultFileHandler struct{}
+type osFileHandler struct{}
 
-func (d *defaultFileHandler) open(filename string) (*os.File, error) {
+func (d *osFileHandler) Open(filename string) (*os.File, error) {
 	return os.Open(filename)
 }
 
-func (d *defaultFileHandler) create(filename string) (*os.File, error) {
+func (d *osFileHandler) Create(filename string) (*os.File, error) {
 	return os.Create(filename)
 }
 
-func (d *defaultFileHandler) copy(dst io.Writer, src io.Reader) (written int64, err error) {
+func (d *osFileHandler) Copy(dst io.Writer, src io.Reader) (written int64, err error) {
 	return io.Copy(dst, src)
 }
 
-type Handler interface {
-	CreateZipArchiveFile(zipFilePath string) (io.Writer, error)
-	InitializeZipWriter(zipFile io.Writer)
-	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
-	Close() error
-	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
+func (d *osFileHandler) GetFileInfoHeader(filePath string) (*zip.FileHeader, error) {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	header, err := zip.FileInfoHeader(fileInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	header.Method = zip.Deflate
+
+	return header, nil
 }
 
-// DefaultHandler
-// The normal procedure should look like this.
-// 		1. CreateZipArchiveFile
-// 		2. InitialiseZipWriter
-// 		3. AppendFileToArchive (n times)
-// 		4. Close
-type DefaultHandler struct {
+// Handler can Create a zip archive and add files to it.
+type Handler struct {
 	writer      zipWriter
-	fileCreator fileCreator
-	fileOpener  fileOpener
-	fileCopier  fileCopier
+	fileHandler fileHandler
 }
 
-func NewHandler() Handler {
-	return &DefaultHandler{
-		fileCreator: &defaultFileHandler{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &defaultFileHandler{},
-	}
-}
-
-func InitInPath(filePath string) (Handler, error) {
-	supportArchiveHandler := NewHandler()
-	supportArchive, err := supportArchiveHandler.CreateZipArchiveFile(filePath)
+func InitIn(path string) (*Handler, error) {
+	handler := &osFileHandler{}
+	file, err := handler.Create(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create support archive file: %w", err)
+		return nil, err
 	}
 
-	supportArchiveHandler.InitializeZipWriter(supportArchive)
-
-	return supportArchiveHandler, nil
-}
-
-// CreateZipArchiveFile creates the file that will be the zip archive.
-// The zipFilePath expects a complete path with the correct file extension (.zip).
-// If you not intend to create an io.Writer beforehand this method can be the input of InitialiseZipWriter.
-func (ar *DefaultHandler) CreateZipArchiveFile(zipFilePath string) (io.Writer, error) {
-	zippedArchiveFile, err := ar.fileCreator.create(zipFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create archive file: %w", err)
-	}
-	return zippedArchiveFile, nil
-}
-
-// InitializeZipWriter takes an existing io.Writer and initializes a zip.Writer based on it.
-func (ar *DefaultHandler) InitializeZipWriter(zipFile io.Writer) {
-	zipWriter := zip.NewWriter(zipFile)
-	ar.writer = zipWriter
+	return &Handler{
+		writer:      zip.NewWriter(file),
+		fileHandler: handler,
+	}, nil
 }
 
 // AppendFileToArchive takes a path to file that is read and appended to an archive.
 // make sure to call the Close method when you're done with appending files to the archive.
-func (ar *DefaultHandler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
-	file, err := ar.fileOpener.open(fileToZipPath)
+func (ar *Handler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
+	log.Debugf("Append file %s to Archive as %s", fileToZipPath, filepathInZip)
+	file, err := ar.fileHandler.Open(fileToZipPath)
 	if err != nil {
 		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		_ = file.Close()
+	}()
 
-	fileInZip, err := ar.writer.Create(filepathInZip)
+	handler, err := ar.fileHandler.GetFileInfoHeader(filepathInZip)
 	if err != nil {
-		return fmt.Errorf("failed to create file in archive: %w", err)
+		return err
 	}
 
-	if _, err := ar.fileCopier.copy(fileInZip, file); err != nil {
-		return fmt.Errorf("failed to copy file into archive: %w", err)
+	fileInZip, err := ar.writer.CreateHeader(handler)
+	if err != nil {
+		return fmt.Errorf("failed to Create file in archive: %w", err)
+	}
+
+	if _, err := ar.fileHandler.Copy(fileInZip, file); err != nil {
+		return fmt.Errorf("failed to Copy file into archive: %w", err)
 	}
 	return nil
 }
 
-func (ar *DefaultHandler) Close() error {
-	err := ar.writer.Close()
-	if err != nil {
-		return fmt.Errorf("could not close archive file: %w", err)
-	}
-	return nil
-}
-
-func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
+func (ar *Handler) AppendFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
+	log.Debugf("Append files %s to archive, (close: %v)", strings.Join(filePaths, ","), closeAfterFinish)
 	if closeAfterFinish {
 		defer func() {
 			_ = ar.Close()
@@ -136,5 +115,14 @@ func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFi
 		}
 	}
 
+	return nil
+}
+
+func (ar *Handler) Close() error {
+	log.Debugf("Close archive")
+	err := ar.writer.Close()
+	if err != nil {
+		return fmt.Errorf("could not close archive file: %w", err)
+	}
 	return nil
 }
