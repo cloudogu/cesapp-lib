@@ -89,6 +89,8 @@ func (ar *Handler) AppendFileToArchive(fileToZipPath string, filepathInZip strin
 		return err
 	}
 
+	handler.Name = filepathInZip
+
 	fileInZip, err := ar.writer.CreateHeader(handler)
 	if err != nil {
 		return fmt.Errorf("failed to Create file in archive: %w", err)
