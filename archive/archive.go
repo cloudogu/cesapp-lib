@@ -133,7 +133,7 @@ func (m Manager) SaveArchiveAsFile(archivePath string) error {
 
 	content := m.GetContent()
 
-	return m.save(archivePath, content, 0755)
+	return m.save(archivePath, content, 0644)
 }
 
 func (m Manager) Close() error {
