@@ -7,6 +7,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.6.0] - 2022-09-16
+### Changed
+- Update go version from 1.18.1 to 1.18.6
+- Update Makefiles to version 7.0.1
+- Update archive package to handle archives in memory (#16)
+
+### Fixed
+- Fix date of files added to archive (#14)
+
 ## [v0.5.0] - 2022-09-12
 ### Added
 - Function to get the whole registry content as RegistryNode (#6)

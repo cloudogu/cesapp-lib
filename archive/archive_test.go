@@ -1,267 +1,240 @@
 package archive
 
 import (
+	"archive/zip"
+	"errors"
 	"fmt"
-	"github.com/pkg/errors"
+	"github.com/cloudogu/cesapp-lib/archive/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io"
-	"io/ioutil"
+	"io/fs"
 	"os"
 	"testing"
+	"time"
 )
 
-type mockFileCreator struct{}
-type mockFailedFileCreator struct{}
-type mockFailedFileOpener struct{}
-type mockFailedFileCopier struct{}
-type mockZipWriter struct{}
+// testArchiveByteArray contains the bytes of a test archive
+// The test archive contains:
+// * File "myfile" containing text "test"
+// * File "myfile1" containing text "test1"
+// * File "myfile2" containing text "test2"
+var testArchiveByteArray = []byte{80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 9, 0, 109, 121, 102, 105, 108, 101, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 1, 4, 0, 0, 255, 255, 80, 75, 7, 8, 12, 126, 127, 216, 10, 0, 0, 0, 4, 0, 0, 0, 80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 9, 0, 109, 121, 102, 105, 108, 101, 49, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 49, 4, 4, 0, 0, 255, 255, 80, 75, 7, 8, 226, 220, 178, 138, 11, 0, 0, 0, 5, 0, 0, 0, 80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 9, 0, 109, 121, 102, 105, 108, 101, 50, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 49, 2, 4, 0, 0, 255, 255, 80, 75, 7, 8, 88, 141, 187, 19, 11, 0, 0, 0, 5, 0, 0, 0, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 12, 126, 127, 216, 10, 0, 0, 0, 4, 0, 0, 0, 6, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 109, 121, 102, 105, 108, 101, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 226, 220, 178, 138, 11, 0, 0, 0, 5, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 0, 0, 0, 109, 121, 102, 105, 108, 101, 49, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 88, 141, 187, 19, 11, 0, 0, 0, 5, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 144, 0, 0, 0, 109, 121, 102, 105, 108, 101, 50, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 5, 6, 0, 0, 0, 0, 3, 0, 3, 0, 185, 0, 0, 0, 217, 0, 0, 0, 0, 0}
 
-func (mfc *mockFileCreator) create(filename string) (*os.File, error) {
-	return ioutil.TempFile("", filename)
+func Test_AddContentAsFileWithModifiedDate(t *testing.T) {
+	manager := NewManager()
+
+	bytes := manager.GetContent()
+	assert.True(t, len(bytes) == 0)
+
+	date := time.Date(2022, 1, 1, 1, 1, 1, 1, &time.Location{})
+
+	err := manager.AddContentAsFileWithModifiedDate("test", "myfile", date)
+	require.NoError(t, err)
+
+	err = manager.AddContentAsFileWithModifiedDate("test1", "myfile1", date)
+	require.NoError(t, err)
+
+	err = manager.AddContentAsFileWithModifiedDate("test2", "myfile2", date)
+	require.NoError(t, err)
+
+	err = manager.Close()
+	require.NoError(t, err)
+
+	bytes = manager.GetContent()
+	require.True(t, len(bytes) > 0)
+	require.Equal(t, testArchiveByteArray, bytes)
 }
 
-func (mfc *mockFailedFileCreator) create(filename string) (*os.File, error) {
-	return nil, errors.New("failed to create file")
+func TestNewManager(t *testing.T) {
+	t.Run("can initialize, no field is nil", func(t *testing.T) {
+		manager := NewManager()
+		require.NotNil(t, manager.close)
+		require.NotNil(t, manager.writer)
+		require.NotNil(t, manager.save)
+		require.NotNil(t, manager.readFile)
+		require.NotNil(t, manager.stat)
+		require.NotNil(t, manager.writeToZip)
+		require.NotNil(t, manager.buffer)
+	})
 }
 
-func (mfc *mockFailedFileOpener) open(filename string) (*os.File, error) {
-	return nil, errors.New("failed to open file")
+func TestGetContent(t *testing.T) {
+	t.Run("content is filled", func(t *testing.T) {
+		manager := NewManager()
+
+		bytes := manager.GetContent()
+		assert.True(t, len(bytes) == 0)
+
+		err := manager.AddContentAsFile("test", "myfile")
+
+		err = manager.Close()
+		require.NoError(t, err)
+
+		bytes = manager.GetContent()
+		require.True(t, len(bytes) > 0)
+	})
 }
 
-func (mzw *mockZipWriter) Close() error {
-	return errors.New("failed to close file")
-}
+func TestAddFileToArchive(t *testing.T) {
+	t.Run("can add file to archive", func(t *testing.T) {
+		manager := NewManager()
+		counter := 0
+		modTime := time.Date(2022, 1, 1, 1, 1, 1, 1, &time.Location{})
+		fileInfoMock := &mocks.FileInfo{}
+		fileInfoMock.On("Size").Return(int64(0))
+		fileInfoMock.On("Name").Return(fmt.Sprintf("filename-%v", counter))
+		fileInfoMock.On("ModTime").Return(modTime)
+		fileInfoMock.On("Mode").Return(fs.FileMode(0755))
+		manager.readFile = func(name string) (result []byte, err error) {
+			result, err = []byte(fmt.Sprintf("content-%v", counter)), nil
+			counter++
+			return
+		}
+		manager.stat = func(name string) (os.FileInfo, error) {
+			if name == "myfileoutside1" || name == "myfileoutside2" {
+				return fileInfoMock, nil
+			}
+			return nil, errors.New(name)
+		}
+		manager.writeToZip = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error {
+			strContent := string(content)
+			if strContent == "content-1" || strContent == "content-2" {
+				return nil
+			}
+			return errors.New(string(content))
+		}
 
-func (mzw *mockZipWriter) Create(name string) (io.Writer, error) {
-	return nil, errors.New("failed to create file with writer")
-}
+		err := manager.AddFileToArchive(File{
+			NameOutside: "myfileoutside1",
+			NameInside:  "myfileinside1",
+		})
 
-func (mzw *mockFailedFileCopier) copy(dst io.Writer, src io.Reader) (written int64, err error) {
-	return 0, errors.New("failed to copy file in zip archive")
-}
+		err = manager.AddFileToArchive(File{
+			NameOutside: "myfileoutside2",
+			NameInside:  "myfileinside2",
+		})
+		require.NoError(t, err)
 
-func TestSupportArchiveHandler_CreateZipArchiveFile(t *testing.T) {
-	//test success
-	handler := DefaultHandler{fileCreator: &mockFileCreator{}}
-	file, err := handler.CreateZipArchiveFile("test.zip")
-	assert.NoError(t, err)
-	assert.NotNil(t, file)
-	// test failure
-	handler = DefaultHandler{fileCreator: &mockFailedFileCreator{}}
-	_, err = handler.CreateZipArchiveFile("test.zip")
-	require.Error(t, err)
-}
+		fileInfoMock.AssertExpectations(t)
+	})
+	t.Run("can add multiple file to archive", func(t *testing.T) {
+		manager := NewManager()
+		counter := 0
+		modTime := time.Date(2022, 1, 1, 1, 1, 1, 1, &time.Location{})
+		fileInfoMock := &mocks.FileInfo{}
+		fileInfoMock.On("Size").Return(int64(0))
+		fileInfoMock.On("Name").Return(fmt.Sprintf("filename-%v", counter))
+		fileInfoMock.On("ModTime").Return(modTime)
+		fileInfoMock.On("Mode").Return(fs.FileMode(0755))
+		manager.readFile = func(name string) (result []byte, err error) {
+			result, err = []byte(fmt.Sprintf("content-%v", counter)), nil
+			counter++
+			return
+		}
+		manager.stat = func(name string) (os.FileInfo, error) {
+			if name == "myfileoutside1" || name == "myfileoutside2" {
+				return fileInfoMock, nil
+			}
+			return nil, errors.New(name)
+		}
+		manager.writeToZip = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error {
+			strContent := string(content)
+			if strContent == "content-0" || strContent == "content-1" {
+				return nil
+			}
+			return errors.New(string(content))
+		}
 
-func TestSupportArchiveHandler_New(t *testing.T) {
-	supportArchiveHandler := NewHandler()
-	assert.NotNil(t, supportArchiveHandler)
-}
+		t.Run("with close", func(t *testing.T) {
+			err := manager.AddFilesToArchive([]File{
+				{
+					NameOutside: "myfileoutside1",
+					NameInside:  "myfileinside1",
+				},
+				{
+					NameOutside: "myfileoutside2",
+					NameInside:  "myfileinside2",
+				},
+			}, true)
+			require.NoError(t, err)
+		})
 
-func TestSupportArchiveHandler_Close(t *testing.T) {
-	handler := DefaultHandler{
-		writer: &mockZipWriter{},
-	}
+		counter = 0
 
-	err := handler.Close()
-	assert.Error(t, err)
+		t.Run("without close", func(t *testing.T) {
+			err := manager.AddFilesToArchive([]File{
+				{
+					NameOutside: "myfileoutside1",
+					NameInside:  "myfileinside1",
+				},
+				{
+					NameOutside: "myfileoutside2",
+					NameInside:  "myfileinside2",
+				},
+			}, false)
+			require.NoError(t, err)
+		})
 
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitializeZipWriter(zipFile)
-	err = handler.Close()
-	assert.NoError(t, err)
-}
+		fileInfoMock.AssertExpectations(t)
+	})
+	t.Run("fail on add multiple files to archive", func(t *testing.T) {
+		manager := NewManager()
+		manager.readFile = func(name string) (result []byte, err error) {
+			return nil, errors.New("testerror")
+		}
 
-func TestSupportArchiveHandler_InitialiseZipWriter(t *testing.T) {
-	handler := DefaultHandler{fileCreator: &mockFileCreator{}}
-	file, _ := handler.CreateZipArchiveFile("test.zip")
-	handler.InitializeZipWriter(file)
+		err := manager.AddFilesToArchive([]File{
+			{
+				NameOutside: "myfileoutside1",
+				NameInside:  "myfileinside1",
+			},
+			{
+				NameOutside: "myfileoutside2",
+				NameInside:  "myfileinside2",
+			},
+		}, false)
+		require.Error(t, err)
+		require.Equal(t, "testerror", err.Error())
+	})
+	t.Run("fail on read file", func(t *testing.T) {
+		manager := NewManager()
+		manager.readFile = func(name string) (result []byte, err error) {
+			return nil, errors.New("testerror")
+		}
 
-	assert.NotNil(t, handler.writer)
-}
+		err := manager.AddFilesToArchive([]File{
+			{
+				NameOutside: "myfileoutside1",
+				NameInside:  "myfileinside1",
+			},
+			{
+				NameOutside: "myfileoutside2",
+				NameInside:  "myfileinside2",
+			},
+		}, false)
+		require.Error(t, err)
+		require.Equal(t, "testerror", err.Error())
+	})
+	t.Run("fail on stat", func(t *testing.T) {
+		manager := NewManager()
+		manager.readFile = func(name string) (result []byte, err error) {
+			return nil, nil
+		}
+		manager.stat = func(name string) (os.FileInfo, error) {
+			return nil, errors.New("testerror")
+		}
 
-func TestSupportArchiveHandler_AppendFileToArchive_Success(t *testing.T) {
-	handler := DefaultHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &defaultFileHandler{},
-	}
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitializeZipWriter(zipFile)
-
-	tmpFile, err := ioutil.TempFile("", "test.txt")
-	if err != nil {
-		fmt.Println("Failed to create temp zipFile: ", tmpFile.Name())
-		t.Fail()
-	}
-	fmt.Println("Created temp zipFile: ", tmpFile.Name())
-	defer tmpFile.Close()
-	if _, err := tmpFile.WriteString("test data"); err != nil {
-		fmt.Print("Unable to write to temporary file")
-		t.Fail()
-	}
-	handler.AppendFileToArchive(tmpFile.Name(), "/test.txt")
-	handler.Close()
-
-	assert.FileExists(t, zipFile.Name())
-	fi, err := zipFile.Stat()
-	if err != nil {
-		fmt.Print("Unable to get info about temporary zip file")
-		t.Fail()
-	}
-	assert.True(t, fi.Size() > 25) // empty zip archive is around ~20
-}
-
-func TestSupportArchiveHandler_AppendFileToArchive_Failure(t *testing.T) {
-	// first point of failure: Cannot open file
-	handler := DefaultHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &mockFailedFileOpener{},
-	}
-
-	tmpFile, _ := ioutil.TempFile("", "test.txt")
-	err := handler.AppendFileToArchive(tmpFile.Name(), "/test.txt")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to open file")
-
-	// second point of failure: Cannot open file
-	handler = DefaultHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		writer:      &mockZipWriter{},
-	}
-	err = handler.AppendFileToArchive(tmpFile.Name(), "/test.txt")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to create file with writer")
-
-	// third point of failure: Cannot copy file into zip archive
-	handler = DefaultHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &mockFailedFileCopier{},
-	}
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	handler.InitializeZipWriter(zipFile)
-	err = handler.AppendFileToArchive(tmpFile.Name(), "/test.txt")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
-
-}
-
-//func TestSupportArchiveHandler_WriteLogFileIntoArchive_Success(t *testing.T) {
-//	handler := DefaultHandler{
-//		fileCreator: &mockFileCreator{},
-//		fileOpener:  &defaultFileHandler{},
-//		fileCopier:  &defaultFileHandler{},
-//	}
-//
-//	zipFile, _ := ioutil.TempFile("", "*.zip")
-//	assert.NotNil(t, zipFile)
-//
-//	handler.InitializeZipWriter(zipFile)
-//
-//	tmpLogFile, _ := ioutil.TempFile("", "*.archive")
-//	assert.NotNil(t, tmpLogFile)
-//	defer tmpLogFile.Close()
-//
-//	_, err := tmpLogFile.WriteString("test entry in logfile data")
-//	assert.NoError(t, err)
-//
-//	handler.WriteFilesIntoArchive(tmpLogFile.Name())
-//	handler.Close()
-//
-//	assert.FileExists(t, zipFile.Name())
-//	fi, err := zipFile.Stat()
-//	if err != nil {
-//		fmt.Print("Unable to get info about temporary zip file")
-//		t.Fail()
-//	}
-//	assert.True(t, 25 < fi.Size()) // empty zip archive is around ~20
-//
-//}
-//
-//func TestSupportArchiveHandler_WriteLogFileIntoArchive_Fail(t *testing.T) {
-//	// first point of failure: Cannot open file
-//	handler := DefaultHandler{
-//		fileCreator: &mockFileCreator{},
-//		fileOpener:  &mockFailedFileOpener{},
-//	}
-//
-//	err := handler.WriteLogFileIntoArchive("not_a_valid_file.archive")
-//	assert.Error(t, err)
-//	assert.Contains(t, err.Error(), "no such file or directory")
-//
-//	// second point of failure: Cannot open file
-//	handler = DefaultHandler{
-//		fileCreator: &mockFileCreator{},
-//		fileOpener:  &defaultFileHandler{},
-//		writer:      &mockZipWriter{},
-//	}
-//	tmpFile, _ := ioutil.TempFile("", "test.archive")
-//	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
-//	assert.Error(t, err)
-//	assert.Contains(t, err.Error(), "failed to create file with writer")
-//
-//	// third point of failure: Cannot copy file into zip archive
-//	handler = DefaultHandler{
-//		fileCreator: &mockFileCreator{},
-//		fileOpener:  &defaultFileHandler{},
-//		fileCopier:  &mockFailedFileCopier{},
-//	}
-//	zipFile, _ := ioutil.TempFile("", "*.zip")
-//	handler.InitializeZipWriter(zipFile)
-//	err = handler.WriteLogFileIntoArchive(tmpFile.Name())
-//	assert.Error(t, err)
-//	assert.Contains(t, err.Error(), "failed to copy file in zip archive")
-//
-//}
-//
-
-func TestSupportArchiveHandler_WriteFilesIntoArchive(t *testing.T) {
-	handler := DefaultHandler{
-		fileCreator: &mockFileCreator{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &defaultFileHandler{},
-	}
-
-	zipFile, _ := ioutil.TempFile("", "*.zip")
-	assert.NotNil(t, zipFile)
-
-	handler.InitializeZipWriter(zipFile)
-
-	tmpLogFile1, err := ioutil.TempFile("", "*.archive")
-	if err != nil {
-		fmt.Println("Failed to create temp zipFile: ", tmpLogFile1.Name())
-		t.Fail()
-	}
-	fmt.Println("Created temp zipFile: ", tmpLogFile1.Name())
-	defer tmpLogFile1.Close()
-	if _, err := tmpLogFile1.WriteString("test data"); err != nil {
-		fmt.Print("Unable to write to temporary file")
-		t.Fail()
-	}
-
-	tmpLogFile2, err := ioutil.TempFile("", "*.archive")
-	if err != nil {
-		fmt.Println("Failed to create temp zipFile: ", tmpLogFile2.Name())
-		t.Fail()
-	}
-	fmt.Println("Created temp zipFile: ", tmpLogFile2.Name())
-	defer tmpLogFile2.Close()
-	if _, err := tmpLogFile2.WriteString("test data"); err != nil {
-		fmt.Print("Unable to write to temporary file")
-		t.Fail()
-	}
-
-	logFiles := []string{tmpLogFile1.Name(), tmpLogFile2.Name()}
-
-	handler.WriteFilesIntoArchive(logFiles, true)
-
-	assert.FileExists(t, zipFile.Name())
-	fi, err := zipFile.Stat()
-	if err != nil {
-		fmt.Print("Unable to get info about temporary zip file")
-		t.Fail()
-	}
-	assert.True(t, 300 < fi.Size()) // empty zip archive is around ~20, with two logs around ~300
+		err := manager.AddFilesToArchive([]File{
+			{
+				NameOutside: "myfileoutside1",
+				NameInside:  "myfileinside1",
+			},
+			{
+				NameOutside: "myfileoutside2",
+				NameInside:  "myfileinside2",
+			},
+		}, false)
+		require.Error(t, err)
+		require.Equal(t, "testerror", err.Error())
+	})
 }
