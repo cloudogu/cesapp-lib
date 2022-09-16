@@ -1,71 +1,68 @@
-package archive
+package archive_test
 
 import (
-	"fmt"
+	"github.com/cloudogu/cesapp-lib/archive"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
-func TestInitInPath_inttest(t *testing.T) {
-	archive, err := InitIn("./archive.zip")
-	defer func() {
-		_ = os.Remove("./archive.zip")
-	}()
-	require.NoError(t, err)
-	err = archive.Close()
+func Test_SaveArchiveAsFile(t *testing.T) {
+	t.Run("writes content", func(t *testing.T) {
+		manager := archive.NewManager()
 
-	file, err := os.ReadFile("./archive.zip")
-	require.NoError(t, err)
-	require.NotNil(t, file)
-}
+		bufferContent := manager.GetContent()
+		assert.True(t, len(bufferContent) == 0)
 
-func TestSupportArchiveHandler_WriteFilesIntoArchive_inttest(t *testing.T) {
-	zipFile, err := ioutil.TempFile("", "*.zip")
-	require.NoError(t, err)
-	assert.NotNil(t, zipFile)
+		err := manager.AddContentAsFile("test", "myfile")
+		require.NoError(t, err)
 
-	handler, err := InitIn(zipFile.Name())
-	defer func() {
-		_ = os.Remove(zipFile.Name())
-	}()
-	require.NoError(t, err)
+		err = manager.AddContentAsFile("test1", "myfile1")
+		require.NoError(t, err)
 
-	tmpLogFile1, err := ioutil.TempFile("", "*.archive")
-	if err != nil {
-		fmt.Println("Failed to Create temp zipFile: ", tmpLogFile1.Name())
-		t.Fail()
-	}
-	fmt.Println("Created temp zipFile: ", tmpLogFile1.Name())
-	defer tmpLogFile1.Close()
-	if _, err := tmpLogFile1.WriteString("test data"); err != nil {
-		fmt.Print("Unable to write to temporary file")
-		t.Fail()
-	}
+		err = manager.AddContentAsFile("test2", "myfile2")
+		require.NoError(t, err)
 
-	tmpLogFile2, err := ioutil.TempFile("", "*.archive")
-	if err != nil {
-		fmt.Println("Failed to Create temp zipFile: ", tmpLogFile2.Name())
-		t.Fail()
-	}
-	fmt.Println("Created temp zipFile: ", tmpLogFile2.Name())
-	defer tmpLogFile2.Close()
-	if _, err := tmpLogFile2.WriteString("test data"); err != nil {
-		fmt.Print("Unable to write to temporary file")
-		t.Fail()
-	}
+		err = manager.Close()
+		require.NoError(t, err)
 
-	logFiles := []string{tmpLogFile1.Name(), tmpLogFile2.Name()}
+		bufferContent = manager.GetContent()
+		require.True(t, len(bufferContent) > 0)
 
-	handler.AppendFilesIntoArchive(logFiles, true)
+		err = manager.SaveArchiveAsFile("./archive.zip")
+		defer func() {
+			_ = recover()
+			_ = os.Remove("./archive.zip")
+		}()
+		require.NoError(t, err)
 
-	assert.FileExists(t, zipFile.Name())
-	fi, err := zipFile.Stat()
-	if err != nil {
-		fmt.Print("Unable to get info about temporary zip file")
-		t.Fail()
-	}
-	assert.True(t, 300 < fi.Size()) // empty zip archive is around ~20, with two logs around ~300
+		fileContent, err := os.ReadFile("./archive.zip")
+		require.NoError(t, err)
+
+		require.Equal(t, bufferContent, fileContent)
+	})
+
+	t.Run("corrects path", func(t *testing.T) {
+		manager := archive.NewManager()
+
+		err := os.Mkdir("./testdata", 0755)
+		require.NoError(t, err)
+
+		err = manager.SaveArchiveAsFile("./testdata/")
+		defer func() {
+			_ = recover()
+			_ = os.Remove("./testdata/archive.zip")
+			_ = os.Remove("./testdata")
+		}()
+		require.NoError(t, err)
+
+		entries, err := os.ReadDir("./testdata")
+		require.NoError(t, err)
+		require.Len(t, entries, 1)
+
+		require.True(t, strings.HasSuffix(entries[0].Name(), "archive.zip"))
+	})
+
 }

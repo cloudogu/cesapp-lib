@@ -2,129 +2,140 @@ package archive
 
 import (
 	"archive/zip"
-	"fmt"
+	"bytes"
 	"github.com/cloudogu/cesapp-lib/core"
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 var log = core.GetLogger()
 
-type fileHandler interface {
-	Create(filename string) (*os.File, error)
-	Open(filename string) (*os.File, error)
-	Copy(dst io.Writer, src io.Reader) (written int64, err error)
-	GetFileInfoHeader(filePath string) (*zip.FileHeader, error)
-}
+type FileReaderFunc = func(name string) ([]byte, error)
+type FileStatFunc = func(name string) (os.FileInfo, error)
+type WriteToZipFunc = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error
+type SaveFileFunc = func(name string, data []byte, perm os.FileMode) error
+type CloseFUnc = func() error
 
-type zipWriter interface {
+type ZipWriter interface {
 	CreateHeader(fh *zip.FileHeader) (io.Writer, error)
 	Close() error
 }
 
-type osFileHandler struct{}
-
-func (d *osFileHandler) Open(filename string) (*os.File, error) {
-	return os.Open(filename)
+type Manager struct {
+	buffer     *bytes.Buffer
+	writer     *zip.Writer
+	readFile   FileReaderFunc
+	stat       FileStatFunc
+	writeToZip WriteToZipFunc
+	close      CloseFUnc
+	save       SaveFileFunc
 }
 
-func (d *osFileHandler) Create(filename string) (*os.File, error) {
-	return os.Create(filename)
+type File struct {
+	NameOutside string
+	NameInside  string
 }
 
-func (d *osFileHandler) Copy(dst io.Writer, src io.Reader) (written int64, err error) {
-	return io.Copy(dst, src)
-}
-
-func (d *osFileHandler) GetFileInfoHeader(filePath string) (*zip.FileHeader, error) {
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
-		return nil, err
+func NewManager() *Manager {
+	buffer := bytes.NewBuffer(nil)
+	writer := zip.NewWriter(buffer)
+	return &Manager{
+		buffer:     buffer,
+		writer:     writer,
+		readFile:   os.ReadFile,
+		stat:       os.Stat,
+		writeToZip: WriteContentToZip,
+		close:      writer.Close,
+		save:       os.WriteFile,
 	}
-
-	header, err := zip.FileInfoHeader(fileInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	header.Method = zip.Deflate
-
-	return header, nil
 }
 
-// Handler can Create a zip archive and add files to it.
-type Handler struct {
-	writer      zipWriter
-	fileHandler fileHandler
-}
-
-func InitIn(path string) (*Handler, error) {
-	handler := &osFileHandler{}
-	file, err := handler.Create(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Handler{
-		writer:      zip.NewWriter(file),
-		fileHandler: handler,
-	}, nil
-}
-
-// AppendFileToArchive takes a path to file that is read and appended to an archive.
-// make sure to call the Close method when you're done with appending files to the archive.
-func (ar *Handler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
-	log.Debugf("Append file %s to Archive as %s", fileToZipPath, filepathInZip)
-	file, err := ar.fileHandler.Open(fileToZipPath)
-	if err != nil {
-		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	handler, err := ar.fileHandler.GetFileInfoHeader(fileToZipPath)
+func WriteContentToZip(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error {
+	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {
 		return err
 	}
 
-	handler.Name = filepathInZip
-
-	fileInZip, err := ar.writer.CreateHeader(handler)
+	writtenBytes, err := writer.Write(content)
 	if err != nil {
-		return fmt.Errorf("failed to Create file in archive: %w", err)
+		return err
 	}
 
-	if _, err := ar.fileHandler.Copy(fileInZip, file); err != nil {
-		return fmt.Errorf("failed to Copy file into archive: %w", err)
-	}
+	log.Debugf("wrote %d byte(s) to archive", writtenBytes)
+
 	return nil
 }
 
-func (ar *Handler) AppendFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
-	log.Debugf("Append files %s to archive, (close: %v)", strings.Join(filePaths, ","), closeAfterFinish)
-	if closeAfterFinish {
-		defer func() {
-			_ = ar.Close()
-		}()
+func (m Manager) GetContent() []byte {
+	return m.buffer.Bytes()
+}
+
+func (m Manager) AddContentAsFile(content string, fileNameInArchive string) error {
+	return m.AddContentAsFileWithModifiedDate(content, fileNameInArchive, time.Now())
+}
+
+func (m Manager) AddContentAsFileWithModifiedDate(content string, fileNameInArchive string, modified time.Time) error {
+	header := zip.FileHeader{
+		Name:     fileNameInArchive,
+		Modified: modified,
+		Method:   zip.Deflate,
 	}
 
-	for _, filePath := range filePaths {
-		err := ar.AppendFileToArchive(filePath, filePath)
+	return m.writeToZip(m.writer, &header, []byte(content))
+}
+
+func (m Manager) AddFileToArchive(file File) error {
+	log.Debugf("Adding file '%s' as '%s' to archive.", file.NameOutside, file.NameInside)
+	content, err := m.readFile(file.NameOutside)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := m.stat(file.NameOutside)
+	if err != nil {
+		return err
+	}
+
+	// Error can be ignored because the function actually never returns an error
+	header, _ := zip.FileInfoHeader(fileInfo)
+
+	header.Method = zip.Deflate
+	header.Name = file.NameInside
+
+	return m.writeToZip(m.writer, header, content)
+}
+
+func (m Manager) AddFilesToArchive(files []File, closeAfterFinish bool) error {
+	for _, file := range files {
+		err := m.AddFileToArchive(file)
 		if err != nil {
-			return fmt.Errorf("failed to write logfiles into archive: %w", err)
+			return err
 		}
 	}
 
+	if closeAfterFinish {
+		return m.Close()
+	}
+
 	return nil
 }
 
-func (ar *Handler) Close() error {
-	log.Debugf("Close archive")
-	err := ar.writer.Close()
-	if err != nil {
-		return fmt.Errorf("could not close archive file: %w", err)
+func (m Manager) SaveArchiveAsFile(archivePath string) error {
+	if !strings.HasSuffix(archivePath, ".zip") {
+		log.Warning("File ending .zip was not provided.")
 	}
-	return nil
+	if strings.HasSuffix(archivePath, "/") {
+		log.Warning("Incorrect file path was provided. Adding 'archive.zip' to file path.")
+		archivePath += "archive.zip"
+	}
+
+	content := m.GetContent()
+
+	return m.save(archivePath, content, 0755)
+}
+
+func (m Manager) Close() error {
+	return m.close()
 }
