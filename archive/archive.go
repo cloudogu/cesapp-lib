@@ -12,11 +12,11 @@ import (
 
 var log = core.GetLogger()
 
-type FileReaderFunc = func(name string) ([]byte, error)
-type FileStatFunc = func(name string) (os.FileInfo, error)
-type WriteToZipFunc = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error
-type SaveFileFunc = func(name string, data []byte, perm os.FileMode) error
-type CloseFUnc = func() error
+type fileReaderFunc = func(name string) ([]byte, error)
+type fileStatFunc = func(name string) (os.FileInfo, error)
+type writeToZipFunc = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error
+type saveFileFunc = func(name string, data []byte, perm os.FileMode) error
+type closeFUnc = func() error
 
 type ZipWriter interface {
 	CreateHeader(fh *zip.FileHeader) (io.Writer, error)
@@ -26,11 +26,11 @@ type ZipWriter interface {
 type Manager struct {
 	buffer     *bytes.Buffer
 	writer     *zip.Writer
-	readFile   FileReaderFunc
-	stat       FileStatFunc
-	writeToZip WriteToZipFunc
-	close      CloseFUnc
-	save       SaveFileFunc
+	readFile   fileReaderFunc
+	stat       fileStatFunc
+	writeToZip writeToZipFunc
+	close      closeFUnc
+	save       saveFileFunc
 }
 
 type File struct {
