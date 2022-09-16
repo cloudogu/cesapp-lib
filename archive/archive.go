@@ -2,139 +2,140 @@ package archive
 
 import (
 	"archive/zip"
-	"fmt"
+	"bytes"
+	"github.com/cloudogu/cesapp-lib/core"
 	"io"
 	"os"
+	"strings"
+	"time"
 )
 
-type fileCreator interface {
-	create(filename string) (*os.File, error)
-}
-type fileOpener interface {
-	open(filename string) (*os.File, error)
-}
-type fileCopier interface {
-	copy(dst io.Writer, src io.Reader) (written int64, err error)
-}
+var log = core.GetLogger()
 
-type zipWriter interface {
-	Create(name string) (io.Writer, error)
+type fileReaderFunc = func(name string) ([]byte, error)
+type fileStatFunc = func(name string) (os.FileInfo, error)
+type writeToZipFunc = func(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error
+type saveFileFunc = func(name string, data []byte, perm os.FileMode) error
+type closeFUnc = func() error
+
+type ZipWriter interface {
+	CreateHeader(fh *zip.FileHeader) (io.Writer, error)
 	Close() error
 }
 
-type defaultFileHandler struct{}
-
-func (d *defaultFileHandler) open(filename string) (*os.File, error) {
-	return os.Open(filename)
+type Manager struct {
+	buffer     *bytes.Buffer
+	writer     *zip.Writer
+	readFile   fileReaderFunc
+	stat       fileStatFunc
+	writeToZip writeToZipFunc
+	close      closeFUnc
+	save       saveFileFunc
 }
 
-func (d *defaultFileHandler) create(filename string) (*os.File, error) {
-	return os.Create(filename)
+type File struct {
+	NameOutside string
+	NameInside  string
 }
 
-func (d *defaultFileHandler) copy(dst io.Writer, src io.Reader) (written int64, err error) {
-	return io.Copy(dst, src)
-}
-
-type Handler interface {
-	CreateZipArchiveFile(zipFilePath string) (io.Writer, error)
-	InitializeZipWriter(zipFile io.Writer)
-	AppendFileToArchive(fileToZipPath string, filepathInZip string) error
-	Close() error
-	WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error
-}
-
-// DefaultHandler
-// The normal procedure should look like this.
-// 		1. CreateZipArchiveFile
-// 		2. InitialiseZipWriter
-// 		3. AppendFileToArchive (n times)
-// 		4. Close
-type DefaultHandler struct {
-	writer      zipWriter
-	fileCreator fileCreator
-	fileOpener  fileOpener
-	fileCopier  fileCopier
-}
-
-func NewHandler() Handler {
-	return &DefaultHandler{
-		fileCreator: &defaultFileHandler{},
-		fileOpener:  &defaultFileHandler{},
-		fileCopier:  &defaultFileHandler{},
+func NewManager() *Manager {
+	buffer := bytes.NewBuffer(nil)
+	writer := zip.NewWriter(buffer)
+	return &Manager{
+		buffer:     buffer,
+		writer:     writer,
+		readFile:   os.ReadFile,
+		stat:       os.Stat,
+		writeToZip: WriteContentToZip,
+		close:      writer.Close,
+		save:       os.WriteFile,
 	}
 }
 
-func InitInPath(filePath string) (Handler, error) {
-	supportArchiveHandler := NewHandler()
-	supportArchive, err := supportArchiveHandler.CreateZipArchiveFile(filePath)
+func WriteContentToZip(zipWriter *zip.Writer, header *zip.FileHeader, content []byte) error {
+	writer, err := zipWriter.CreateHeader(header)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create support archive file: %w", err)
+		return err
 	}
 
-	supportArchiveHandler.InitializeZipWriter(supportArchive)
-
-	return supportArchiveHandler, nil
-}
-
-// CreateZipArchiveFile creates the file that will be the zip archive.
-// The zipFilePath expects a complete path with the correct file extension (.zip).
-// If you not intend to create an io.Writer beforehand this method can be the input of InitialiseZipWriter.
-func (ar *DefaultHandler) CreateZipArchiveFile(zipFilePath string) (io.Writer, error) {
-	zippedArchiveFile, err := ar.fileCreator.create(zipFilePath)
+	writtenBytes, err := writer.Write(content)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create archive file: %w", err)
-	}
-	return zippedArchiveFile, nil
-}
-
-// InitializeZipWriter takes an existing io.Writer and initializes a zip.Writer based on it.
-func (ar *DefaultHandler) InitializeZipWriter(zipFile io.Writer) {
-	zipWriter := zip.NewWriter(zipFile)
-	ar.writer = zipWriter
-}
-
-// AppendFileToArchive takes a path to file that is read and appended to an archive.
-// make sure to call the Close method when you're done with appending files to the archive.
-func (ar *DefaultHandler) AppendFileToArchive(fileToZipPath string, filepathInZip string) error {
-	file, err := ar.fileOpener.open(fileToZipPath)
-	if err != nil {
-		return fmt.Errorf("failed to read base file for appending to archive: %w", err)
-	}
-	defer file.Close()
-
-	fileInZip, err := ar.writer.Create(filepathInZip)
-	if err != nil {
-		return fmt.Errorf("failed to create file in archive: %w", err)
+		return err
 	}
 
-	if _, err := ar.fileCopier.copy(fileInZip, file); err != nil {
-		return fmt.Errorf("failed to copy file into archive: %w", err)
-	}
+	log.Debugf("wrote %d byte(s) to archive", writtenBytes)
+
 	return nil
 }
 
-func (ar *DefaultHandler) Close() error {
-	err := ar.writer.Close()
-	if err != nil {
-		return fmt.Errorf("could not close archive file: %w", err)
-	}
-	return nil
+func (m Manager) GetContent() []byte {
+	return m.buffer.Bytes()
 }
 
-func (ar *DefaultHandler) WriteFilesIntoArchive(filePaths []string, closeAfterFinish bool) error {
-	if closeAfterFinish {
-		defer func() {
-			_ = ar.Close()
-		}()
+func (m Manager) AddContentAsFile(content string, fileNameInArchive string) error {
+	return m.AddContentAsFileWithModifiedDate(content, fileNameInArchive, time.Now())
+}
+
+func (m Manager) AddContentAsFileWithModifiedDate(content string, fileNameInArchive string, modified time.Time) error {
+	header := zip.FileHeader{
+		Name:     fileNameInArchive,
+		Modified: modified,
+		Method:   zip.Deflate,
 	}
 
-	for _, filePath := range filePaths {
-		err := ar.AppendFileToArchive(filePath, filePath)
+	return m.writeToZip(m.writer, &header, []byte(content))
+}
+
+func (m Manager) AddFileToArchive(file File) error {
+	log.Debugf("Adding file '%s' as '%s' to archive.", file.NameOutside, file.NameInside)
+	content, err := m.readFile(file.NameOutside)
+	if err != nil {
+		return err
+	}
+
+	fileInfo, err := m.stat(file.NameOutside)
+	if err != nil {
+		return err
+	}
+
+	// Error can be ignored because the function actually never returns an error
+	header, _ := zip.FileInfoHeader(fileInfo)
+
+	header.Method = zip.Deflate
+	header.Name = file.NameInside
+
+	return m.writeToZip(m.writer, header, content)
+}
+
+func (m Manager) AddFilesToArchive(files []File, closeAfterFinish bool) error {
+	for _, file := range files {
+		err := m.AddFileToArchive(file)
 		if err != nil {
-			return fmt.Errorf("failed to write logfiles into archive: %w", err)
+			return err
 		}
 	}
 
+	if closeAfterFinish {
+		return m.Close()
+	}
+
 	return nil
+}
+
+func (m Manager) SaveArchiveAsFile(archivePath string) error {
+	if !strings.HasSuffix(archivePath, ".zip") {
+		log.Warning("File ending .zip was not provided.")
+	}
+	if strings.HasSuffix(archivePath, "/") {
+		log.Warning("Incorrect file path was provided. Adding 'archive.zip' to file path.")
+		archivePath += "archive.zip"
+	}
+
+	content := m.GetContent()
+
+	return m.save(archivePath, content, 0644)
+}
+
+func (m Manager) Close() error {
+	return m.close()
 }
