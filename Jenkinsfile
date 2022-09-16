@@ -134,7 +134,7 @@ void withBuildDependencies(Closure closure) {
         etcdImage.withRun("--network ${buildnetwork} --name ${etcdContainerName}", 'etcd --listen-client-urls http://0.0.0.0:4001 --advertise-client-urls http://0.0.0.0:4001')
                 {
                     new Docker(this)
-                            .image('golang:1.18.1')
+                            .image('golang:1.18.6')
                             .mountJenkinsUser()
                             .inside("--network ${buildnetwork} -e ETCD=${etcdContainerName} -e SKIP_SYSLOG_TESTS=true -e SKIP_DOCKER_TESTS=true --volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                                     {
