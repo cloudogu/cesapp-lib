@@ -42,7 +42,10 @@ type httpRemote struct {
 
 func newHTTPRemote(remoteConfig *core.Remote, credentials *core.Credentials) (*httpRemote, error) {
 	netRetrier := retrier.New(
-		retrier.ConstantBackoff(1, 100*time.Millisecond),
+		retrier.ExponentialBackoff(
+			remoteConfig.RetryPolicy.MaxRetryCount,
+			time.Duration(remoteConfig.RetryPolicy.Interval)*time.Millisecond,
+		),
 		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
 	)
 

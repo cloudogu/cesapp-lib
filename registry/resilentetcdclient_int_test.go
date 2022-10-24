@@ -162,7 +162,7 @@ func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	cl, err := newResilentEtcdClient([]string{server.URL})
+	cl, err := newResilientEtcdClient([]string{server.URL}, etcdClientConfig{RetryInterval: 100})
 	require.Nil(t, err)
 
 	_, err = cl.Set("/test/one", "1", nil)
@@ -214,7 +214,7 @@ func TestWatch_inttest(t *testing.T) {
 	server := newServer()
 	defer server.Close()
 
-	cl, err := newResilentEtcdClient([]string{server.URL})
+	cl, err := newResilientEtcdClient([]string{server.URL}, etcdClientConfig{RetryInterval: 100})
 	require.Nil(t, err)
 
 	myResponseChannel := make(chan *client.Response)
@@ -266,7 +266,7 @@ func TestSetWithTTL_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	etcdClient, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilientEtcdClient([]string{server.URL}, etcdClientConfig{RetryInterval: 100})
 	require.Nil(t, err)
 
 	_, err = etcdClient.Set("/test/one", "1", setOptions)
@@ -321,7 +321,7 @@ func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	etcdClient, err := newResilentEtcdClient([]string{server.URL})
+	etcdClient, err := newResilientEtcdClient([]string{server.URL}, etcdClientConfig{RetryInterval: 100})
 	require.Nil(t, err)
 
 	_, err = etcdClient.Set("/parent/child0/cchild0", "1", nil)
@@ -360,7 +360,7 @@ func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 func Test_resilentEtcdClient_Get_inttest(t *testing.T) {
 	t.Run("should return error which can be tested with IsKeyNotFoundError ", func(t *testing.T) {
 		mockedRetrier := retrier.New(
-			retrier.ConstantBackoff(1, time.Millisecond),
+			retrier.ExponentialBackoff(1, time.Millisecond),
 			&etcdClassifier{},
 		)
 
@@ -383,7 +383,7 @@ func Test_resilentEtcdClient_Watch_inttest(t *testing.T) {
 	t.Run("successfull terminated watch with context timeout", func(t *testing.T) {
 		// given
 		mockedRetrier := retrier.New(
-			retrier.ConstantBackoff(1, time.Millisecond),
+			retrier.ExponentialBackoff(1, time.Millisecond),
 			&etcdClassifier{},
 		)
 		clientResponse := &client.Response{}

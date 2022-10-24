@@ -17,12 +17,12 @@ import (
 
 var log = core.GetLogger()
 
-// newResilentEtcdClient is build up on the kapi of etcd and adds constant retries for every failed request.
-func newResilentEtcdClient(endpoints []string) (*resilentEtcdClient, error) {
-	core.GetLogger().Debug("create etcd client for endpoints", endpoints)
+// newResilientEtcdClient is build up on the kapi of etcd and adds constant retries for every failed request.
+func newResilientEtcdClient(endpoints []string, config core.RetryPolicy) (*resilentEtcdClient, error) {
+	log.Debug("create etcd client for endpoints", endpoints)
 
 	r := retrier.New(
-		retrier.ExponentialBackoff(5, 100*time.Millisecond),
+		retrier.ExponentialBackoff(config.MaxRetryCount, time.Duration(config.Interval)*time.Millisecond),
 		&etcdClassifier{},
 	)
 

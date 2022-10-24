@@ -158,7 +158,7 @@ func Test_httpRemote_Delete(t *testing.T) {
 		Version: "2.3.4-5",
 	}
 	netRetrier := retrier.New(
-		retrier.ConstantBackoff(1, 1*time.Millisecond),
+		retrier.ExponentialBackoff(1, 1*time.Millisecond),
 		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
 	)
 
