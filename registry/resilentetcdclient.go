@@ -17,12 +17,26 @@ import (
 
 var log = core.GetLogger()
 
+type etcdClassifier struct{}
+
+// Classify returns succeeds if the error is nil or an etcd not found error, in all other cases the classifier will return retry.
+func (classifier *etcdClassifier) Classify(err error) retrier.Action {
+	if err == nil || IsKeyNotFoundError(err) {
+		return retrier.Succeed
+	}
+	return retrier.Retry
+}
+
 // newResilientEtcdClient is build up on the kapi of etcd and adds constant retries for every failed request.
 func newResilientEtcdClient(endpoints []string, config core.RetryPolicy) (*resilentEtcdClient, error) {
 	log.Debug("create etcd client for endpoints", endpoints)
 
+	backoff, err := core.GetBackoff(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resilentEtcdClient: %w", err)
+	}
 	r := retrier.New(
-		retrier.ExponentialBackoff(config.MaxRetryCount, time.Duration(config.Interval)*time.Millisecond),
+		backoff,
 		&etcdClassifier{},
 	)
 
@@ -41,16 +55,6 @@ func newResilientEtcdClient(endpoints []string, config core.RetryPolicy) (*resil
 		retrier:     r,
 		recentIndex: 0,
 	}, nil
-}
-
-type etcdClassifier struct{}
-
-// Classify returns succeeds if the error is nil or an etcd not found error, in all other cases the classifier will return retry.
-func (classifier *etcdClassifier) Classify(err error) retrier.Action {
-	if err == nil || IsKeyNotFoundError(err) {
-		return retrier.Succeed
-	}
-	return retrier.Retry
 }
 
 type resilentEtcdClient struct {

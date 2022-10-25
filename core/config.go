@@ -1,10 +1,13 @@
 package core
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type RetryPolicy struct {
-	Interval      int64 `json:"interval"`
-	MaxRetryCount int   `json:"maxRetryCount"`
+	Type          string `json:"type,omitempty" validate:"oneof=constant exponential"`
+	Interval      int64  `json:"interval" validate:"gte=0"`
+	MaxRetryCount int    `json:"maxRetryCount" validate:"gte=0"`
 }
 
 // Registry contains Cloudogu EcoSystem registration details.

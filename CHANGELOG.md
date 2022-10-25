@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Make the retry policy for registry and dogu backend calls configurable (#18)
 
 ## [v0.6.0] - 2022-09-16
 ### Changed

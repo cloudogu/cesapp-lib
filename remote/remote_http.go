@@ -41,11 +41,12 @@ type httpRemote struct {
 }
 
 func newHTTPRemote(remoteConfig *core.Remote, credentials *core.Credentials) (*httpRemote, error) {
+	backoff, err := core.GetBackoff(remoteConfig.RetryPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create httpRemote: %w", err)
+	}
 	netRetrier := retrier.New(
-		retrier.ExponentialBackoff(
-			remoteConfig.RetryPolicy.MaxRetryCount,
-			time.Duration(remoteConfig.RetryPolicy.Interval)*time.Millisecond,
-		),
+		backoff,
 		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
 	)
 
