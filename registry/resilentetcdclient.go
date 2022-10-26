@@ -16,6 +16,7 @@ import (
 )
 
 var log = core.GetLogger()
+var defaultBackoff = retrier.ExponentialBackoff(5, 100*time.Millisecond)
 
 type etcdClassifier struct{}
 
@@ -34,6 +35,9 @@ func newResilientEtcdClient(endpoints []string, config core.RetryPolicy) (*resil
 	backoff, err := core.GetBackoff(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create resilentEtcdClient: %w", err)
+	}
+	if len(backoff) < 1 {
+		backoff = defaultBackoff
 	}
 	r := retrier.New(
 		backoff,

@@ -18,7 +18,7 @@ func GetBackoff(policy RetryPolicy) ([]time.Duration, error) {
 		return nil, fmt.Errorf("the retry interval needs to be greater or equal to 0: given '%d'", policy.Interval)
 	}
 	if policy.MaxRetryCount < 0 {
-		return nil, fmt.Errorf("the mxa retry count needs to be greater or equal to 0: given '%d'", policy.MaxRetryCount)
+		return nil, fmt.Errorf("the max retry count needs to be greater or equal to 0: given '%d'", policy.MaxRetryCount)
 	}
 	switch policy.Type {
 	case constantPolicyType:

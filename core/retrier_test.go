@@ -76,7 +76,7 @@ func TestGetBackoff(t *testing.T) {
 		backoff, err := GetBackoff(configWithNegativeRetryCount)
 
 		require.Error(t, err)
-		expectedErrorMessage := "the mxa retry count needs to be greater or equal to 0: given '-5'"
+		expectedErrorMessage := "the max retry count needs to be greater or equal to 0: given '-5'"
 		assert.ErrorContains(t, err, expectedErrorMessage)
 		assert.Empty(t, backoff)
 	})
