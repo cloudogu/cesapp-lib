@@ -5,7 +5,7 @@ import (
 )
 
 type RetryPolicy struct {
-	Type          string `json:"type,omitempty" validate:"oneof=constant exponential"`
+	Type          string `json:"type,omitempty"`
 	Interval      int64  `json:"interval" validate:"gte=0"`
 	MaxRetryCount int    `json:"maxRetryCount" validate:"gte=0"`
 }
