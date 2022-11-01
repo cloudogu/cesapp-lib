@@ -162,7 +162,7 @@ func TestGetSetDeleteWithRetry_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	_, err = cl.Set("/test/one", "1", nil)
@@ -214,7 +214,7 @@ func TestWatch_inttest(t *testing.T) {
 	server := newServer()
 	defer server.Close()
 
-	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	myResponseChannel := make(chan *client.Response)
@@ -266,7 +266,7 @@ func TestSetWithTTL_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	etcdClient, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	etcdClient, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	_, err = etcdClient.Set("/test/one", "1", setOptions)
@@ -321,7 +321,7 @@ func TestGetChildrenPathsAndRecursiveOperations_inttest(t *testing.T) {
 	server := newFaultyServer()
 	defer server.Close()
 
-	etcdClient, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	etcdClient, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	_, err = etcdClient.Set("/parent/child0/cchild0", "1", nil)

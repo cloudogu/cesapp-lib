@@ -19,7 +19,7 @@ func TestGetAllReturnsV1AsWellAsV2_inttest(t *testing.T) {
 	v1Format := &core.DoguJsonV1FormatProvider{}
 	v2Format := &core.DoguJsonV2FormatProvider{}
 
-	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	defer func() {
@@ -70,7 +70,7 @@ func TestCombinedEtcdDoguRegistryWritesToV1AndV2_inttest(t *testing.T) {
 	v1Format := &core.DoguJsonV1FormatProvider{}
 	v2Format := &core.DoguJsonV2FormatProvider{}
 
-	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{RetryInterval: 100})
+	cl, err := newResilientEtcdClient([]string{server.URL}, core.RetryPolicy{Interval: 100})
 	require.Nil(t, err)
 
 	defer func() {
