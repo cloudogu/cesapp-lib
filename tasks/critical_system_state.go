@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	criticalProcessIndicatorName   = "critical_process_running"
+	CriticalProcessIndicatorName   = "critical_process_running"
 	criticalProcessTimeoutDuration = 60
 )
 
@@ -36,7 +36,7 @@ func NewCriticalSystemState(reg registry.Registry, processName string) *Critical
 
 // getCurrentCriticalSystemState returns the value of the currently set critical system state key
 func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystemState, error) {
-	exists, err := css.reg.GlobalConfig().Exists(criticalProcessIndicatorName)
+	exists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not find critical process key in registry")
 	}
@@ -45,7 +45,7 @@ func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystem
 		return &CriticalSystemState{}, nil
 	}
 
-	val, err := css.reg.GlobalConfig().Get(criticalProcessIndicatorName)
+	val, err := css.reg.GlobalConfig().Get(CriticalProcessIndicatorName)
 	if err != nil {
 		return &CriticalSystemState{}, errors.Wrap(err, "error while getting current critical process in registry")
 	}
@@ -171,7 +171,7 @@ func (css *CriticalSystemState) setKey() error {
 	if err != nil {
 		return err
 	}
-	err = css.reg.GlobalConfig().SetWithLifetime(criticalProcessIndicatorName, string(data), int(css.criticalProcessTimeoutDuration))
+	err = css.reg.GlobalConfig().SetWithLifetime(CriticalProcessIndicatorName, string(data), int(css.criticalProcessTimeoutDuration))
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func (css *CriticalSystemState) setKey() error {
 
 // refreshKey refreshes the lifetime of this process' key in the registry. If unset, the key will be set.
 func (css *CriticalSystemState) refreshKey() error {
-	exists, err := css.reg.GlobalConfig().Exists(criticalProcessIndicatorName)
+	exists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
 		return err
 	}
@@ -192,7 +192,7 @@ func (css *CriticalSystemState) refreshKey() error {
 		}
 	}
 
-	err = css.reg.GlobalConfig().Refresh(criticalProcessIndicatorName, int(css.criticalProcessTimeoutDuration))
+	err = css.reg.GlobalConfig().Refresh(CriticalProcessIndicatorName, int(css.criticalProcessTimeoutDuration))
 	if err != nil {
 		return err
 	}
@@ -201,12 +201,12 @@ func (css *CriticalSystemState) refreshKey() error {
 
 // removeKey removes the critical process key of this process from registry
 func (css *CriticalSystemState) removeKey() error {
-	keyExists, err := css.reg.GlobalConfig().Exists(criticalProcessIndicatorName)
+	keyExists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
 		return err
 	}
 	if keyExists {
-		err := css.reg.GlobalConfig().Delete(criticalProcessIndicatorName)
+		err := css.reg.GlobalConfig().Delete(CriticalProcessIndicatorName)
 		if err != nil {
 			return err
 		}

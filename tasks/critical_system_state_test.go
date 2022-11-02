@@ -35,7 +35,7 @@ func TestCanStartAndStopCriticalProcess(t *testing.T) {
 
 	require.Equal(t, "testprocess", current.SystemProcess)
 
-	val, _ := reg.GlobalConfig().Get(criticalProcessIndicatorName)
+	val, _ := reg.GlobalConfig().Get(CriticalProcessIndicatorName)
 	require.Equal(t, "{\"SystemProcess\":\"testprocess\"}", val)
 
 	err = process.Pause()
@@ -81,7 +81,7 @@ func TestCriticalProcessFailsOnExistsError(t *testing.T) {
 	r := mocks.CreateMockRegistry(nil)
 	reg := r.Registry
 	regs := r.SubRegistries
-	mocks.OnExists(regs["_global"], criticalProcessIndicatorName, false, errors.New("test"))
+	mocks.OnExists(regs["_global"], CriticalProcessIndicatorName, false, errors.New("test"))
 
 	css := NewCriticalSystemState(reg, "test")
 	err := css.Start(context.Background())
@@ -95,7 +95,7 @@ func TestCriticalProcessFailsOnGetError(t *testing.T) {
 	r := mocks.CreateMockRegistry(nil)
 	reg := r.Registry
 	regs := r.SubRegistries
-	mocks.OnExists(regs["_global"], criticalProcessIndicatorName, true, nil)
+	mocks.OnExists(regs["_global"], CriticalProcessIndicatorName, true, nil)
 	mocks.OnGet(regs["_global"], mock.Anything, mock.Anything, errors.New("test"))
 
 	css := NewCriticalSystemState(reg, "test")
@@ -110,8 +110,8 @@ func TestCriticalProcessFailsOnInvalidJson(t *testing.T) {
 	r := mocks.CreateMockRegistry(nil)
 	reg := r.Registry
 	regs := r.SubRegistries
-	mocks.OnExists(regs["_global"], criticalProcessIndicatorName, true, nil)
-	mocks.OnGet(regs["_global"], criticalProcessIndicatorName, "", nil)
+	mocks.OnExists(regs["_global"], CriticalProcessIndicatorName, true, nil)
+	mocks.OnGet(regs["_global"], CriticalProcessIndicatorName, "", nil)
 
 	css := NewCriticalSystemState(reg, "test")
 	err := css.Start(context.Background())
@@ -124,8 +124,8 @@ func TestCriticalProcessFailsOnSet(t *testing.T) {
 	r := mocks.CreateMockRegistry(nil)
 	reg := r.Registry
 	regs := r.SubRegistries
-	mocks.OnExists(regs["_global"], criticalProcessIndicatorName, false, nil)
-	mocks.OnSetWithLifetime(regs["_global"], criticalProcessIndicatorName, mocks.Anything, mocks.AnyLifetime, errors.New("test"))
+	mocks.OnExists(regs["_global"], CriticalProcessIndicatorName, false, nil)
+	mocks.OnSetWithLifetime(regs["_global"], CriticalProcessIndicatorName, mocks.Anything, mocks.AnyLifetime, errors.New("test"))
 
 	css := NewCriticalSystemState(reg, "test")
 	err := css.Start(context.Background())
@@ -157,12 +157,12 @@ func TestStopFailsOnExistsError(t *testing.T) {
 		return false
 	})).Return(false, nil)
 
-	mocks.OnSetWithLifetime(regs["_global"], criticalProcessIndicatorName, mocks.Anything, mocks.AnyLifetime, nil)
+	mocks.OnSetWithLifetime(regs["_global"], CriticalProcessIndicatorName, mocks.Anything, mocks.AnyLifetime, nil)
 
 	css := NewCriticalSystemState(reg, "test")
 	err := css.Start(context.Background())
 	require.Nil(t, err)
-	mocks.OnExists(regs["_global"], criticalProcessIndicatorName, false, errors.New("testerror"))
+	mocks.OnExists(regs["_global"], CriticalProcessIndicatorName, false, errors.New("testerror"))
 
 	err = css.Stop()
 	require.NotNil(t, err)
