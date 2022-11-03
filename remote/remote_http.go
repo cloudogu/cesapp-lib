@@ -27,6 +27,7 @@ import (
 var errorUnauthorized = errors.New("401 unauthorized, please login to proceed")
 var errorForbidden = errors.New("403 forbidden, not enough privileges")
 var errorNotFound = errors.New("404 not found")
+var defaultBackoff = retrier.ConstantBackoff(1, 100*time.Millisecond)
 
 // httpRemote is able to handle request to a remote cesapp
 type httpRemote struct {
@@ -41,8 +42,15 @@ type httpRemote struct {
 }
 
 func newHTTPRemote(remoteConfig *core.Remote, credentials *core.Credentials) (*httpRemote, error) {
+	backoff, err := core.GetBackoff(remoteConfig.RetryPolicy)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create httpRemote: %w", err)
+	}
+	if len(backoff) < 1 {
+		backoff = defaultBackoff
+	}
 	netRetrier := retrier.New(
-		retrier.ConstantBackoff(1, 100*time.Millisecond),
+		backoff,
 		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
 	)
 

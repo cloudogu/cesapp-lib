@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.7.0] - 2022-11-03
+### Changed
+- Make the retry policy for registry and dogu backend calls configurable (#18)
+
 ## [v0.6.0] - 2022-09-16
 ### Changed
 - Update go version from 1.18.1 to 1.18.6
