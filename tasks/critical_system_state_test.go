@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 
@@ -42,6 +43,9 @@ func TestCanStartAndStopCriticalProcess(t *testing.T) {
 
 	err = process.Start(ctx)
 	require.Nil(t, err)
+
+	// Time for a refresh call
+	time.Sleep(2 * time.Second)
 
 	current, err := process.getCurrentCriticalSystemState()
 	require.Nil(t, err)
