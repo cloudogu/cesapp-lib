@@ -11,8 +11,6 @@ import (
 
 	"io/ioutil"
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -142,18 +140,18 @@ func (controller *realAuthenticationController) createSystemToken(id string, sec
 	var tokenSecret = []byte(`{"secret":"` + secret + `"}`)
 	request, err := http.NewRequest(http.MethodPost, instanceRegistrationUrl, bytes.NewBuffer(tokenSecret))
 	if err != nil {
-		return systemToken, errors.Wrap(err, "could not create backend request")
+		return systemToken, fmt.Errorf("could not create backend request: %w", err)
 	}
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(request)
 	if err != nil {
-		return systemToken, errors.Wrap(err, "backend request failed")
+		return systemToken, fmt.Errorf("backend request failed: %w", err)
 	}
 
 	// resource moved or an error occurred
 	if resp.StatusCode >= 300 {
-		return systemToken, errors.New("backend returned failure status code")
+		return systemToken, fmt.Errorf("backend returned failure status code")
 	}
 	body := resp.Body
 	defer func() {
@@ -164,12 +162,12 @@ func (controller *realAuthenticationController) createSystemToken(id string, sec
 	}()
 	bodyData, err := ioutil.ReadAll(body)
 	if err != nil {
-		return systemToken, errors.Wrap(err, "failed to read response body")
+		return systemToken, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	err = json.Unmarshal(bodyData, &systemToken)
 	if err != nil {
-		return systemToken, errors.Wrap(err, "failed to parse response body")
+		return systemToken, fmt.Errorf("failed to parse response body: %w", err)
 	}
 	return systemToken, nil
 }
