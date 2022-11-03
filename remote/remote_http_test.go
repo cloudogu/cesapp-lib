@@ -15,6 +15,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Test_newHTTPRemote(t *testing.T) {
+	t.Run("should return an error if creating the backoff fails", func(t *testing.T) {
+		config := &core.Remote{
+			RetryPolicy: core.RetryPolicy{
+				Interval: -2,
+			},
+		}
+
+		_, err := newHTTPRemote(config, nil)
+
+		require.Error(t, err)
+	})
+}
+
 func Test_checkStatusCode(t *testing.T) {
 	t.Run("should return nil for HTTP 200", func(t *testing.T) {
 		mockResp := &http.Response{}
@@ -158,7 +172,7 @@ func Test_httpRemote_Delete(t *testing.T) {
 		Version: "2.3.4-5",
 	}
 	netRetrier := retrier.New(
-		retrier.ConstantBackoff(1, 1*time.Millisecond),
+		retrier.ExponentialBackoff(1, 1*time.Millisecond),
 		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
 	)
 

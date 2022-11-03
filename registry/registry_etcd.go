@@ -33,7 +33,7 @@ func createEtcdClient(configuration core.Registry) (*resilentEtcdClient, error) 
 		endpoints = configuration.Endpoints
 	}
 
-	return newResilentEtcdClient(endpoints)
+	return newResilientEtcdClient(endpoints, configuration.RetryPolicy)
 }
 
 // GlobalConfig returns a ConfigurationContext for the global context.
