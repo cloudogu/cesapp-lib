@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -12,11 +13,12 @@ import (
 
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/util"
-	"github.com/pkg/errors"
 )
 
-const key = ".credentials.key"
-const store = ".credentials.store"
+const (
+	key   = ".credentials.key"
+	store = ".credentials.store"
+)
 
 var keyPrefix = []byte{
 	0x17, 0xe4, 0x27, 0xb7, 0xac, 0xb5, 0x5, 0x7d, 0x37, 0x97, 0x44, 0x8b, 0xe5,
@@ -59,25 +61,25 @@ func getSecretKey(directory string) ([]byte, error) {
 	if util.Exists(keyPath) {
 		secretKey, err = ioutil.ReadFile(keyPath)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to read key file")
+			return nil, fmt.Errorf("failed to read key file: %w", err)
 		}
 	} else {
 		secretKey = make([]byte, 16)
 		_, err = rand.Read(secretKey)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to create random key")
+			return nil, fmt.Errorf("failed to create random key: %w", err)
 		}
 
 		if !util.Exists(directory) {
 			err = os.MkdirAll(directory, 0700)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to create directory for credential store")
+				return nil, fmt.Errorf("failed to create directory for credential store: %w", err)
 			}
 		}
 
 		err = ioutil.WriteFile(keyPath, secretKey, 0700)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to write random key")
+			return nil, fmt.Errorf("failed to write random key: %w", err)
 		}
 	}
 	return append(keyPrefix, secretKey...), err
@@ -86,16 +88,16 @@ func getSecretKey(directory string) ([]byte, error) {
 func readStore(secretKey []byte, storePath string) (map[string]*core.Credentials, error) {
 	ciphertext, err := ioutil.ReadFile(storePath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read credential store")
+		return nil, fmt.Errorf("failed to read credential store: %w", err)
 	}
 
 	if len(ciphertext) < aes.BlockSize {
-		return nil, errors.New("ciphertext too short")
+		return nil, fmt.Errorf("ciphertext too short")
 	}
 
 	block, err := aes.NewCipher(secretKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create cipher from secret key")
+		return nil, fmt.Errorf("failed to create cipher from secret key: %w", err)
 	}
 
 	iv := ciphertext[:aes.BlockSize]
@@ -111,7 +113,7 @@ func readCredentials(data []byte) (map[string]*core.Credentials, error) {
 	credentials := make(map[string]*core.Credentials)
 	err := json.Unmarshal(data, &credentials)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to unmarshal secret store")
+		return nil, fmt.Errorf("failed to unmarshal secret store: %w", err)
 	}
 	return credentials, nil
 }
@@ -122,16 +124,19 @@ type simpleStore struct {
 	credentials map[string]*core.Credentials
 }
 
+// Add adds credentials to the store with the given id.
 func (scs *simpleStore) Add(id string, creds *core.Credentials) error {
 	scs.credentials[id] = creds
 	return scs.writeCredentials()
 }
 
+// Remove removes credentials with the given id.
 func (scs *simpleStore) Remove(id string) error {
 	delete(scs.credentials, id)
 	return scs.writeCredentials()
 }
 
+// Get returns credentials for the given id.
 func (scs *simpleStore) Get(id string) *core.Credentials {
 	return scs.credentials[id]
 }
@@ -139,12 +144,12 @@ func (scs *simpleStore) Get(id string) *core.Credentials {
 func (scs *simpleStore) writeCredentials() error {
 	block, err := aes.NewCipher(scs.key)
 	if err != nil {
-		return errors.Wrap(err, "failed to create cipher from secret key")
+		return fmt.Errorf("failed to create cipher from secret key: %w", err)
 	}
 
 	plaintext, err := json.Marshal(&scs.credentials)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshall credentials")
+		return fmt.Errorf("failed to marshall credentials: %w", err)
 	}
 
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
@@ -153,7 +158,7 @@ func (scs *simpleStore) writeCredentials() error {
 	iv := ciphertext[:aes.BlockSize]
 	_, err = io.ReadFull(rand.Reader, iv)
 	if err != nil {
-		return errors.Wrap(err, "failed to create random iv")
+		return fmt.Errorf("failed to create random iv: %w", err)
 	}
 
 	cfb := cipher.NewCFBEncrypter(block, iv)
@@ -161,7 +166,7 @@ func (scs *simpleStore) writeCredentials() error {
 
 	err = ioutil.WriteFile(scs.store, ciphertext, 0700)
 	if err != nil {
-		return errors.Wrap(err, "failed to write credential store")
+		return fmt.Errorf("failed to write credential store: %w", err)
 	}
 	return nil
 }

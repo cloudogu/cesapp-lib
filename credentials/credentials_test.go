@@ -1,6 +1,7 @@
 package credentials
 
 import (
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -52,4 +53,13 @@ func TestCredentialStore(t *testing.T) {
 
 func TestDefaultStoreName(t *testing.T) {
 	assert.Equal(t, "_default", DefaultStore)
+}
+
+func TestNewStore(t *testing.T) {
+	// when
+	store, err := NewStore(os.TempDir())
+
+	// then
+	require.NoError(t, err)
+	require.NotNil(t, store)
 }

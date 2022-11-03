@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -19,7 +20,7 @@ func TestNewAuthenticationController(t *testing.T) {
 	// given
 	authConfig := AuthenticationConfig{}
 	httpServer := NewHttpServer("")
-	store, _ := credentials.NewStore("/tmp")
+	store, _ := credentials.NewStore(os.TempDir())
 
 	// when
 	result := NewAuthenticationController(authConfig, httpServer, nil, store)
