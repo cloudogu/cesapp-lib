@@ -1,9 +1,8 @@
 package doguConf
 
 import (
+	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -28,7 +27,7 @@ func CreateEntryValidator(descriptor core.ValidationDescriptor) (EntryValidator,
 	if val, ok := entryValidatorTypes[descriptor.Type]; ok {
 		return val(descriptor), nil
 	}
-	return nil, errors.Errorf("no validator for type %s found", descriptor.Type)
+	return nil, fmt.Errorf("no validator for type %s found", descriptor.Type)
 }
 
 // EntryValidator provides a Check method to check the validity of a single configuration entry.

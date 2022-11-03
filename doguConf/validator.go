@@ -1,10 +1,9 @@
 package doguConf
 
 import (
+	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
-
-	"github.com/pkg/errors"
 )
 
 // Validator checks if the given configurationField is valid
@@ -40,7 +39,7 @@ func (c *ConfigValidator) Check(field core.ConfigurationField) error {
 	}
 
 	if err != nil {
-		return errors.Wrapf(err, "failed to get value of %s", field.Name)
+		return fmt.Errorf("failed to get value of %s: %w", field.Name, err)
 	}
 
 	if field.Validation.Type == "" {
@@ -55,12 +54,12 @@ func (c *ConfigValidator) Check(field core.ConfigurationField) error {
 
 	validator, err := CreateEntryValidator(field.Validation)
 	if err != nil {
-		return errors.Wrap(err, "failed to create entry validator")
+		return fmt.Errorf("failed to create entry validator: %w", err)
 	}
 
 	err = validator.Check(value)
 	if err != nil {
-		return errors.Wrapf(err, "value %s for %s is not valid", value, field.Name)
+		return fmt.Errorf("value %s for %s is not valid: %w", value, field.Name, err)
 	}
 
 	return nil

@@ -1,11 +1,11 @@
 package doguConf
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -38,16 +38,16 @@ func CreateFloatPercentageValidator(_ core.ValidationDescriptor) EntryValidator 
 func (fpv *FloatPercentageValidator) Check(input string) error {
 	matches := fpv.validationMatcher.MatchString(input)
 	if !matches {
-		return errors.Errorf("input '%s' should be a float number with at least one decimals place (f. ex. 22.5 for 22.5 percent); regex validation failed", input)
+		return fmt.Errorf("input '%s' should be a float number with at least one decimals place (f. ex. 22.5 for 22.5 percent); regex validation failed", input)
 	}
 
 	value, err := strconv.ParseFloat(input, 64)
 	if err != nil {
-		return errors.Errorf("input '%s' should be a float number with at least one decimals place (f. ex. 22.5 for 22.5 percent); parsing value failed", input)
+		return fmt.Errorf("input '%s' should be a float number with at least one decimals place (f. ex. 22.5 for 22.5 percent); parsing value failed", input)
 	}
 
 	if value < 0 || value > 100 {
-		return errors.Errorf("input '%s' should be between 0 and 100; invalid percentage", input)
+		return fmt.Errorf("input '%s' should be between 0 and 100; invalid percentage", input)
 	}
 
 	return nil

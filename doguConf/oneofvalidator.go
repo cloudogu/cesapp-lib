@@ -1,8 +1,8 @@
 package doguConf
 
 import (
+	"fmt"
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/pkg/errors"
 )
 
 // oneOfValidator checks if the given value is element of a predefined set
@@ -21,5 +21,5 @@ func (o *oneOfValidator) Check(input string) error {
 			return nil
 		}
 	}
-	return errors.Errorf("input should be one of %q", o.values)
+	return fmt.Errorf("input should be one of %q", o.values)
 }

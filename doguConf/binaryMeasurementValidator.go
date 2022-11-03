@@ -1,11 +1,11 @@
 package doguConf
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/pkg/errors"
 )
 
 var log = core.GetLogger()
@@ -46,7 +46,7 @@ func (bpv *BinaryMeasurementValidator) Check(input string) error {
 	}
 
 	allowedBinaryUnits := strings.Join(strings.Split(ValidBinaryUnits, ""), ",")
-	return errors.Errorf("input '%s' should be an integer with a binary measurement (f. ex. 2k for 2048 bytes); valid units are: %s", input, allowedBinaryUnits)
+	return fmt.Errorf("input '%s' should be an integer with a binary measurement (f. ex. 2k for 2048 bytes); valid units are: %s", input, allowedBinaryUnits)
 }
 
 // SplitValueAndUnit returns the input's integer part as well as the binary unit. Be sure to call Check() beforehand.
