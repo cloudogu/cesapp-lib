@@ -84,6 +84,11 @@ func (dc *doguDependencyChecker) CheckDoguDependency(doguDependency core.Depende
 		}
 		return fmt.Errorf("dependency %s seems not to be installed", doguDependency.Name)
 	}
+
+	return checkDependencyVersion(doguDependency, localDependency)
+}
+
+func checkDependencyVersion(doguDependency core.Dependency, localDependency *core.Dogu) error {
 	// it does not count as an error if no version is specified as the field is optional
 	if doguDependency.Version != "" {
 		localDependencyVersion, err := core.ParseVersion(localDependency.Version)
