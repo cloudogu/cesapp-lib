@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 
 	"strings"
@@ -77,12 +78,12 @@ func isMetaValue(input string) bool {
 func (pk *PrivateKey) decryptRSAEncryptedB64String(input string) (string, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(input)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode base64 input")
+		return "", fmt.Errorf("failed to decode base64 input: %w", err)
 	}
 
 	plaintext, err := pk.decrypter(rand.Reader, pk.key, ciphertext)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decrypt input")
+		return "", fmt.Errorf("failed to decrypt input: %w", err)
 	}
 
 	return string(plaintext), nil
@@ -92,41 +93,41 @@ func (pk *PrivateKey) decryptHybrid(input string) (string, error) {
 	hybridEncryptionValue := &HybridEncryptionValue{}
 
 	if err := json.Unmarshal([]byte(input), hybridEncryptionValue); err != nil {
-		return "", errors.Wrap(err, "failed to unmarshal HybridEncryptionValue input")
+		return "", fmt.Errorf("failed to unmarshal HybridEncryptionValue input: %w", err)
 	}
 
 	if hybridEncryptionValue.Encryption.Type == AesGcm {
 		return pk.decryptHybridWithAesGcm(*hybridEncryptionValue)
 	}
-	return "", errors.Errorf("unsupported encryption algorithm detected: %s", hybridEncryptionValue.Encryption.Type)
+	return "", fmt.Errorf("unsupported encryption algorithm detected: %s", hybridEncryptionValue.Encryption.Type)
 }
 
 func (pk *PrivateKey) decryptHybridWithAesGcm(hybridEncryptionValue HybridEncryptionValue) (string, error) {
 
 	plainSymmetricKey, err := pk.decryptRSAEncryptedB64String(hybridEncryptionValue.Encryption.Key)
 	if err != nil {
-		return "", errors.Wrap(err, "could not decrypt hybrid encryption value")
+		return "", fmt.Errorf("could not decrypt hybrid encryption value: %w", err)
 	}
 
 	aesCipher, err := aes.NewCipher([]byte(plainSymmetricKey))
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create aes cipher")
+		return "", fmt.Errorf("failed to create aes cipher: %w", err)
 	}
 	aesGcm, err := cipher.NewGCM(aesCipher)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to create aes gcm")
+		return "", fmt.Errorf("failed to create aes gcm: %w", err)
 	}
 	providedNonce, err := base64.StdEncoding.DecodeString(hybridEncryptionValue.Encryption.Nonce)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode(base64) nonce")
+		return "", fmt.Errorf("failed to decode(base64) nonce: %w", err)
 	}
 	encryptedValue, err := base64.StdEncoding.DecodeString(hybridEncryptionValue.Value)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to decode(base64) encrypted value")
+		return "", fmt.Errorf("failed to decode(base64) encrypted value: %w", err)
 	}
 	decryptedValue, err := aesGcm.Open(nil, providedNonce, encryptedValue, nil)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to aes-decrypt encryptedValue")
+		return "", fmt.Errorf("failed to aes-decrypt encryptedValue: %w", err)
 	}
 
 	return string(decryptedValue), nil

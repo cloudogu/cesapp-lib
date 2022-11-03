@@ -5,10 +5,9 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io"
 	"io/ioutil"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -35,7 +34,7 @@ type KeyProvider struct {
 func NewKeyProvider(keyType string) (*KeyProvider, error) {
 	provider := providers[keyType]
 	if provider == nil {
-		return nil, errors.New("could not find provider from type " + keyType)
+		return nil, fmt.Errorf("could not find provider from type " + keyType)
 	}
 	return provider, nil
 }
@@ -45,7 +44,7 @@ func (provider *KeyProvider) Generate() (*KeyPair, error) {
 	log.Info("create new key pair")
 	key, err := rsa.GenerateKey(rand.Reader, bitSize)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create rsa key pair")
+		return nil, fmt.Errorf("failed to create rsa key pair: %w", err)
 	}
 	return &KeyPair{key: key, encrypter: provider.Encrypter, decrypter: provider.Decrypter}, nil
 }
@@ -54,7 +53,7 @@ func (provider *KeyProvider) Generate() (*KeyPair, error) {
 func (provider *KeyProvider) FromPrivateKeyPath(path string) (*KeyPair, error) {
 	pk, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to read private key file")
+		return nil, fmt.Errorf("failed to read private key file: %w", err)
 	}
 	return provider.FromPrivateKey(pk)
 }
@@ -64,7 +63,7 @@ func (provider *KeyProvider) FromPrivateKey(privateKey []byte) (*KeyPair, error)
 	p, _ := pem.Decode(privateKey)
 	key, err := x509.ParsePKCS1PrivateKey(p.Bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse private rsa key")
+		return nil, fmt.Errorf("failed to parse private rsa key: %w", err)
 	}
 
 	return &KeyPair{key: key, encrypter: provider.Encrypter, decrypter: provider.Decrypter}, nil
@@ -80,11 +79,11 @@ func (provider *KeyProvider) ReadPublicKey(publicKey []byte) (*PublicKey, error)
 	p, _ := pem.Decode(publicKey)
 	key, err := x509.ParsePKIXPublicKey(p.Bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse public rsa key")
+		return nil, fmt.Errorf("failed to parse public rsa key: %w", err)
 	}
 	pk, ok := key.(*rsa.PublicKey)
 	if !ok {
-		return nil, errors.New("could not cast key to rsa.PublicKey")
+		return nil, fmt.Errorf("could not cast key to rsa.PublicKey")
 	}
 
 	return &PublicKey{pk, provider.Encrypter}, nil

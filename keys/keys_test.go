@@ -2,13 +2,11 @@ package keys_test
 
 import (
 	"github.com/cloudogu/cesapp-lib/keys"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
-
-	"github.com/cloudogu/cesapp-lib/core"
-	"github.com/cloudogu/cesapp-lib/registry"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,26 +31,16 @@ func TestEncryptDecrypt(t *testing.T) {
 }
 
 func TestEncryptDecryptPayload(t *testing.T) {
-	reg := registry.MockRegistry{}
-
 	provider, err := keys.NewKeyProvider(emptyKeyProvider)
 	assert.Nil(t, err)
 
 	pair, err := provider.Generate()
 	assert.Nil(t, err)
 
-	pub, _ := pair.Public().AsString()
-	err = reg.DoguConfig("myDogu").Set(registry.KeyDoguPublicKey, pub)
-	assert.Nil(t, err)
+	pub, err := pair.Public().AsString()
+	require.NoError(t, err)
 
-	dogu := core.Dogu{
-		Name: "unofficial/myDogu",
-	}
-
-	publicKeyString, err := reg.DoguConfig(dogu.GetSimpleName()).Get(registry.KeyDoguPublicKey)
-	assert.NoError(t, err)
-
-	publicKey, err := provider.ReadPublicKeyFromString(publicKeyString)
+	publicKey, err := provider.ReadPublicKeyFromString(pub)
 	assert.NoError(t, err)
 
 	enc, err := publicKey.Encrypt("myPayload")
@@ -168,8 +156,12 @@ func TestKeyPairFromPrivateKeyPath(t *testing.T) {
 
 	f, err := ioutil.TempFile("", "privatekey.pem")
 	assert.Nil(t, err)
-	f.Close()
-	defer os.Remove(f.Name())
+	err = f.Close()
+	require.NoError(t, err)
+	defer func(name string) {
+		err := os.Remove(name)
+		require.NoError(t, err)
+	}(f.Name())
 
 	err = pair.Private().ToFile(f.Name())
 	assert.Nil(t, err)

@@ -29,7 +29,7 @@ type PublicKey struct {
 func (pk *PublicKey) AsBytes() ([]byte, error) {
 	der, err := x509.MarshalPKIXPublicKey(pk.key)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal public key")
+		return nil, fmt.Errorf("failed to marshal public key")
 	}
 
 	var pemkey = &pem.Block{
@@ -59,7 +59,7 @@ func (pk *PublicKey) ToFile(path string) error {
 	// TODO check permissions
 	err = ioutil.WriteFile(path, bytes, 0744)
 	if err != nil {
-		return errors.Wrap(err, "failed to write public key to file "+path)
+		return fmt.Errorf("failed to write public key to file %s: %w", path, err)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (pk *PublicKey) canEncryptWithRSA(input string) bool {
 func (pk *PublicKey) encryptWithRSAandEncode(input []byte) (string, error) {
 	ciphertext, err := pk.encrypter(rand.Reader, pk.key, input)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to encrypt input text")
+		return "", fmt.Errorf("failed to encrypt input text: %w", err)
 	}
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
@@ -105,13 +105,13 @@ func (pk *PublicKey) encryptHybrid(input []byte) (string, error) {
 	// symmetrically encrypt the actual value...
 	encryptedValue, err := encryptWithAesGcm(aesKey, nonce, input)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to encrypt value with AES GCM")
+		return "", fmt.Errorf("failed to encrypt value with AES GCM: %w", err)
 	}
 
-	//... then encrypt the symmetric key regularly (i. e. asymmetrically).
+	// ... then encrypt the symmetric key regularly (i. e. asymmetrically).
 	encryptedAesKey, err := pk.encryptWithRSAandEncode(aesKey)
 	if err != nil {
-		return "", errors.Wrapf(err, "failed to encrypt aes key")
+		return "", fmt.Errorf("failed to encrypt aes key: %w", err)
 	}
 
 	// finally,  join both parts for persisting them
@@ -127,7 +127,7 @@ func generateCryptographicallySecureRandomBits(length int) ([]byte, error) {
 	if length%8 != 0 {
 		return nil, fmt.Errorf("length %d is not a multiple of 8", length)
 	}
-	//divide by 8 to make up for byte vs bits as given by method contract
+	// divide by 8 to make up for byte vs bits as given by method contract
 	randomBytes := make([]byte, length/8)
 	if _, err := rand.Read(randomBytes); err != nil {
 		return nil, errors.Wrapf(err, "failed to generate random")
@@ -135,16 +135,16 @@ func generateCryptographicallySecureRandomBits(length int) ([]byte, error) {
 	return randomBytes, nil
 }
 
-//encrypt with AES in GCM mode with the given length of the key.
+// encrypt with AES in GCM mode with the given length of the key.
 func encryptWithAesGcm(aesKey []byte, nonce []byte, input []byte) ([]byte, error) {
 	aesCipher, err := aes.NewCipher(aesKey)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create aes cipher")
+		return nil, fmt.Errorf("failed to create aes cipher: %w", err)
 	}
 
 	aesGcm, err := cipher.NewGCM(aesCipher)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create gcm cipher")
+		return nil, fmt.Errorf("failed to create gcm cipher: %w", err)
 	}
 
 	return aesGcm.Seal(nil, nonce, input, nil), nil
