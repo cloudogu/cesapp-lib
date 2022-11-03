@@ -13,17 +13,30 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/cloudogu/cesapp-lib/registry"
 )
 
 func TestCanStartAndStopCriticalProcess(t *testing.T) {
-	reg := &registry.MockRegistry{}
+	// given
+	emptyState := `{}`
+	state := "{\"SystemProcess\":\"testprocess\"}"
+	reg := mocks.NewRegistry(t)
+	globalConfig := mocks.NewConfigurationContext(t)
+
+	reg.On("GlobalConfig").Return(globalConfig)
+	globalConfig.On("Exists", "critical_process_running").Return(true, nil)
+	globalConfig.On("Get", "critical_process_running").Once().Return(emptyState, nil)
+	globalConfig.On("Get", "critical_process_running").Once().Return(state, nil)
+	globalConfig.On("Get", "critical_process_running").Once().Return(emptyState, nil)
+	globalConfig.On("SetWithLifetime", "critical_process_running", state, 11).Return(nil)
+	globalConfig.On("Refresh", "critical_process_running", 11).Return(nil)
+	globalConfig.On("Delete", "critical_process_running").Return(nil)
+
 	ctx := context.Background()
 
 	process := NewCriticalSystemState(reg, "testprocess")
 	process.criticalProcessTimeoutDuration = 11 // The interval has an offset of 10
 
+	// when
 	err := process.Stop()
 	require.Error(t, err, "is not running")
 
@@ -33,48 +46,66 @@ func TestCanStartAndStopCriticalProcess(t *testing.T) {
 	current, err := process.getCurrentCriticalSystemState()
 	require.Nil(t, err)
 
+	// then
 	require.Equal(t, "testprocess", current.SystemProcess)
 
-	val, _ := reg.GlobalConfig().Get(CriticalProcessIndicatorName)
-	require.Equal(t, "{\"SystemProcess\":\"testprocess\"}", val)
-
+	// when
 	err = process.Pause()
 	require.Nil(t, err)
 
 	err = process.Unpause()
 	require.Nil(t, err)
 
-	process.Stop()
-
+	err = process.Stop()
+	require.NoError(t, err)
 	current, err = process.getCurrentCriticalSystemState()
+
+	// then
 	require.Nil(t, err)
 	require.Equal(t, "", current.SystemProcess)
 }
 
 func TestCanOnlySttOneCriticalProcess(t *testing.T) {
-	reg := &registry.MockRegistry{}
+	// given
 	ctx := context.Background()
+	emptyState := `{}`
+	state := "{\"SystemProcess\":\"testprocess\"}"
+	reg := mocks.NewRegistry(t)
+	globalConfig := mocks.NewConfigurationContext(t)
+
+	reg.On("GlobalConfig").Return(globalConfig)
+	globalConfig.On("Exists", "critical_process_running").Return(true, nil)
+	globalConfig.On("Get", "critical_process_running").Once().Return(emptyState, nil)
+	globalConfig.On("Get", "critical_process_running").Once().Return(state, nil)
+	globalConfig.On("SetWithLifetime", "critical_process_running", state, 60).Return(nil)
 
 	process1 := NewCriticalSystemState(reg, "testprocess")
 	process2 := NewCriticalSystemState(reg, "testprocess")
 
+	// when
 	err := process1.Start(ctx)
+	// then
 	require.Nil(t, err)
 
+	// when
 	err = process2.Start(ctx)
+	// then
 	require.NotNil(t, err)
 }
 
 func TestCannotPauseOrStopPressWithoutStart(t *testing.T) {
-	reg := &registry.MockRegistry{}
+	reg := mocks.NewRegistry(t)
 
-	process1 := NewCriticalSystemState(reg, "testprocess")
+	process := NewCriticalSystemState(reg, "testprocess")
+	require.NotNil(t, process)
 
-	err := process1.Stop()
+	err := process.Stop()
 	require.NotNil(t, err)
+	assert.Contains(t, err.Error(), "the critical system state 'testprocess' is not running")
 
-	err = process1.Pause()
+	err = process.Pause()
 	require.NotNil(t, err)
+	assert.Contains(t, err.Error(), "the critical system state 'testprocess' is not running")
 }
 
 func TestCriticalProcessFailsOnExistsError(t *testing.T) {
@@ -136,7 +167,7 @@ func TestCriticalProcessFailsOnSet(t *testing.T) {
 }
 
 func TestUnpauseFailsWhenNotStarted(t *testing.T) {
-	reg := &registry.MockRegistry{}
+	reg := mocks.NewRegistry(t)
 	css := NewCriticalSystemState(reg, "test")
 	err := css.Pause()
 

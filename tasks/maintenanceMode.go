@@ -2,10 +2,9 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/cloudogu/cesapp-lib/core"
 
+	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/registry"
-	"github.com/pkg/errors"
 )
 
 // MaintenanceRegistryKey contains the registry key name which points to the Maintenance Mode text
@@ -25,10 +24,10 @@ func ActivateMaintenanceMode(messageText string, registry registry.Registry) err
 // to the user. The message text must not be empty. The given title will be presented to the user. The title must not be empty.
 func ActivateMaintenanceModeWithTitle(messageText string, title string, registry registry.Registry) error {
 	if messageText == "" {
-		return errors.New("could not activate maintenance mode. Message text is missing")
+		return fmt.Errorf("could not activate maintenance mode. Message text is missing")
 	}
 	if title == "" {
-		return errors.New("could not activate maintenance mode. Message title is missing")
+		return fmt.Errorf("could not activate maintenance mode. Message title is missing")
 	}
 
 	log.Info(activateMaintenanceModeDescription)
@@ -38,7 +37,7 @@ func ActivateMaintenanceModeWithTitle(messageText string, title string, registry
 
 	err := registry.GlobalConfig().Set(MaintenanceRegistryKey, json)
 	if err != nil {
-		return errors.Wrap(err, "failed to activate maintenance mode")
+		return fmt.Errorf("failed to activate maintenance mode: %w", err)
 	}
 	return nil
 }
@@ -48,7 +47,7 @@ func ActivateMaintenanceModeWithTitle(messageText string, title string, registry
 func DeactivateMaintenanceMode(registry registry.Registry) error {
 	exists, err := registry.GlobalConfig().Exists(MaintenanceRegistryKey)
 	if err != nil {
-		return errors.Wrap(err, "could not check if maintenance mode key exists")
+		return fmt.Errorf("could not check if maintenance mode key exists: %w", err)
 	}
 
 	if exists {

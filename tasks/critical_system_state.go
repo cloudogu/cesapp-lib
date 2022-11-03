@@ -3,10 +3,10 @@ package tasks
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/cloudogu/cesapp-lib/registry"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -14,6 +14,7 @@ const (
 	criticalProcessTimeoutDuration = 60
 )
 
+// CriticalSystemState is a state which indicates that the ces is blocked for user interaction.
 type CriticalSystemState struct {
 	SystemProcess                  string
 	reg                            registry.Registry
@@ -38,7 +39,7 @@ func NewCriticalSystemState(reg registry.Registry, processName string) *Critical
 func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystemState, error) {
 	exists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not find critical process key in registry")
+		return nil, fmt.Errorf("could not find critical process key in registry: %w", err)
 	}
 
 	if !exists {
@@ -47,7 +48,7 @@ func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystem
 
 	val, err := css.reg.GlobalConfig().Get(CriticalProcessIndicatorName)
 	if err != nil {
-		return &CriticalSystemState{}, errors.Wrap(err, "error while getting current critical process in registry")
+		return &CriticalSystemState{}, fmt.Errorf("error while getting current critical process in registry: %w", err)
 	}
 
 	var current *CriticalSystemState
@@ -62,15 +63,15 @@ func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystem
 func (css *CriticalSystemState) Start(ctx context.Context) error {
 	existing, err := css.isAnotherProcessRunning()
 	if err != nil {
-		return errors.Wrapf(err, "could not find out if there is a critical process running")
+		return fmt.Errorf("could not find out if there is a critical process running: %w", err)
 	}
 	if existing {
-		return errors.Errorf("there is already a critical process running")
+		return fmt.Errorf("there is already a critical process running")
 	}
 
 	err = css.setKey()
 	if err != nil {
-		return errors.Wrap(err, "could not set critical process key")
+		return fmt.Errorf("could not set critical process key: %w", err)
 	}
 
 	interval := (css.criticalProcessTimeoutDuration - 10) * time.Second
@@ -132,7 +133,7 @@ func (css *CriticalSystemState) Stop() error {
 
 	err = css.removeKey()
 	if err != nil {
-		return errors.Wrap(err, "error removing critical process key")
+		return fmt.Errorf("error removing critical process key: %w", err)
 	}
 	css.cancel()
 	return nil
@@ -217,7 +218,7 @@ func (css *CriticalSystemState) removeKey() error {
 // validateProcessIsRunning checks if the process is currently running
 func (css *CriticalSystemState) validateProcessIsRunning() error {
 	if css.channel == nil || css.cancel == nil {
-		return errors.Errorf("the critical system state '%s' is not running", css.SystemProcess)
+		return fmt.Errorf("the critical system state '%s' is not running", css.SystemProcess)
 	}
 
 	return nil
@@ -227,7 +228,7 @@ func (css *CriticalSystemState) validateProcessIsRunning() error {
 func (css *CriticalSystemState) isAnotherProcessRunning() (bool, error) {
 	current, err := css.getCurrentCriticalSystemState()
 	if err != nil {
-		return false, errors.Wrapf(err, "could not get the current running critical process")
+		return false, fmt.Errorf("could not get the current running critical process: %w", err)
 	}
 	return current.SystemProcess == css.SystemProcess, nil
 }
