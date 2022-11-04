@@ -28,7 +28,7 @@ var errorUnauthorized = errors.New("401 unauthorized, please login to proceed")
 var errorForbidden = errors.New("403 forbidden, not enough privileges")
 var errorNotFound = errors.New("404 not found")
 
-// httpRemote is able to handle request to a remote cesapp
+// httpRemote is able to handle request to a remote registry
 type httpRemote struct {
 	endpoint            string
 	endpointCacheDir    string

@@ -49,8 +49,8 @@ func validateRegistryKey(path string, value string, config configReader, allowEm
 	}
 
 	if value != regValue {
-		return fmt.Errorf("cesapp configuration from registry: cesapp configuration (%s) is not equal to registry"+
-			" configuration (%s) for key '%s'", value, regValue, path)
+		return fmt.Errorf("configuration (%s) is not equal to registry configuration (%s) for key '%s'", value,
+			regValue, path)
 	}
 
 	return nil
