@@ -1,11 +1,20 @@
 package core
 
-import "strconv"
+import (
+	"strconv"
+)
+
+type RetryPolicy struct {
+	Type          string `json:"type,omitempty"`
+	Interval      int64  `json:"interval" validate:"gte=0"`
+	MaxRetryCount int    `json:"maxRetryCount" validate:"gte=0"`
+}
 
 // Registry contains Cloudogu EcoSystem registration details.
 type Registry struct {
-	Type      string   `validate:"eq=etcd"`
-	Endpoints []string `validate:"required,min=1"`
+	Type        string      `validate:"eq=etcd"`
+	Endpoints   []string    `validate:"required,min=1"`
+	RetryPolicy RetryPolicy `json:"retryPolicy,omitempty"`
 }
 
 // Remote contains dogu registry configuration details.
@@ -15,8 +24,9 @@ type Remote struct {
 	URLSchema              string `json:"urlSchema,omitempty" validate:"omitempty,oneof=default index"`
 	CacheDir               string `validate:"required"`
 	ProxySettings          ProxySettings
-	AnonymousAccess        bool `json:",omitempty"`
-	Insecure               bool `json:",omitempty"`
+	AnonymousAccess        bool        `json:",omitempty"`
+	Insecure               bool        `json:",omitempty"`
+	RetryPolicy            RetryPolicy `json:"retryPolicy,omitempty"`
 }
 
 // ProxySettings contains the settings for http proxy
