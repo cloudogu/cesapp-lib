@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/credentials"
+	"io"
 
 	"github.com/cloudogu/cesapp-lib/core"
 
@@ -144,22 +145,25 @@ func (controller *realAuthenticationController) createSystemToken(id string, sec
 	}
 	request.Header.Set("Content-Type", "application/json")
 
+	// Open issue from bodyclose linter. See: https://github.com/timakin/bodyclose/issues/30
+	//nolint:bodyclose
 	resp, err := client.Do(request)
 	if err != nil {
 		return systemToken, fmt.Errorf("backend request failed: %w", err)
 	}
+	defer func(Body io.ReadCloser) {
+		closeErr := Body.Close()
+		if closeErr != nil {
+			log.Error(closeErr.Error())
+		}
+	}(resp.Body)
 
 	// resource moved or an error occurred
 	if resp.StatusCode >= 300 {
 		return systemToken, fmt.Errorf("backend returned failure status code")
 	}
+
 	body := resp.Body
-	defer func() {
-		closeErr := body.Close()
-		if closeErr != nil {
-			log.Error(closeErr.Error())
-		}
-	}()
 	bodyData, err := ioutil.ReadAll(body)
 	if err != nil {
 		return systemToken, fmt.Errorf("failed to read response body: %w", err)
