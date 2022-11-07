@@ -7,7 +7,7 @@ import (
 	"github.com/cloudogu/cesapp-lib/registry"
 )
 
-// MaintenanceRegistryKey contains the registry key name which points to the Maintenance Mode text
+// MaintenanceRegistryKey contains the registry key name which points to the Maintenance Mode text.
 const MaintenanceRegistryKey = "maintenance"
 const defaultMaintenanceTitle = "Maintenance"
 const activateMaintenanceModeDescription = "Activate maintenance mode"
@@ -15,7 +15,7 @@ const activateMaintenanceModeDescription = "Activate maintenance mode"
 var log = core.GetLogger()
 
 // ActivateMaintenanceMode activates the maintenance mode in the registry. The given message text will be presented
-// to the user. The message text must not be empty
+// to the user. The message text must not be empty.
 func ActivateMaintenanceMode(messageText string, registry registry.Registry) error {
 	return ActivateMaintenanceModeWithTitle(messageText, defaultMaintenanceTitle, registry)
 }

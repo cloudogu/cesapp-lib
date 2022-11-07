@@ -39,7 +39,7 @@ func NewKeyProvider(keyType string) (*KeyProvider, error) {
 	return provider, nil
 }
 
-// Generate creates a new public/private key
+// Generate creates a new public/private key.
 func (provider *KeyProvider) Generate() (*KeyPair, error) {
 	log.Info("create new key pair")
 	key, err := rsa.GenerateKey(rand.Reader, bitSize)
@@ -49,7 +49,7 @@ func (provider *KeyProvider) Generate() (*KeyPair, error) {
 	return &KeyPair{key: key, encrypter: provider.Encrypter, decrypter: provider.Decrypter}, nil
 }
 
-// FromPrivateKeyPath reads the keypair from the private key file path
+// FromPrivateKeyPath reads the keypair from the private key file path.
 func (provider *KeyProvider) FromPrivateKeyPath(path string) (*KeyPair, error) {
 	pk, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -58,7 +58,7 @@ func (provider *KeyProvider) FromPrivateKeyPath(path string) (*KeyPair, error) {
 	return provider.FromPrivateKey(pk)
 }
 
-// FromPrivateKey creates a key pair from the private key
+// FromPrivateKey creates a key pair from the private key.
 func (provider *KeyProvider) FromPrivateKey(privateKey []byte) (*KeyPair, error) {
 	p, _ := pem.Decode(privateKey)
 	key, err := x509.ParsePKCS1PrivateKey(p.Bytes)
@@ -69,12 +69,12 @@ func (provider *KeyProvider) FromPrivateKey(privateKey []byte) (*KeyPair, error)
 	return &KeyPair{key: key, encrypter: provider.Encrypter, decrypter: provider.Decrypter}, nil
 }
 
-// ReadPublicKeyFromString reads a public key from its string representation
+// ReadPublicKeyFromString reads a public key from its string representation.
 func (provider *KeyProvider) ReadPublicKeyFromString(publicKeyString string) (*PublicKey, error) {
 	return provider.ReadPublicKey([]byte(publicKeyString))
 }
 
-// ReadPublicKey reads a public key from an byte array
+// ReadPublicKey reads a public key from an byte array.
 func (provider *KeyProvider) ReadPublicKey(publicKey []byte) (*PublicKey, error) {
 	p, _ := pem.Decode(publicKey)
 	key, err := x509.ParsePKIXPublicKey(p.Bytes)

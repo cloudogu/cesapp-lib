@@ -2,10 +2,10 @@ package config
 
 import (
 	"errors"
+	"github.com/cloudogu/cesapp-lib/registry/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +14,7 @@ func TestRegistryKeyConfigValidator_CheckRegistryKey(t *testing.T) {
 		// given
 		value := "pkcs1v15"
 		path := "key_provider"
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		globalReg.On("Get", path).Return("pkcs1v15", nil)
 		sut := &RegistryKeyConfigValidator{}
 
@@ -27,7 +27,7 @@ func TestRegistryKeyConfigValidator_CheckRegistryKey(t *testing.T) {
 	t.Run("should execute registry validation", func(t *testing.T) {
 		// given
 		path := "key_provider"
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		globalReg.On("Get", path).Return("", nil)
 		sut := &RegistryKeyConfigValidator{}
 
@@ -41,7 +41,7 @@ func TestRegistryKeyConfigValidator_CheckRegistryKey(t *testing.T) {
 		// given
 		value := "pkcs1v15"
 		path := "key_provider"
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		globalReg.On("Get", path).Return("", errors.New("100: Key not found"))
 		sut := CreateRegistryKeyConfigValidator()
 
@@ -55,7 +55,7 @@ func TestRegistryKeyConfigValidator_CheckRegistryKey(t *testing.T) {
 		// given
 		value := "pkcs1v15"
 		path := "key_provider"
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		globalReg.On("Get", path).Return("oaesp", nil)
 		sut := CreateRegistryKeyConfigValidator()
 
@@ -70,7 +70,7 @@ func TestRegistryKeyConfigValidator_CheckRegistryKey(t *testing.T) {
 func Test_validateRegistryKey(t *testing.T) {
 	t.Run("should return without error", func(t *testing.T) {
 		// given
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		path := "key_provider"
 		globalReg.On("Get", path).Return("pkcs1v15", nil)
 
@@ -83,7 +83,7 @@ func Test_validateRegistryKey(t *testing.T) {
 	})
 	t.Run("should return error on difference", func(t *testing.T) {
 		// given
-		globalReg := new(mockGlobalRegistry)
+		globalReg := &mocks.ConfigurationContext{}
 		path := "key_provider"
 		globalReg.On("Get", path).Return("", assert.AnError)
 
@@ -95,13 +95,4 @@ func Test_validateRegistryKey(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to get global config value for 'key_provider'")
 		globalReg.AssertExpectations(t)
 	})
-}
-
-type mockGlobalRegistry struct {
-	mock.Mock
-}
-
-func (m *mockGlobalRegistry) Get(key string) (value string, err error) {
-	args := m.Called(key)
-	return args.String(0), args.Error(1)
 }

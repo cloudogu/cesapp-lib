@@ -24,7 +24,7 @@ type CriticalSystemState struct {
 	criticalProcessTimeoutDuration time.Duration
 }
 
-// NewCriticalSystemState creates a new critical state object
+// NewCriticalSystemState creates a new critical state object.
 func NewCriticalSystemState(reg registry.Registry, processName string) *CriticalSystemState {
 	return &CriticalSystemState{
 		reg:                            reg,
@@ -35,7 +35,7 @@ func NewCriticalSystemState(reg registry.Registry, processName string) *Critical
 	}
 }
 
-// getCurrentCriticalSystemState returns the value of the currently set critical system state key
+// getCurrentCriticalSystemState returns the value of the currently set critical system state key.
 func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystemState, error) {
 	exists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
@@ -59,7 +59,7 @@ func (css *CriticalSystemState) getCurrentCriticalSystemState() (*CriticalSystem
 	return current, nil
 }
 
-// Start sets the critical process key for this process and starts the refresh routine
+// Start sets the critical process key for this process and starts the refresh routine.
 func (css *CriticalSystemState) Start(ctx context.Context) error {
 	existing, err := css.isAnotherProcessRunning()
 	if err != nil {
@@ -102,7 +102,7 @@ func (css *CriticalSystemState) Start(ctx context.Context) error {
 	return nil
 }
 
-// Pause sends the "wait" signal to the refresh routine
+// Pause sends the "wait" signal to the refresh routine.
 func (css *CriticalSystemState) Pause() error {
 	err := css.validateProcessIsRunning()
 	if err != nil {
@@ -113,7 +113,7 @@ func (css *CriticalSystemState) Pause() error {
 	return nil
 }
 
-// Unpause sends the "start" signal to the refresh routine
+// Unpause sends the "start" signal to the refresh routine.
 func (css *CriticalSystemState) Unpause() error {
 	err := css.validateProcessIsRunning()
 	if err != nil {
@@ -124,7 +124,7 @@ func (css *CriticalSystemState) Unpause() error {
 	return nil
 }
 
-// Stop removes the critical process key of this process from the registry and stops the refresh routine
+// Stop removes the critical process key of this process from the registry and stops the refresh routine.
 func (css *CriticalSystemState) Stop() error {
 	err := css.validateProcessIsRunning()
 	if err != nil {
@@ -139,7 +139,7 @@ func (css *CriticalSystemState) Stop() error {
 	return nil
 }
 
-// GetErrors returns a slice with any error that was sent to the errors channel
+// GetErrors returns a slice with any error that was sent to the errors channel.
 func (css *CriticalSystemState) GetErrors() []error {
 	errs := make([]error, 0)
 	for {
@@ -152,7 +152,7 @@ func (css *CriticalSystemState) GetErrors() []error {
 	}
 }
 
-// waitForStart holds until the string "start" is sent to the channel
+// waitForStart holds until the string "start" is sent to the channel.
 func (css *CriticalSystemState) waitForStart(ctx context.Context) {
 	for {
 		select {
@@ -166,7 +166,7 @@ func (css *CriticalSystemState) waitForStart(ctx context.Context) {
 	}
 }
 
-// setKey sets the critical process key of this process in registry
+// setKey sets the critical process key of this process in registry.
 func (css *CriticalSystemState) setKey() error {
 	data, err := json.Marshal(css)
 	if err != nil {
@@ -200,7 +200,7 @@ func (css *CriticalSystemState) refreshKey() error {
 	return nil
 }
 
-// removeKey removes the critical process key of this process from registry
+// removeKey removes the critical process key of this process from registry.
 func (css *CriticalSystemState) removeKey() error {
 	keyExists, err := css.reg.GlobalConfig().Exists(CriticalProcessIndicatorName)
 	if err != nil {
@@ -215,7 +215,7 @@ func (css *CriticalSystemState) removeKey() error {
 	return nil
 }
 
-// validateProcessIsRunning checks if the process is currently running
+// validateProcessIsRunning checks if the process is currently running.
 func (css *CriticalSystemState) validateProcessIsRunning() error {
 	if css.channel == nil || css.cancel == nil {
 		return fmt.Errorf("the critical system state '%s' is not running", css.SystemProcess)
@@ -224,7 +224,7 @@ func (css *CriticalSystemState) validateProcessIsRunning() error {
 	return nil
 }
 
-// isAnotherProcessRunning checks whether there is a process running which is not this process
+// isAnotherProcessRunning checks whether there is a process running which is not this process.
 func (css *CriticalSystemState) isAnotherProcessRunning() (bool, error) {
 	current, err := css.getCurrentCriticalSystemState()
 	if err != nil {

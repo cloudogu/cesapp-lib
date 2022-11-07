@@ -5,7 +5,7 @@ import (
 	"github.com/cloudogu/cesapp-lib/registry"
 )
 
-// CreateProxySettings reads the proxy related settings from registry
+// CreateProxySettings reads the proxy related settings from registry.
 func CreateProxySettings(reg registry.Registry) (core.ProxySettings, error) {
 	settings := core.ProxySettings{}
 

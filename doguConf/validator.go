@@ -6,12 +6,12 @@ import (
 	"github.com/cloudogu/cesapp-lib/registry"
 )
 
-// Validator checks if the given configurationField is valid
+// Validator checks if the given configurationField is valid.
 type Validator interface {
 	Check(core.ConfigurationField) error
 }
 
-// ConfigValidator is a Validator implementation which uses a configReader to read the values of the field
+// ConfigValidator is a Validator implementation which uses a configReader to read the values of the field.
 type ConfigValidator struct {
 	configReader configReader
 }
@@ -21,7 +21,7 @@ type configReader interface {
 	GetGlobal(string) (string, error)
 }
 
-// Check checks if a configurationField is valid
+// Check checks if a configurationField is valid.
 func (c *ConfigValidator) Check(field core.ConfigurationField) error {
 
 	var value string

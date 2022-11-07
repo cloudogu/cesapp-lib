@@ -23,7 +23,7 @@ func TestNewAuthenticationController(t *testing.T) {
 	store, _ := credentials.NewStore(os.TempDir())
 
 	// when
-	result := NewAuthenticationController(authConfig, httpServer, nil, store)
+	result := NewHttpAuthenticationController(authConfig, httpServer, nil, store)
 
 	// then
 	require.NotNil(t, result)
@@ -32,7 +32,7 @@ func TestNewAuthenticationController(t *testing.T) {
 func Test_realAuthenticationController_authenticationHandler(t *testing.T) {
 	t.Run("redirect to auth endpoint with no credentials", func(t *testing.T) {
 		// given
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{AuthenticationEndpoint: "testHost"},
 			store:         nil,
 			server:        nil,
@@ -62,7 +62,7 @@ func Test_realAuthenticationController_authenticationHandler(t *testing.T) {
 			previousID = r.URL.Query().Get("previousId")
 		}))
 
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{
 				AuthenticationEndpoint: abcServer.URL,
 				CredentialsStore:       "store",
@@ -97,7 +97,7 @@ func Test_realAuthenticationController_authenticationHandler(t *testing.T) {
 			previousID = r.URL.Query().Get("previousId")
 		}))
 
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{AuthenticationEndpoint: abcServer.URL, PreviousInstanceID: "oldID", CredentialsStore: "store"},
 			store:         store,
 			server:        nil,
@@ -127,7 +127,7 @@ func Test_realAuthenticationController_authenticationHandler(t *testing.T) {
 			previousID = r.URL.Query().Get("previousId")
 		}))
 
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{
 				AuthenticationEndpoint: abcServer.URL,
 				CredentialsStore:       "store",
@@ -163,7 +163,7 @@ func Test_realAuthenticationController_authenticationHandler(t *testing.T) {
 			previousID = r.URL.Query().Get("previousId")
 		}))
 
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{
 				AuthenticationEndpoint: abcServer.URL,
 				CredentialsStore:       "errorStore",
@@ -194,7 +194,7 @@ func Test_realAuthenticationController_IsAuthenticated(t *testing.T) {
 		store := getStoreMock()
 		store.On("Get", "noStore").Return(nil)
 
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{CredentialsStore: "noStore"},
 			store:         store,
 			server:        nil,
@@ -210,7 +210,7 @@ func Test_realAuthenticationController_IsAuthenticated(t *testing.T) {
 	t.Run("authenticate on valid store", func(t *testing.T) {
 		// given
 		store := getStoreMock()
-		sut := realAuthenticationController{
+		sut := httpAuthenticationController{
 			configuration: AuthenticationConfig{CredentialsStore: "store"},
 			store:         store,
 			server:        nil,
@@ -230,7 +230,7 @@ func Test_realAuthenticationController_ShutdownHandler(t *testing.T) {
 	mockResponse.WriteHeader(http.StatusOK)
 	_, _ = mockResponse.Write([]byte(`{ "id": "id", "secret": "secret"}`))
 
-	sut := realAuthenticationController{
+	sut := httpAuthenticationController{
 		configuration: AuthenticationConfig{},
 		store:         nil,
 		server:        nil,

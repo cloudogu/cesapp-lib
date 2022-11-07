@@ -14,7 +14,7 @@ type configReader interface {
 	Get(key string) (value string, err error)
 }
 
-// RegistryKeyConfigValidator is a Validator implementation which uses a configReader to read the values of the field
+// RegistryKeyConfigValidator is a Validator implementation which uses a configReader to read the values of the field.
 type RegistryKeyConfigValidator struct{}
 
 // CreateRegistryKeyConfigValidator creates a new validator that checks registry values.

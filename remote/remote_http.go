@@ -29,7 +29,7 @@ var errForbidden = errors.New("403 forbidden, not enough privileges")
 var errNotFound = errors.New("404 not found")
 var defaultBackoff = retrier.ConstantBackoff(1, 100*time.Millisecond)
 
-// httpRemote is able to handle request to a remote registry
+// httpRemote is able to handle request to a remote registry.
 type httpRemote struct {
 	endpoint            string
 	endpointCacheDir    string
@@ -75,7 +75,7 @@ func newHTTPRemote(remoteConfig *core.Remote, credentials *core.Credentials) (*h
 	}, nil
 }
 
-// CreateHTTPClient creates a httpClient for the given remote settings
+// CreateHTTPClient creates a httpClient for the given remote settings.
 func CreateHTTPClient(config *core.Remote) (*http.Client, error) {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
@@ -124,12 +124,12 @@ func appendProxyAuthorizationIfRequired(transport *http.Transport, proxySettings
 	}
 }
 
-// SetUseCache disables or enables the caching for the remote http registry
+// SetUseCache disables or enables the caching for the remote http registry.
 func (r *httpRemote) SetUseCache(useCache bool) {
 	r.useCache = useCache
 }
 
-// Create the dogu on the remote server
+// Create the dogu on the remote server.
 func (r *httpRemote) Create(dogu *core.Dogu) error {
 	// call with retrier
 	err := r.retrier.Run(func() error {
@@ -207,7 +207,7 @@ func (r *httpRemote) Delete(dogu *core.Dogu) error {
 	return nil
 }
 
-// Get returns the detail about a dogu from the remote server
+// Get returns the detail about a dogu from the remote server.
 func (r *httpRemote) Get(name string) (*core.Dogu, error) {
 	requestUrl := r.urlSchema.Get(name)
 	cacheDirectory := filepath.Join(r.endpointCacheDir, name)
@@ -243,7 +243,7 @@ func (r *httpRemote) receiveDoguFromRemoteOrCache(requestUrl string, cacheDirect
 	return dogu, nil
 }
 
-// GetAll returns all dogus from the remote server
+// GetAll returns all dogus from the remote server.
 func (r *httpRemote) GetAll() ([]*core.Dogu, error) {
 	var dogus []*core.Dogu
 	err := r.retrier.Run(func() error {
@@ -260,7 +260,7 @@ func (r *httpRemote) GetAll() ([]*core.Dogu, error) {
 	return dogus, nil
 }
 
-// GetVersionsOf return all versions of a dogu
+// GetVersionsOf return all versions of a dogu.
 func (r *httpRemote) GetVersionsOf(name string) ([]core.Version, error) {
 	stringVersions := make([]string, 0)
 	err := r.retrier.Run(func() error {
@@ -290,7 +290,7 @@ func (r *httpRemote) GetVersionsOf(name string) ([]core.Version, error) {
 // handleCachingIfNecessary handles the caching if useCache is true. This means, it ...
 // - reads from cache if requestError is not nil
 // - updates the cache content if the request was successful
-// If useCache is false, the requestError is returned
+// If useCache is false, the requestError is returned.
 func (r *httpRemote) handleCachingIfNecessary(cachingType interface{}, requestError error, dirname string, filename string) error {
 	if r.useCache {
 		if requestError != nil {

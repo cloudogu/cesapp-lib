@@ -1,6 +1,6 @@
 package keys
 
-// PrivateKey is the private key part of the KeyPair
+// PrivateKey is the private key part of the KeyPair.
 import (
 	"crypto/rand"
 	"crypto/rsa"
@@ -25,7 +25,7 @@ type PrivateKey struct {
 	decrypter Decrypter
 }
 
-// AsBytes returns the key as pem formatted byte array
+// AsBytes returns the key as pem formatted byte array.
 func (pk *PrivateKey) AsBytes() ([]byte, error) {
 	var pemkey = &pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -35,7 +35,7 @@ func (pk *PrivateKey) AsBytes() ([]byte, error) {
 	return pem.EncodeToMemory(pemkey), nil
 }
 
-// AsString returns the key as pem formatted string
+// AsString returns the key as pem formatted string.
 func (pk *PrivateKey) AsString() (string, error) {
 	bytes, err := pk.AsBytes()
 	if err != nil {
@@ -44,7 +44,7 @@ func (pk *PrivateKey) AsString() (string, error) {
 	return string(bytes), err
 }
 
-// ToFile writes the key to disk in pem format
+// ToFile writes the key to disk in pem format.
 func (pk *PrivateKey) ToFile(path string) error {
 	bytes, err := pk.AsBytes()
 	if err != nil {

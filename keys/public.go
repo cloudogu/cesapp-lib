@@ -19,13 +19,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PublicKey is the public key part of the KeyPair
+// PublicKey is the public key part of the KeyPair.
 type PublicKey struct {
 	key       *rsa.PublicKey
 	encrypter Encrypter
 }
 
-// AsBytes returns the key as pem formatted byte array
+// AsBytes returns the key as pem formatted byte array.
 func (pk *PublicKey) AsBytes() ([]byte, error) {
 	der, err := x509.MarshalPKIXPublicKey(pk.key)
 	if err != nil {
@@ -40,7 +40,7 @@ func (pk *PublicKey) AsBytes() ([]byte, error) {
 	return pem.EncodeToMemory(pemkey), nil
 }
 
-// AsString returns the key as pem formatted string
+// AsString returns the key as pem formatted string.
 func (pk *PublicKey) AsString() (string, error) {
 	bytes, err := pk.AsBytes()
 	if err != nil {
@@ -49,7 +49,7 @@ func (pk *PublicKey) AsString() (string, error) {
 	return string(bytes), err
 }
 
-// ToFile writes the key to disk in pem format
+// ToFile writes the key to disk in pem format.
 func (pk *PublicKey) ToFile(path string) error {
 	bytes, err := pk.AsBytes()
 	if err != nil {
@@ -64,9 +64,9 @@ func (pk *PublicKey) ToFile(path string) error {
 	return nil
 }
 
-// Encrypt encrypts the given input
+// Encrypt encrypts the given input.
 // In cases where the input can not be encrypted with RSA because it is too long,
-// we switch to a hybrid encryption (i. e. using symmetric crypto for the actual content via a randomly generated key which in turn is encrypted with RSA)
+// we switch to a hybrid encryption (i. e. using symmetric crypto for the actual content via a randomly generated key which in turn is encrypted with RSA).
 func (pk *PublicKey) Encrypt(input string) (string, error) {
 	inputBytes := []byte(input)
 	if pk.canEncryptWithRSA(input) {
@@ -76,7 +76,7 @@ func (pk *PublicKey) Encrypt(input string) (string, error) {
 }
 
 // We chose the length of 64 bytes to ensure the encryption works for different
-// RSA padding schemes
+// RSA padding schemes.
 func (pk *PublicKey) canEncryptWithRSA(input string) bool {
 	return len(input) <= MaxRSAEncryptionLength
 }
@@ -96,7 +96,7 @@ func (pk *PublicKey) encryptHybrid(input []byte) (string, error) {
 		return "", err
 	}
 	// We do not ensure the generated nonce is really a number only used once (nonce) here,
-	// but consider it sufficiently unlikely to generate the same pair of key + nonce twice
+	// but consider it sufficiently unlikely to generate the same pair of key + nonce twice.
 	nonce, err := generateCryptographicallySecureRandomBits(NonceBitLength)
 	if err != nil {
 		return "", err
@@ -114,7 +114,7 @@ func (pk *PublicKey) encryptHybrid(input []byte) (string, error) {
 		return "", fmt.Errorf("failed to encrypt aes key: %w", err)
 	}
 
-	// finally,  join both parts for persisting them
+	// finally,  join both parts for persisting them.
 	value := NewHybridEncryptionValue(AesGcm, encryptedAesKey, nonce, encryptedValue)
 	valueAsJSON, _ := json.Marshal(value)
 

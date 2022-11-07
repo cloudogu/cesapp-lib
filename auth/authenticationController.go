@@ -27,26 +27,18 @@ type AuthenticationConfig struct {
 	PreviousInstanceID     string
 }
 
-// AuthenticationController provide actions for authenticating a user with the authentication endpoint
-type AuthenticationController interface {
-	// IsAuthenticated checks whether a user is authenticated or not.
-	IsAuthenticated() bool
-	// Serve starts the server to listen for incoming connections.
-	Serve()
-}
-
-type realAuthenticationController struct {
+type httpAuthenticationController struct {
 	configuration AuthenticationConfig
 	store         credentials.Store
 	server        HttpServer
 	client        *http.Client
 }
 
-// NewAuthenticationController creates a new instance of 'AuthenticationController'.
-func NewAuthenticationController(authConfig AuthenticationConfig, httpServer HttpServer, httpClient *http.Client,
-	credentialsStore credentials.Store) AuthenticationController {
+// NewHttpAuthenticationController creates a new instance of 'httpAuthenticationController'.
+func NewHttpAuthenticationController(authConfig AuthenticationConfig, httpServer HttpServer, httpClient *http.Client,
+	credentialsStore credentials.Store) *httpAuthenticationController {
 
-	controller := &realAuthenticationController{
+	controller := &httpAuthenticationController{
 		configuration: authConfig,
 		store:         credentialsStore,
 		server:        httpServer,
@@ -56,12 +48,12 @@ func NewAuthenticationController(authConfig AuthenticationConfig, httpServer Htt
 }
 
 // IsAuthenticated checks whether a user is authenticated or not.
-func (controller *realAuthenticationController) IsAuthenticated() bool {
+func (controller *httpAuthenticationController) IsAuthenticated() bool {
 	return controller.store.Get(controller.configuration.CredentialsStore) != nil
 }
 
 // Serve starts the server to listen for incoming connections.
-func (controller *realAuthenticationController) Serve() {
+func (controller *httpAuthenticationController) Serve() {
 	ctx, cancel := context.WithCancel(context.Background())
 	http.HandleFunc("/", controller.authenticationHandler)
 	http.HandleFunc("/shutdown", func(writer http.ResponseWriter, request *http.Request) {
@@ -78,14 +70,14 @@ func (controller *realAuthenticationController) Serve() {
 
 // shutdownHandler handles the shutdown action of the server.
 //noinspection GoUnusedParameter
-func (controller *realAuthenticationController) shutdownHandler(w http.ResponseWriter, r *http.Request, cancel func()) {
+func (controller *httpAuthenticationController) shutdownHandler(w http.ResponseWriter, r *http.Request, cancel func()) {
 	log.Info("Shutting web server down.")
 	http.Redirect(w, r, controller.configuration.AuthenticationEndpoint, http.StatusSeeOther)
 	cancel()
 }
 
 // authenticationHandler handles the authentication action of the server.
-func (controller *realAuthenticationController) authenticationHandler(w http.ResponseWriter, r *http.Request) {
+func (controller *httpAuthenticationController) authenticationHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	secret := r.URL.Query().Get("secret")
 
@@ -119,14 +111,14 @@ func (controller *realAuthenticationController) authenticationHandler(w http.Res
 	}
 }
 
-func (controller *realAuthenticationController) redirectToAuthEndpoint(w http.ResponseWriter, r *http.Request) {
+func (controller *httpAuthenticationController) redirectToAuthEndpoint(w http.ResponseWriter, r *http.Request) {
 	redirectURL := fmt.Sprintf("%s/instance-registration?ces_redirect_uri=http://%s", controller.configuration.AuthenticationEndpoint, r.Host)
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
 // createSystemToken creates a system token from setup tokens.
-func (controller *realAuthenticationController) createSystemToken(id string, secret string) (SystemToken, error) {
+func (controller *httpAuthenticationController) createSystemToken(id string, secret string) (SystemToken, error) {
 	systemToken := SystemToken{}
 
 	instanceRegistrationUrl := controller.configuration.AuthenticationEndpoint + "/api/v1/instance-registrations/" + id
@@ -145,7 +137,7 @@ func (controller *realAuthenticationController) createSystemToken(id string, sec
 	}
 	request.Header.Set("Content-Type", "application/json")
 
-	// Open issue from bodyclose linter. See: https://github.com/timakin/bodyclose/issues/30
+	// Open issue from bodyclose linter. See: https://github.com/timakin/bodyclose/issues/30.
 	//nolint:bodyclose
 	resp, err := client.Do(request)
 	if err != nil {

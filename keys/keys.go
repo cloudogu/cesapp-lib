@@ -4,7 +4,7 @@ import (
 	"github.com/cloudogu/cesapp-lib/core"
 )
 
-// KeyProviders contains the list of implemented key providers and is dynamically filled by the providers in keys package
+// KeyProviders contains the list of implemented key providers and is dynamically filled by the providers in keys package.
 var KeyProviders []string
 
 var log = core.GetLogger()
