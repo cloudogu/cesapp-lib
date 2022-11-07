@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.8.0] - 2022-11-07
 ### Added
 - Add general packages from the cesapp in order to use these components with other applications.
   - Packages: `config`, `credentials`, `dependencies`, `doguConf`, `keys`, `tasks` (#20)
