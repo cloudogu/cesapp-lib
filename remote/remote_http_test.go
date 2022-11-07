@@ -84,7 +84,7 @@ func Test_checkStatusCode(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, errorUnauthorized, err)
+		assert.Equal(t, errUnauthorized, err)
 	})
 
 	t.Run("should return custom error for HTTP 403", func(t *testing.T) {
@@ -98,7 +98,7 @@ func Test_checkStatusCode(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, errorForbidden, err)
+		assert.Equal(t, errForbidden, err)
 	})
 
 	t.Run("should return custom error for HTTP 404", func(t *testing.T) {
@@ -112,7 +112,7 @@ func Test_checkStatusCode(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Equal(t, errorNotFound, err)
+		assert.Equal(t, errNotFound, err)
 	})
 }
 
@@ -173,7 +173,7 @@ func Test_httpRemote_Delete(t *testing.T) {
 	}
 	netRetrier := retrier.New(
 		retrier.ExponentialBackoff(1, 1*time.Millisecond),
-		retrier.BlacklistClassifier{errorUnauthorized, errorForbidden},
+		retrier.BlacklistClassifier{errUnauthorized, errForbidden},
 	)
 
 	t.Run("should success when remote returns HTTP 204", func(t *testing.T) {
@@ -216,7 +216,7 @@ func Test_httpRemote_Delete(t *testing.T) {
 
 		// then
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), errorUnauthorized.Error())
+		assert.Contains(t, err.Error(), errUnauthorized.Error())
 	})
 
 	t.Run("should properly use credentials", func(t *testing.T) {

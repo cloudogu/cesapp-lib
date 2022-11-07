@@ -7,6 +7,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.8.0] - 2022-11-07
+### Added
+- Add general packages from the cesapp in order to use these components with other applications.
+  - Packages: `config`, `credentials`, `dependencies`, `doguConf`, `keys`, `tasks` (#20)
+
+### Changed
+- Update ces-build-lib to 1.57.0
+- Update dogu-build-lib to 1.10.0
+
+## Fixed
+- Fixed a bug where an error in optional dogu dependency check would overwrite mandatory dependency errors
+
 ## [v0.7.0] - 2022-11-03
 ### Changed
 - Make the retry policy for registry and dogu backend calls configurable (#18)
