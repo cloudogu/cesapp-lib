@@ -26,6 +26,18 @@ type Volume struct {
 	Clients     []VolumeClient `json:"clients,omitempty"`
 }
 
+// GetClient retrieves a client with a given name and return a pointer to it. If a client does not exist a nil pointer
+// and false are returned.
+func (v *Volume) GetClient(clientName string) (*VolumeClient, bool) {
+	for _, client := range v.Clients {
+		if client.Name == clientName {
+			return &client, true
+		}
+	}
+
+	return nil, false
+}
+
 // UnmarshalJSON sets the default value for NeedsBackup. We are preventing an infinite loop by using a local Alias type
 // to call json.Unmarshal again
 func (v *Volume) UnmarshalJSON(data []byte) error {
