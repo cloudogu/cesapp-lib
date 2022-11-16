@@ -5,9 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -15,70 +14,7 @@ const (
 	ErrorMessageCannotUnmarshalDependenciesV1 = "json: cannot unmarshal object into Go struct field DoguV1.Dependencies of type string"
 )
 
-func TestReadOneOrMoreDogusFromFile(t *testing.T) {
-	tests := []struct {
-		name                string
-		filePath            string
-		expectError         bool
-		expectMultipleDogus bool
-		expectedApiVersion  DoguApiVersion
-	}{
-		{
-			name:                "unknown version with invalid dogu.json",
-			filePath:            "../resources/test/invalid.json",
-			expectError:         true,
-			expectMultipleDogus: false,
-			expectedApiVersion:  DoguApiVersionUnknown,
-		},
-		{
-			name:                "v1 version with v1 dogu.json",
-			filePath:            "../resources/test/scm-manager.json",
-			expectError:         false,
-			expectMultipleDogus: false,
-			expectedApiVersion:  DoguApiV1,
-		},
-		{
-			name:                "v2 version with v2 dogu.json",
-			filePath:            "../resources/test/scm-manager_v2.json",
-			expectError:         false,
-			expectMultipleDogus: false,
-			expectedApiVersion:  DoguApiV2,
-		},
-		{
-			name:                "v1 version with v1 dogu.json (multiple dogus)",
-			filePath:            "../resources/test/multipleDogus.json",
-			expectError:         false,
-			expectMultipleDogus: true,
-			expectedApiVersion:  DoguApiV1,
-		},
-		{
-			name:                "v2 version with v2 dogu.json (multiple dogus)",
-			filePath:            "../resources/test/multipleDogus_v2.json",
-			expectError:         false,
-			expectMultipleDogus: true,
-			expectedApiVersion:  DoguApiV2,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			var version DoguApiVersion
-			var err error
-			if test.expectMultipleDogus {
-				_, version, err = ReadDogusFromFile(test.filePath)
-			} else {
-				_, version, err = ReadDoguFromFile(test.filePath)
-			}
-			if test.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-			}
-			assert.Equal(t, test.expectedApiVersion, version)
-		})
-	}
-}
-
-func Test_doguFormatHandler_GetFormatProvider(t *testing.T) {
+func Test_DoguFormatHandler_GetFormatProvider(t *testing.T) {
 	// when
 	providers := formatHandlerInstance.GetFormatProviders()
 
@@ -86,7 +22,7 @@ func Test_doguFormatHandler_GetFormatProvider(t *testing.T) {
 	assert.Equal(t, 2, len(providers))
 }
 
-func Test_doguFormatHandler_RegisterFormatProvider(t *testing.T) {
+func Test_DoguFormatHandler_RegisterFormatProvider(t *testing.T) {
 	// given
 	handler := DoguFormatHandler{}
 	formatProvider := DoguJsonV1FormatProvider{}
@@ -99,7 +35,47 @@ func Test_doguFormatHandler_RegisterFormatProvider(t *testing.T) {
 	assert.Equal(t, &formatProvider, handler.GetFormatProviders()[0])
 }
 
-func Test_doguFormatHandler_ReadDoguFromFile(t *testing.T) {
+func TestDoguVolumeClientExpansion(t *testing.T) {
+	t.Run("test read dogus from file", func(t *testing.T) {
+		t.Run("Read v1 dogu content from file", func(t *testing.T) {
+			// when
+			dogu, _, err := ReadDoguFromFile("../resources/test/dogu-dependencies.json")
+
+			// then
+			assert.NoError(t, err)
+			assert.Equal(t, "scm", dogu.Name)
+			assert.Equal(t, "SCM-Manager", dogu.DisplayName)
+			assert.Equal(t, "1.46", dogu.Version)
+			assert.Equal(t, []VolumeClient(nil), dogu.Volumes[0].Clients)
+		})
+		t.Run("Read v2 dogu content from file", func(t *testing.T) {
+			// given
+			expectedVolumes := []Volume{{
+				Name:        "data",
+				Path:        "/var/lib/scm",
+				Owner:       "",
+				Group:       "",
+				NeedsBackup: true,
+				Clients: []VolumeClient{
+					{Name: "myClient", Params: map[string]interface{}{"MySecret": "supersecret", "Type": "myType"}},
+					{Name: "mySecondClient", Params: map[string]interface{}{"Algorithm": "myAlg", "Style": "superstyle"}},
+				},
+			}}
+
+			// when
+			dogu, _, err := ReadDoguFromFile("../resources/test/dogu-volume-client-expansion.json")
+
+			// then
+			assert.NoError(t, err)
+			assert.Equal(t, "scm", dogu.Name)
+			assert.Equal(t, "SCM-Manager", dogu.DisplayName)
+			assert.Equal(t, "1.46", dogu.Version)
+			assert.Equal(t, expectedVolumes, dogu.Volumes)
+		})
+	})
+}
+
+func TestReadDoguFromFile(t *testing.T) {
 	t.Run("Fail with invalid input file", func(t *testing.T) {
 		// when
 		dogus, _, err := ReadDoguFromFile("../resources/test/invalid.json")
@@ -108,7 +84,6 @@ func Test_doguFormatHandler_ReadDoguFromFile(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, dogus)
 	})
-
 	t.Run("Read v2 dogu content from file", func(t *testing.T) {
 		// given
 		expectedDependency1 := Dependency{Type: DependencyTypeDogu, Name: "cas", Version: ">=4.1.1-2"}
@@ -129,7 +104,6 @@ func Test_doguFormatHandler_ReadDoguFromFile(t *testing.T) {
 		assert.Equal(t, "1.46", dogu.Version)
 		assert.Equal(t, expectedDependencies, dogu.Dependencies)
 	})
-
 	t.Run("Read v1 dogu content from file and upgrade dependencies accordingly", func(t *testing.T) {
 		// given
 		handlerOld := formatHandlerInstance
@@ -154,9 +128,71 @@ func Test_doguFormatHandler_ReadDoguFromFile(t *testing.T) {
 		assert.Equal(t, "1.46", dogu.Version)
 		assert.Equal(t, expectedDependencies, dogu.Dependencies)
 	})
+	t.Run("read multiple dogus from files", func(t *testing.T) {
+		tests := []struct {
+			name                string
+			filePath            string
+			expectError         bool
+			expectMultipleDogus bool
+			expectedApiVersion  DoguApiVersion
+		}{
+			{
+				name:                "unknown version with invalid dogu.json",
+				filePath:            "../resources/test/invalid.json",
+				expectError:         true,
+				expectMultipleDogus: false,
+				expectedApiVersion:  DoguApiVersionUnknown,
+			},
+			{
+				name:                "v1 version with v1 dogu.json",
+				filePath:            "../resources/test/scm-manager.json",
+				expectError:         false,
+				expectMultipleDogus: false,
+				expectedApiVersion:  DoguApiV1,
+			},
+			{
+				name:                "v2 version with v2 dogu.json",
+				filePath:            "../resources/test/scm-manager_v2.json",
+				expectError:         false,
+				expectMultipleDogus: false,
+				expectedApiVersion:  DoguApiV2,
+			},
+			{
+				name:                "v1 version with v1 dogu.json (multiple dogus)",
+				filePath:            "../resources/test/multipleDogus.json",
+				expectError:         false,
+				expectMultipleDogus: true,
+				expectedApiVersion:  DoguApiV1,
+			},
+			{
+				name:                "v2 version with v2 dogu.json (multiple dogus)",
+				filePath:            "../resources/test/multipleDogus_v2.json",
+				expectError:         false,
+				expectMultipleDogus: true,
+				expectedApiVersion:  DoguApiV2,
+			},
+		}
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				var version DoguApiVersion
+				var err error
+				if test.expectMultipleDogus {
+					_, version, err = ReadDogusFromFile(test.filePath)
+				} else {
+					_, version, err = ReadDoguFromFile(test.filePath)
+				}
+				if test.expectError {
+					assert.Error(t, err)
+				} else {
+					assert.NoError(t, err)
+				}
+				assert.Equal(t, test.expectedApiVersion, version)
+			})
+		}
+	})
 }
 
-func Test_doguFormatHandler_ReadDogusFromFile(t *testing.T) {
+func TestReadDogusFromFile(t *testing.T) {
 	t.Run("Fail with invalid input file", func(t *testing.T) {
 		// when
 		dogus, _, err := ReadDogusFromFile("../resources/test/invalid.json")
@@ -193,7 +229,7 @@ func Test_doguFormatHandler_ReadDogusFromFile(t *testing.T) {
 	})
 }
 
-func Test_doguFormatHandler_ReadDoguFromString(t *testing.T) {
+func TestReadDoguFromString(t *testing.T) {
 	// given
 	contentInvalid, _ := GetContentOfFile("../resources/test/invalid.json")
 	contentV1, _ := GetContentOfFile("../resources/test/dogu-dependencies.json")
@@ -227,7 +263,7 @@ func Test_doguFormatHandler_ReadDoguFromString(t *testing.T) {
 	})
 }
 
-func Test_doguFormatHandler_ReadDogusFromString(t *testing.T) {
+func TestReadDogusFromString(t *testing.T) {
 	// given
 	contentInvalid, _ := GetContentOfFile("../resources/test/invalid.json")
 	contentV1, _ := GetContentOfFile("../resources/test/multipleDogus.json")
@@ -271,7 +307,7 @@ func Test_doguFormatHandler_ReadDogusFromString(t *testing.T) {
 	})
 }
 
-func Test_doguFormatHandler_WriteDoguToFile(t *testing.T) {
+func TestWriteDoguToFile(t *testing.T) {
 	t.Run("Ensure simple content is begin written", func(t *testing.T) {
 		// given
 		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
@@ -291,7 +327,6 @@ func Test_doguFormatHandler_WriteDoguToFile(t *testing.T) {
 		assert.Equal(t, "1.625.2", d.Version, "Version should be equal")
 		assert.Equal(t, "Jenkins CI", d.DisplayName, "DisplayName should be equal")
 	})
-
 	t.Run("Ensure only v1 format is begin written to the file. This transforms extended dependencies into their simple form", func(t *testing.T) {
 		// given
 		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
@@ -318,7 +353,7 @@ func Test_doguFormatHandler_WriteDoguToFile(t *testing.T) {
 	})
 }
 
-func Test_doguFormatHandler_WriteDoguToFileWithFormat(t *testing.T) {
+func TestWriteDoguToFileWithFormat(t *testing.T) {
 	t.Run("Explicitly write the dogu as V2 format to preserve the advanced dependencies", func(t *testing.T) {
 		// given
 		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
@@ -341,6 +376,66 @@ func Test_doguFormatHandler_WriteDoguToFileWithFormat(t *testing.T) {
 		assert.Equal(t, "1.625.2", d.Version, "Version should be equal")
 		assert.Equal(t, "Jenkins CI", d.DisplayName, "DisplayName should be equal")
 		assert.Equal(t, dogu.Dependencies, d.Dependencies)
+	})
+	t.Run("Write extended volume definitons with the v2 format", func(t *testing.T) {
+		// given
+		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		path := file.Name()
+		defer func(name string) {
+			_ = os.Remove(name)
+		}(path)
+
+		expectedVolumes := []Volume{{
+			Name:        "data",
+			Path:        "/var/lib/scm",
+			Owner:       "",
+			Group:       "",
+			NeedsBackup: true,
+			Clients: []VolumeClient{
+				{Name: "myClient", Params: map[string]interface{}{"MySecret": "supersecret", "Type": "myType"}},
+				{Name: "mySecondClient", Params: map[string]interface{}{"Algorithm": "myAlg", "Style": "superstyle"}},
+			},
+		}}
+
+		dogu := Dogu{Name: "jenkins", Version: "1.625.2", DisplayName: "Jenkins CI", Volumes: expectedVolumes}
+		err := WriteDoguToFileWithFormat(path, &dogu, &DoguJsonV2FormatProvider{})
+		require.NoError(t, err)
+
+		// then
+		d, _, err := ReadDoguFromFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "jenkins", d.Name, "Name should be equal")
+		assert.Equal(t, "1.625.2", d.Version, "Version should be equal")
+		assert.Equal(t, "Jenkins CI", d.DisplayName, "DisplayName should be equal")
+		assert.Equal(t, expectedVolumes, d.Volumes)
+	})
+	t.Run("Write volume definitons without volume clients with the v2 format", func(t *testing.T) {
+		// given
+		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		path := file.Name()
+		defer func(name string) {
+			_ = os.Remove(name)
+		}(path)
+
+		expectedVolumes := []Volume{{
+			Name:        "data",
+			Path:        "/var/lib/scm",
+			Owner:       "",
+			Group:       "",
+			NeedsBackup: true,
+		}}
+
+		dogu := Dogu{Name: "jenkins", Version: "1.625.2", DisplayName: "Jenkins CI", Volumes: expectedVolumes}
+		err := WriteDoguToFileWithFormat(path, &dogu, &DoguJsonV2FormatProvider{})
+		require.NoError(t, err)
+
+		// then
+		d, _, err := ReadDoguFromFile(path)
+		require.NoError(t, err)
+		assert.Equal(t, "jenkins", d.Name, "Name should be equal")
+		assert.Equal(t, "1.625.2", d.Version, "Version should be equal")
+		assert.Equal(t, "Jenkins CI", d.DisplayName, "DisplayName should be equal")
+		assert.Equal(t, expectedVolumes, d.Volumes)
 	})
 }
 
@@ -385,13 +480,12 @@ func Test_DoguFormatProvider_ReadDoguFromString(t *testing.T) {
 					assert.Equal(t, "1.46", dogu.Version, "Version should be equal")
 					assert.Equal(t, "https://www.scm-manager.org", dogu.URL, "Version should be equal")
 					assert.Equal(t, expectedDependencies, dogu.Dependencies, "Dependency should be equal")
-					assert.Equal(t, []Volume{{"data", "/var/lib/scm", "", "", true}}, dogu.Volumes, "Volumes should be equal")
+					assert.Equal(t, []Volume{{"data", "/var/lib/scm", "", "", true, nil}}, dogu.Volumes, "Volumes should be equal")
 					assert.Equal(t, HealthCheck{Type: "tcp", Port: 8080}, dogu.HealthCheck, "HealthCheck should be equal")
 				}
 			})
 		}
 	})
-
 	t.Run("Reading from string with v2 content", func(t *testing.T) {
 		tests := []formatTest{
 			{name: "V2", provider: &DoguJsonV2FormatProvider{}, wantErr: false},
@@ -411,13 +505,12 @@ func Test_DoguFormatProvider_ReadDoguFromString(t *testing.T) {
 					assert.Equal(t, "1.46", dogu.Version, "Version should be equal")
 					assert.Equal(t, "https://www.scm-manager.org", dogu.URL, "Version should be equal")
 					assert.Equal(t, expectedDependencies, dogu.Dependencies, "Dependency should be equal")
-					assert.Equal(t, []Volume{{"data", "/var/lib/scm", "", "", true}}, dogu.Volumes, "Volumes should be equal")
+					assert.Equal(t, []Volume{{"data", "/var/lib/scm", "", "", true, nil}}, dogu.Volumes, "Volumes should be equal")
 					assert.Equal(t, HealthCheck{Type: "tcp", Port: 8080}, dogu.HealthCheck, "HealthCheck should be equal")
 				}
 			})
 		}
 	})
-
 	t.Run("Test 'NeedsBackup' property by reading from file", func(t *testing.T) {
 		tests := []formatTest{
 			{name: "V2", provider: &DoguJsonV2FormatProvider{}, wantErr: false},
@@ -440,7 +533,6 @@ func Test_DoguFormatProvider_ReadDoguFromString(t *testing.T) {
 			})
 		}
 	})
-
 	t.Run("Test 'Configuration' entries by reading from file", func(t *testing.T) {
 		tests := []formatTest{
 			{name: "V2", provider: &DoguJsonV2FormatProvider{}, wantErr: false},
@@ -505,7 +597,6 @@ func Test_DoguFormatProvider_ReadDogusFromString(t *testing.T) {
 			})
 		}
 	})
-
 	t.Run("Reading from string with v2 content", func(t *testing.T) {
 		tests := []formatTest{
 			{name: "V2", provider: &DoguJsonV2FormatProvider{}, wantErr: false},

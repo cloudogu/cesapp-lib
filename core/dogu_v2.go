@@ -23,12 +23,16 @@ type Volume struct {
 	Owner       string
 	Group       string
 	NeedsBackup bool
-	Clients     []VolumeClient `json:"clients,omitempty"`
+	Clients     []VolumeClient `json:"Clients,omitempty"`
 }
 
 // GetClient retrieves a client with a given name and return a pointer to it. If a client does not exist a nil pointer
 // and false are returned.
 func (v *Volume) GetClient(clientName string) (*VolumeClient, bool) {
+	if v.Clients == nil {
+		return nil, false
+	}
+
 	for _, client := range v.Clients {
 		if client.Name == clientName {
 			return &client, true
