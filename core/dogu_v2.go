@@ -7,6 +7,14 @@ import (
 	"encoding/json"
 )
 
+// VolumeClient adds additional information for clients to create volumes.
+type VolumeClient struct {
+	// Name defines the actual client responsible to process this volume definition.
+	Name string
+	// Params contains generic data only known by the client.
+	Params interface{}
+}
+
 // Volume is the volume struct of a dogu and will be used to define docker
 // volumes
 type Volume struct {
@@ -15,6 +23,7 @@ type Volume struct {
 	Owner       string
 	Group       string
 	NeedsBackup bool
+	Clients     []VolumeClient `json:"clients,omitempty"`
 }
 
 // UnmarshalJSON sets the default value for NeedsBackup. We are preventing an infinite loop by using a local Alias type
@@ -254,7 +263,8 @@ func (d *Dogu) HasExposedCommand(commandName string) bool {
 
 // GetExposedCommand returns a ExposedCommand for a given command name if it exists. Otherwise it returns nil.
 // To test if a dogu has a command with a given command name use the HasExposedCommand method:
-//  if dogu.HasExposedCommand(commandName) { doSomething() }
+//
+//	if dogu.HasExposedCommand(commandName) { doSomething() }
 func (d *Dogu) GetExposedCommand(commandName string) *ExposedCommand {
 	for _, command := range d.ExposedCommands {
 		if command.Name == commandName {
