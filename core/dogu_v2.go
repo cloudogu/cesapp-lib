@@ -33,9 +33,9 @@ func (v *Volume) GetClient(clientName string) (*VolumeClient, bool) {
 		return nil, false
 	}
 
-	for _, client := range v.Clients {
-		if client.Name == clientName {
-			return &client, true
+	for i, _ := range v.Clients {
+		if v.Clients[i].Name == clientName {
+			return &v.Clients[i], true
 		}
 	}
 
