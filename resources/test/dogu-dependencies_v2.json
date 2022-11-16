@@ -6,6 +6,13 @@
   "Logo": "https://download.scm-manager.org/images/logo/scm-manager-120x120.jpg",
   "Url": "https://www.scm-manager.org",
   "Image": "cesi/scm",
+  "ServiceAccounts": [
+    {
+      "Type": "k8s-dogu-operator",
+      "Kind": "k8s",
+      "AccountName": "myTestAccount"
+    }
+  ],
   "Dependencies": [
     {"type":"dogu", "name":"cas", "version": ">=4.1.1-2"},
     {"type":"dogu", "name":"ldap"},

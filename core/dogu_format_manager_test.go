@@ -94,6 +94,12 @@ func TestReadDoguFromFile(t *testing.T) {
 		expectedDependency6 := Dependency{Type: DependencyTypeClient, Name: "cesapp", Version: ">=2.0.1"}
 		expectedDependencies := []Dependency{expectedDependency1, expectedDependency2, expectedDependency3, expectedDependency4, expectedDependency5, expectedDependency6}
 
+		expectedServiceAccount := ServiceAccount{
+			Type:        "k8s-dogu-operator",
+			Kind:        "k8s",
+			AccountName: "myTestAccount",
+		}
+
 		// when
 		dogu, _, err := ReadDoguFromFile("../resources/test/dogu-dependencies_v2.json")
 
@@ -103,6 +109,7 @@ func TestReadDoguFromFile(t *testing.T) {
 		assert.Equal(t, "SCM-Manager", dogu.DisplayName)
 		assert.Equal(t, "1.46", dogu.Version)
 		assert.Equal(t, expectedDependencies, dogu.Dependencies)
+		assert.Equal(t, expectedServiceAccount, dogu.ServiceAccounts[0])
 	})
 	t.Run("Read v1 dogu content from file and upgrade dependencies accordingly", func(t *testing.T) {
 		// given
