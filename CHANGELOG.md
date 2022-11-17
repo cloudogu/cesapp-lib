@@ -7,6 +7,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.9.0] - 2022-11-17
+### Added
+- [#22] Support for extended volume definitions to add client-specific configurations.
+- [#22] Support for extended service account definitions using a new `Kind` field.  
+  This enables the use of service accounts for non-dogu services.
+
 ## [v0.8.0] - 2022-11-07
 ### Added
 - Add general packages from the cesapp in order to use these components with other applications.

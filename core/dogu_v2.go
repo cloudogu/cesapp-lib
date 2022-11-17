@@ -7,14 +7,45 @@ import (
 	"encoding/json"
 )
 
+// VolumeClient adds additional information for clients to create volumes.
+type VolumeClient struct {
+	// Name defines the actual client responsible to process this volume definition.
+	Name string
+	// Params contains generic data only known by the client.
+	Params interface{}
+}
+
 // Volume is the volume struct of a dogu and will be used to define docker
 // volumes
 type Volume struct {
-	Name        string
-	Path        string
-	Owner       string
-	Group       string
+	// Name identifies the volume.
+	Name string
+	// Path to the directory or file where the volume will be mounted inside the dogu.
+	Path string
+	// Owner contains the uid of the user owning this volume.
+	Owner string
+	// Group contains the gid of the group owning this volume.
+	Group string
+	// NeedsBackup defines if backups need to be created for the volume.
 	NeedsBackup bool
+	// Clients adds client-specific configurations for the volume.
+	Clients []VolumeClient `json:"Clients,omitempty"`
+}
+
+// GetClient retrieves a client with a given name and return a pointer to it. If a client does not exist a nil pointer
+// and false are returned.
+func (v *Volume) GetClient(clientName string) (*VolumeClient, bool) {
+	if v.Clients == nil {
+		return nil, false
+	}
+
+	for i := range v.Clients {
+		if v.Clients[i].Name == clientName {
+			return &v.Clients[i], true
+		}
+	}
+
+	return nil, false
 }
 
 // UnmarshalJSON sets the default value for NeedsBackup. We are preventing an infinite loop by using a local Alias type
@@ -97,8 +128,14 @@ func (env EnvironmentVariable) String() string {
 
 // ServiceAccount struct can be used to get access to a other dogu.
 type ServiceAccount struct {
-	Type   string
+	// Type contains the name of the service on which the account should be created.
+	Type string
+	// Params contains additional arguments necessary for the service account creation.
 	Params []string
+	// Kind defines the kind of service on which the account should be created, e.g. `dogu` or `k8s`.
+	// Reading this property and creating a corresponding service account is up to the client.
+	// If empty, a default value of `dogu` should be assumed.
+	Kind string `json:"Kind,omitempty"`
 }
 
 // ConfigurationField describes a field of the dogu configuration which is stored in the registry.
@@ -254,7 +291,8 @@ func (d *Dogu) HasExposedCommand(commandName string) bool {
 
 // GetExposedCommand returns a ExposedCommand for a given command name if it exists. Otherwise it returns nil.
 // To test if a dogu has a command with a given command name use the HasExposedCommand method:
-//  if dogu.HasExposedCommand(commandName) { doSomething() }
+//
+//	if dogu.HasExposedCommand(commandName) { doSomething() }
 func (d *Dogu) GetExposedCommand(commandName string) *ExposedCommand {
 	for _, command := range d.ExposedCommands {
 		if command.Name == commandName {
