@@ -18,12 +18,18 @@ type VolumeClient struct {
 // Volume is the volume struct of a dogu and will be used to define docker
 // volumes
 type Volume struct {
-	Name        string
-	Path        string
-	Owner       string
-	Group       string
+	// Name identifies the volume.
+	Name string
+	// Path to the directory or file where the volume will be mounted inside the dogu.
+	Path string
+	// Owner contains the uid of the user owning this volume.
+	Owner string
+	// Group contains the gid of the group owning this volume.
+	Group string
+	// NeedsBackup defines if backups need to be created for the volume.
 	NeedsBackup bool
-	Clients     []VolumeClient `json:"Clients,omitempty"`
+	// Clients adds client-specific configurations for the volume.
+	Clients []VolumeClient `json:"Clients,omitempty"`
 }
 
 // GetClient retrieves a client with a given name and return a pointer to it. If a client does not exist a nil pointer
@@ -122,9 +128,14 @@ func (env EnvironmentVariable) String() string {
 
 // ServiceAccount struct can be used to get access to a other dogu.
 type ServiceAccount struct {
-	Type   string
+	// Type contains the name of the service on which the account should be created.
+	Type string
+	// Params contains additional arguments necessary for the service account creation.
 	Params []string
-	Kind   string `json:"Kind,omitempty"`
+	// Kind defines the kind of service on which the account should be created, e.g. `dogu` or `k8s`.
+	// Reading this property and creating a corresponding service account is up to the client.
+	// If empty, a default value of `dogu` should be assumed.
+	Kind string `json:"Kind,omitempty"`
 }
 
 // ConfigurationField describes a field of the dogu configuration which is stored in the registry.
