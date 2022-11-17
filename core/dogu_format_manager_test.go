@@ -95,9 +95,8 @@ func TestReadDoguFromFile(t *testing.T) {
 		expectedDependencies := []Dependency{expectedDependency1, expectedDependency2, expectedDependency3, expectedDependency4, expectedDependency5, expectedDependency6}
 
 		expectedServiceAccount := ServiceAccount{
-			Type:        "k8s-dogu-operator",
-			Kind:        "k8s",
-			AccountName: "myTestAccount",
+			Type: "k8s-dogu-operator",
+			Kind: "k8s",
 		}
 
 		// when

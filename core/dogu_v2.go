@@ -122,10 +122,9 @@ func (env EnvironmentVariable) String() string {
 
 // ServiceAccount struct can be used to get access to a other dogu.
 type ServiceAccount struct {
-	Type        string
-	Params      []string
-	Kind        string `json:"Kind,omitempty"`
-	AccountName string `json:"AccountName,omitempty"`
+	Type   string
+	Params []string
+	Kind   string `json:"Kind,omitempty"`
 }
 
 // ConfigurationField describes a field of the dogu configuration which is stored in the registry.
