@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.9.0] - 2022-11-17
 ### Added
 - [#22] Support for extended volume definitions to add client-specific configurations.
 - [#22] Support for extended service account definitions using a new `Kind` field.  
