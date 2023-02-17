@@ -62,8 +62,10 @@ func TestGetBoolWithInvalidValue(t *testing.T) {
 }
 
 func TestGetInt(t *testing.T) {
-	configuration := newConfigurationContext()
-	configuration.Set("fourtytwo", "42")
+	configuration := NewMockConfigurationContext(t)
+	configuration.EXPECT().Exists("fourtytwo").Return(true, nil).Once()
+	configuration.EXPECT().Get("fourtytwo").Return("42", nil).Once()
+	configuration.EXPECT().Exists("nonexisting").Return(false, nil).Once()
 
 	configReader := NewConfigurationReader(configuration)
 	fourtytwo, err := configReader.GetInt("fourtytwo")
@@ -76,10 +78,11 @@ func TestGetInt(t *testing.T) {
 }
 
 func TestGetIntWithInvalidValue(t *testing.T) {
-	configuration := newConfigurationContext()
-	configuration.Set("nan", "abc")
+	configuration := NewMockConfigurationContext(t)
+	configuration.EXPECT().Exists("nan").Return(true, nil).Once()
+	configuration.EXPECT().Get("nan").Return("abc", nil).Once()
 
-	configReader := registry.NewConfigurationReader(configuration)
+	configReader := NewConfigurationReader(configuration)
 	_, err := configReader.GetInt("nan")
 	assert.NotNil(t, err)
 }
