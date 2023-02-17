@@ -1,7 +1,6 @@
 package doguConf
 
 import (
-	"github.com/cloudogu/cesapp-lib/doguConf/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,7 +43,7 @@ func TestConfigValidator_Check(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			reader := &mocks.ConfigReader{}
+			reader := newMockConfigReader(t)
 			for key, value := range tt.config.dogu {
 				if value == "notfound" {
 					reader.On("Get", key).Return("", client.Error{Code: client.ErrorCodeKeyNotFound})
@@ -74,7 +73,7 @@ func TestConfigValidator_Check(t *testing.T) {
 }
 
 func TestConfigValidator_CheckWithoutType(t *testing.T) {
-	reader := &mocks.ConfigReader{}
+	reader := newMockConfigReader(t)
 	name := "key"
 	reader.On("Get", name).Return("", nil)
 
@@ -88,7 +87,7 @@ func TestConfigValidator_CheckWithoutType(t *testing.T) {
 }
 
 func TestConfigValidator_CheckErrorFromReader(t *testing.T) {
-	reader := &mocks.ConfigReader{}
+	reader := newMockConfigReader(t)
 	name := "key"
 	expectedError := client.Error{}
 	reader.
