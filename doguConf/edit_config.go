@@ -245,7 +245,7 @@ func (editor *DoguConfigurationEditor) setFieldValue(field core.ConfigurationFie
 func (editor *DoguConfigurationEditor) handleEmptyFieldInput(field core.ConfigurationField) error {
 	if editor.DeleteOnEmpty {
 		log.Debugf("delete value for %s, because input was empty and DeleteOnEmpty option was used", field.Name)
-		err := editor.deleteField(field)
+		err := editor.DeleteField(field)
 		if err != nil {
 			return err
 		}
@@ -255,7 +255,7 @@ func (editor *DoguConfigurationEditor) handleEmptyFieldInput(field core.Configur
 	return nil
 }
 
-func (editor *DoguConfigurationEditor) deleteField(field core.ConfigurationField) error {
+func (editor *DoguConfigurationEditor) DeleteField(field core.ConfigurationField) error {
 	exists, err := editor.ConfigurationContext.Exists(field.Name)
 	if err != nil {
 		return fmt.Errorf("failed to check, if field %s exists: %w", field.Name, err)
