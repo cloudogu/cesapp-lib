@@ -27,7 +27,6 @@ type DoguConfigurationEditor struct {
 	PublicKey            *keys.PublicKey
 	Writer               FieldWriter
 	Reader               FieldReader
-	DeleteOnEmpty        bool
 	out                  *bufio.Writer
 }
 
@@ -99,7 +98,7 @@ func (reader *defaultFieldReader) Read() (string, error) {
 	return strings.TrimSpace(line), nil
 }
 
-func (editor *DoguConfigurationEditor) editConfigurationField(field core.ConfigurationField) error {
+func (editor *DoguConfigurationEditor) editConfigurationField(field core.ConfigurationField, deleteOnEmpty bool) error {
 	currentValue, err := editor.GetCurrentValue(field)
 	if err != nil {
 		return err
@@ -110,7 +109,7 @@ func (editor *DoguConfigurationEditor) editConfigurationField(field core.Configu
 		return fmt.Errorf("failed to read input for field %s: %w", field.Name, err)
 	}
 
-	err = editor.SetFieldToValue(field, input)
+	err = editor.SetFieldToValue(field, input, deleteOnEmpty)
 	if err != nil {
 		return err
 	}
@@ -160,10 +159,10 @@ func (editor *DoguConfigurationEditor) printFieldAndReadInput(field core.Configu
 }
 
 // EditConfiguration prints registry keys to writer and read values from reader.
-func (editor *DoguConfigurationEditor) EditConfiguration(fields []core.ConfigurationField) error {
+func (editor *DoguConfigurationEditor) EditConfiguration(fields []core.ConfigurationField, deleteOnEmpty bool) error {
 	for _, field := range fields {
 		if !field.Global {
-			err := editor.editConfigurationField(field)
+			err := editor.editConfigurationField(field, deleteOnEmpty)
 			if err != nil {
 				return err
 			}
@@ -199,10 +198,10 @@ func (editor *DoguConfigurationEditor) GetCurrentValue(field core.ConfigurationF
 }
 
 // SetFieldToValue set the Field as value into the editor.
-func (editor *DoguConfigurationEditor) SetFieldToValue(field core.ConfigurationField, value string) error {
+func (editor *DoguConfigurationEditor) SetFieldToValue(field core.ConfigurationField, value string, deleteOnEmpty bool) error {
 	var err error
 	if value == "" {
-		err = editor.handleEmptyFieldInput(field)
+		err = editor.handleEmptyFieldInput(field, deleteOnEmpty)
 	} else if field.Encrypted {
 		err = editor.setEncryptedFieldValue(field, value)
 	} else {
@@ -242,8 +241,8 @@ func (editor *DoguConfigurationEditor) setFieldValue(field core.ConfigurationFie
 	return nil
 }
 
-func (editor *DoguConfigurationEditor) handleEmptyFieldInput(field core.ConfigurationField) error {
-	if editor.DeleteOnEmpty {
+func (editor *DoguConfigurationEditor) handleEmptyFieldInput(field core.ConfigurationField, deleteOnEmpty bool) error {
+	if deleteOnEmpty {
 		log.Debugf("delete value for %s, because input was empty and DeleteOnEmpty option was used", field.Name)
 		err := editor.DeleteField(field)
 		if err != nil {
