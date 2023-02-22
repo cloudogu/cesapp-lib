@@ -63,7 +63,7 @@ func TestEditConfigurationShouldOverwriteValueForKey1ButKeepValueForKey2(t *test
 	}
 
 	// when
-	err := editor.EditConfiguration([]core.ConfigurationField{config1, config2})
+	err := editor.EditConfiguration([]core.ConfigurationField{config1, config2}, false)
 
 	// then
 	require.NoError(t, err)
@@ -94,7 +94,7 @@ func TestEditConfigurationOfAEncryptedField(t *testing.T) {
 	}
 
 	// when
-	err = editor.EditConfiguration([]core.ConfigurationField{field})
+	err = editor.EditConfiguration([]core.ConfigurationField{field}, false)
 
 	// then
 	assert.Nil(t, err)
@@ -121,7 +121,7 @@ func TestEditConfigurationWithEmptyValue(t *testing.T) {
 
 	// when
 
-	err := editor.EditConfiguration([]core.ConfigurationField{field})
+	err := editor.EditConfiguration([]core.ConfigurationField{field}, false)
 
 	// then
 	assert.Nil(t, err)
@@ -144,11 +144,10 @@ func TestEditConfigurationWithDeleteOnEmpty(t *testing.T) {
 		ConfigurationContext: configurationContext,
 		Writer:               writer,
 		Reader:               reader,
-		DeleteOnEmpty:        true,
 	}
 
 	// when
-	err := editor.EditConfiguration([]core.ConfigurationField{field})
+	err := editor.EditConfiguration([]core.ConfigurationField{field}, true)
 
 	// then
 	assert.Nil(t, err)
@@ -169,11 +168,10 @@ func TestEditConfigurationWithDeleteOnEmptyOnANonExistingKey(t *testing.T) {
 		ConfigurationContext: configurationContext,
 		Writer:               writer,
 		Reader:               reader,
-		DeleteOnEmpty:        true,
 	}
 
 	// when
-	err := editor.EditConfiguration([]core.ConfigurationField{field})
+	err := editor.EditConfiguration([]core.ConfigurationField{field}, true)
 
 	// then
 	assert.Nil(t, err)
