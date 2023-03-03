@@ -3,11 +3,12 @@ package doguConf
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/cloudogu/cesapp-lib/core"
 	"github.com/cloudogu/cesapp-lib/keys"
 	"github.com/cloudogu/cesapp-lib/registry"
-	"os"
-	"strings"
 )
 
 type doguConfigurationContext interface {
@@ -54,20 +55,21 @@ type defaultFieldWriter struct {
 // Print prints various configuration parts to stdout.
 func (writer *defaultFieldWriter) Print(field core.ConfigurationField, currentValue string) error {
 	_, err := fmt.Fprintln(writer.Writer, field.Description)
+	const format = "failed to write to writer: %w"
 	if err != nil {
-		return fmt.Errorf("failed to write to writer: %w", err)
+		return fmt.Errorf(format, err)
 	}
 
 	if field.Validation.Type != "" {
 		_, err := fmt.Fprintf(writer.Writer, "Available values are: %v\n", field.Validation.Values)
 		if err != nil {
-			return fmt.Errorf("failed to write to writer: %w", err)
+			return fmt.Errorf(format, err)
 		}
 	}
 
 	_, err = fmt.Fprintf(writer.Writer, "%s (%s): ", field.Name, currentValue)
 	if err != nil {
-		return fmt.Errorf("failed to write to writer: %w", err)
+		return fmt.Errorf(format, err)
 	}
 
 	err = writer.Writer.Flush()
