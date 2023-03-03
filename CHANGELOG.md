@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.10.0] - 2023-03-03
+### Added
+- [#25] Extract the dogu configuration facility from cesapp to share them. 
+
 ## [v0.9.0] - 2022-11-17
 ### Added
 - [#22] Support for extended volume definitions to add client-specific configurations.
