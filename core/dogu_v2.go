@@ -198,12 +198,12 @@ type Dogu struct {
 	//   - ciphers 0-9
 	//   - an overall length of less than 200 characters
 	//
-	// The dogu simple name allows to address in multiple ways. The simple name will be the part of the URL of the
-	// Cloudogu EcoSystem to address a URL part (if the dogu provides an exposed UI). Also, the simple name will be used
+	// The dogu simple name allows to address in multiple ways. The simple name will be the part of the URI of the
+	// Cloudogu EcoSystem to address a URI part (if the dogu provides an exposed UI). Also, the simple name will be used
 	// to address the dogu after the installation process (f. i. to start, stop or remove a dogu), or to address
 	// generated resources that belong to the dogu.
 	//
-	// The simple name syntax must be an DNS-compatible Name and is encouraged to consist of
+	// The simple name syntax must be an DNS-compatible identifier and is encouraged to consist of
 	//   - lower case latin characters
 	//   - special characters underscore "_", minus "-"
 	//   - ciphers 0-9
