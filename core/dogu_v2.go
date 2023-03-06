@@ -217,16 +217,19 @@ type Dogu struct {
 	//  premium/confluence
 	//  foo-1/bar-2
 	//
-	Name                 string
+	Name string
 	// Version defines the actual version of the dogu.
 	//
 	// The version follows the format from semantic versioning and additionally is split in two parts.
+	// The application version and the dogu version.
+	//
 	// An example would be 1.7.8-1 or 2.2.0-4. The first part of the version (e.g. 1.7.8) represents the
 	// version of the application (e.g. the nginx version in the nginx dogu). The second part represents the version
-	// of the dogu and for an initial release it should start at 1 (e.g. 1.7.8-1). If the application does not change
-	// but e.g. there are changes in the startup script of the dogu the new version should be 1.7.8-2. If the application
-	// itself changes (e.g. there is a nginx upgrade) the new version should be 1.7.9-1. Notice that in this case the
-	// version of the dogu should be set to 1 again.
+	// of the dogu and for an initial release it should start at 1 (e.g. 1.7.8-1).
+	//
+	// If the application does not change but e.g. there are changes in the startup script of the dogu the new version
+	// should be 1.7.8-2. If the application itself changes (e.g. there is a nginx upgrade) the new version should be
+	// 1.7.9-1. Notice that in this case the version of the dogu should be set to 1 again.
 	//
 	// Whereas the dogu struct is the core place for the version and is used by the cesapp in various processes like
 	// installation and release the version should also be placed as a label in the dockerfile from the dogu.
