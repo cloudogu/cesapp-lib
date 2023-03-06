@@ -209,11 +209,15 @@ type Dogu struct {
 	//   - ciphers 0-9
 	//   - an overall length of less than 20 characters
 	//
+	// It is recommended to use the same full qualified dogu name within the dogu's Dockerfile as environment variable
+	// `NAME`.
+	//
 	// Examples:
 	//  official/redmine
 	//  premium/confluence
 	//  foo-1/bar-2
-	Name string
+	//
+	Name                 string
 	// Version defines the actual version of the dogu.
 	//
 	// The version follows the format from semantic versioning and additionally is split in two parts.
@@ -235,6 +239,7 @@ type Dogu struct {
 	//  LABEL maintainer="hello@cloudogu.com" \
 	//    NAME="official/nginx" \
 	//    VERSION="1.23.2-1"
+	//
 	Version              string
 	DisplayName          string
 	Description          string
