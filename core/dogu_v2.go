@@ -185,6 +185,34 @@ type Dependency struct {
 // Dogu defines an application for the CES. A dogu defines the image and
 // meta information for the resulting container.
 type Dogu struct {
+	// Name contains the dogu's full qualified name which consists of the dogu namespace and the dogu simple name,
+	// delimited by a single forward slash "/".
+	//
+	// The dogu namespace allows to regulate access to dogus in that namespace. There are three reserved dogu
+	// namespaces: The namespaces `official` and `k8s` are open to all users without any further costs. In contrast to
+	// that is the namespace `premium` is open to subscription users, only.
+	//
+	// The namespace syntax is encouraged to consist of:
+	//   - lower case latin characters
+	//   - special characters underscore "_", minus "-"
+	//   - ciphers 0-9
+	//   - an overall length of less than 200 characters
+	//
+	// The dogu simple name allows to address in multiple ways. The simple name will be the part of the URL of the
+	// Cloudogu EcoSystem to address a URL part (if the dogu provides an exposed UI). Also, the simple name will be used
+	// to address the dogu after the installation process (f. i. to start, stop or remove a dogu), or to address
+	// generated resources that belong to the dogu.
+	//
+	// The simple name syntax must be an DNS-compatible Name and is encouraged to consist of
+	//   - lower case latin characters
+	//   - special characters underscore "_", minus "-"
+	//   - ciphers 0-9
+	//   - an overall length of less than 20 characters
+	//
+	// Examples:
+	//  official/redmine
+	//  premium/confluence
+	//  foo-1/bar-2
 	Name                 string
 	Version              string
 	DisplayName          string
