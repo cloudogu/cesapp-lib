@@ -209,10 +209,14 @@ type Dogu struct {
 	//   - ciphers 0-9
 	//   - an overall length of less than 20 characters
 	//
+	// It is recommended to use the same full qualified dogu name within the dogu's Dockerfile as environment variable
+	// `NAME`.
+	//
 	// Examples:
 	//  official/redmine
 	//  premium/confluence
 	//  foo-1/bar-2
+	//
 	Name                 string
 	Version              string
 	DisplayName          string
