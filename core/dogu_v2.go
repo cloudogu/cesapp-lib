@@ -213,9 +213,9 @@ type Dogu struct {
 	// `NAME`.
 	//
 	// Examples:
-	//  official/redmine
-	//  premium/confluence
-	//  foo-1/bar-2
+	//   - official/redmine
+	//   - premium/confluence
+	//   - foo-1/bar-2
 	//
 	Name string
 	// Version defines the actual version of the dogu. This field is mandatory.
@@ -311,7 +311,7 @@ type Dogu struct {
 	// Examples for e.g. Jenkins:
 	//  {"warp", "build", "ci", "cd"}
 	//
-	Tags     []string
+	Tags []string
 	// Logo originally represented a URI to a web picture depicting the dogu tool. This field is optional.
 	//
 	// Deprecated: The Cloudogu EcoSystem does not facilitate the logo URI. It is a candidate for removal.
@@ -325,19 +325,19 @@ type Dogu struct {
 	// third party application the URL may point users to resources of the original tool vendor.
 	//
 	// Examples:
-	//   https://github.com/cloudogu/usermgt
-	//   https://www.atlassian.com/software/jira
+	//   - https://github.com/cloudogu/usermgt
+	//   - https://www.atlassian.com/software/jira
 	//
 	URL string
 	// Image contains a reference to the [OCI container] image which packages the dogu application. This field is
 	// mandatory. The image must not contain image tags, like the image version or "latest" (use for the field Version
-	// for this information instead).
+	// for this information instead). The image registry part of this field must point to "registry.cloudogu.com".
 	//
 	// It is good practice to apply the same name to the image repository as from the Name field in order to enable
 	// access strategies as well as to avoid storage conflicts.
 	//
 	// Examples for official/redmine:
-	//   registry.cloudogu.com/official/redmine
+	//   - registry.cloudogu.com/official/redmine
 	//
 	// [OCI container]: https://opencontainers.org/
 	Image                string
