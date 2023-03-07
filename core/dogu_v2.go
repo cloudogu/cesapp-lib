@@ -191,9 +191,39 @@ func (ep *ExposedPort) GetType() string {
 // ExposedCommand struct represents a command which can be executed inside the
 // dogu
 type ExposedCommand struct {
-	Name        string
+	// Name identifies the exposed command. This field is mandatory. It must be unique in all commands of the same dogu.
+	//
+	// The name has to be consists of:
+	//   - lower case latin characters
+	//   - special characters underscore "_", minus "-"
+	//   - ciphers 0-9
+	//
+	// Examples:
+	//   - service-account-create
+	//   - plugin-delete
+	//
+	Name string
+	// Description describes the exposed command in a few words. This field is optional.
+	//
+	// Example:
+	//  - Creates a new service account
+	//  - Delete a plugin
+	//
 	Description string
-	Command     string
+	// Command identifies the script to be executed for this command. This field is mandatory.
+	//
+	// The name syntax comply with the file system syntax of the respective host operating system and is encouraged to
+	// consist of:
+	//   - lower case latin characters
+	//   - special characters underscore "_", minus "-"
+	//   - ciphers 0-9
+	//
+	//
+	// Examples:
+	//   - /resources/create-sa.sh
+	//   - /resources/deletePlugin.sh
+	//
+	Command string
 }
 
 // Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
@@ -541,9 +571,36 @@ type Dogu struct {
 	//
 	// [OCI container volumes]: https://opencontainers.org/
 	//
-	Volumes              []Volume
-	HealthCheck          HealthCheck // deprecated use HealthChecks
-	HealthChecks         []HealthCheck
+	Volumes      []Volume
+	HealthCheck  HealthCheck // deprecated use HealthChecks
+	HealthChecks []HealthCheck
+	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
+	//
+	// A ServiceAccount protects sensitive data used for another dogu. So they are service account consumers and
+	// producers. To produce a service account a dogu has to implement service-account-create and service-account-delete
+	// scripts in ExposedCommands. To consume a service account a dogu should define a request in ServiceAccounts.
+	//
+	// In the installation process a dogu client recognize a service account request and execute with this information
+	// the service-account-create script from the service account producer. The credentials will be then stored in the
+	// etcd.
+	//
+	// Example paths:
+	// - config/redmine/sa-postgresql/username
+	// - config/redmine/sa-postgresql/password
+	// - config/redmine/sa-postgresql/database
+	//
+	// The dogu itself can then use the service account by reading the credentials with doguctl in the startup script.
+	//
+	// Example:
+	//    "ServiceAccounts": [
+	//     {
+	//       "Type": "ldap",
+	//       "Params": [
+	//         "rw"
+	//       ]
+	//     }
+	//   ],
+	//
 	ServiceAccounts      []ServiceAccount
 	Privileged           bool
 	Configuration        []ConfigurationField
