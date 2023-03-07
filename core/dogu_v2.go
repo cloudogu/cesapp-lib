@@ -42,15 +42,15 @@ const (
 //
 // Example:
 //
-//   {
-//     "Name": "k8s-dogu-operator",
-//     "Params": {
-//       "Type": "configmap",
-//       "Content": {
-//         "Name": "k8s-ces-menu-json"
-//       }
-//     }
-//   }
+//	{
+//	  "Name": "k8s-dogu-operator",
+//	  "Params": {
+//	    "Type": "configmap",
+//	    "Content": {
+//	      "Name": "k8s-ces-menu-json"
+//	    }
+//	  }
+//	}
 type VolumeClient struct {
 	// Name identifies the client responsible to process this volume definition. This field is mandatory.
 	//
@@ -67,7 +67,6 @@ type VolumeClient struct {
 // Examples:
 //   - { "Name": "data", "Path":"/usr/share/yourtool/data", "Owner":"1000", "Group":"1000", "NeedsBackup": true}
 //   - { "Name": "temp", "Path":"/tmp", "Owner":"1000", "Group":"1000", "NeedsBackup": false}
-//
 type Volume struct {
 	// Name identifies the volume. This field is mandatory. It must be unique in all volumes of the same dogu.
 	//
@@ -168,20 +167,34 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 // HealthCheck struct will be used to do readiness and health checks for the
 // final container
 type HealthCheck struct {
-	Type       string            // health check type tcp or state
-	State      string            // expected state for state health check, default is ready
-	Port       int               // port for tcp state check
-	Path       string            // path for http check
-	Parameters map[string]string // key value pairs for check specific parameters
+	// Type can be either tcp, http or state.
+	//
+	// For Type tcp the given Port needs to be open to be healthy.
+	//
+	// For Type http the service needs to return a status code between >= 200 and < 300 to be healthy.
+	// Port and Path are used to reach the service.
+	//
+	// For Type state the /state/<dogu> key in etcd gets checked.
+	// This key is written by the installation process.
+	// A 'ready' value in etcd means that the dogu is healthy.
+	Type string
+	// State contains the expected health check state of Type state, default is ready
+	State string
+	// Port is the tcp-port for health checks of Type tcp and http.
+	Port int
+	//Path is the Http-Path for health checks of Type http, default is '/health'.
+	Path string
+	// key value pairs for check specific parameters.
+	// Deprecated: is not in use.
+	Parameters map[string]string
 }
 
 // ExposedPort struct is used to define ports which are exported to the host.
 //
 // Example:
 //
-//   { "Type": "tcp", "Container": "2222", "Host":"2222" }
-//   { "Container": "2222", "Host":"2222" }
-//
+//	{ "Type": "tcp", "Container": "2222", "Host":"2222" }
+//	{ "Container": "2222", "Host":"2222" }
 type ExposedPort struct {
 	// Type contains the protocol type over which the container communicates (f. i. 'tcp'). This field is optional (the
 	// value of `tcp` is then assumed).
