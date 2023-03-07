@@ -167,7 +167,7 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 // HealthCheck struct will be used to do readiness and health checks for the
 // final container
 type HealthCheck struct {
-	// Type can be either tcp, http or state.
+	// Type specifies the nature of the health check. It can be either tcp, http or state.
 	//
 	// For Type tcp the given Port needs to be open to be healthy.
 	//
@@ -636,8 +636,30 @@ type Dogu struct {
 	//
 	// [OCI container volumes]: https://opencontainers.org/
 	//
-	Volumes         []Volume
-	HealthCheck     HealthCheck // deprecated use HealthChecks
+	Volumes []Volume
+	// HealthCheck defines a single way to check the dogu health for observability.
+	// Deprecated: use HealthChecks instead
+	HealthCheck HealthCheck
+	// HealthChecks defines multiple ways to check the dogu health for observability.
+	// They are used for various reasons:
+	//  - to show the 'dogu is starting' page until the dogu is healthy at startup
+	//  - for monitoring via 'cesapp healthy <dogu-name>'
+	//  - for monitoring via the admin dogu
+	//  - to back up healthy dogu states only
+	//
+	// There are different types of health checks:
+	//  - state, via the '/state/<dogu>' etcd key set by ces-setup
+	//  - tcp, to check for an open port
+	//  - http, to check a status code of a http response
+	//
+	// They must be executable without authentication required.
+	//
+	// Example:
+	//	"HealthChecks": [
+	//	  {"Type": "state"}
+	//	  {"Type": "tcp",  "Port": 8080},
+	//	  {"Type": "http", "Port": 8080, "Path": "/my/health/path"},
+	// 	],
 	HealthChecks    []HealthCheck
 	ServiceAccounts []ServiceAccount
 	// Privileged indicates whether the Docker socket should be mounted into the container file system. This field is
