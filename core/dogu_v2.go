@@ -218,7 +218,7 @@ type Dogu struct {
 	//  foo-1/bar-2
 	//
 	Name string
-	// Version defines the actual version of the dogu.
+	// Version defines the actual version of the dogu. This field is mandatory.
 	//
 	// The version follows the format from semantic versioning and additionally is split in two parts.
 	// The application version and the dogu version.
@@ -244,7 +244,7 @@ type Dogu struct {
 	//    VERSION="1.23.2-1"
 	//
 	Version string
-	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu.
+	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu. This field is mandatory.
 	//
 	// Usages:
 	// In the setup of the ecosystem the display name of the dogu is used to select it for installation.
@@ -268,7 +268,7 @@ type Dogu struct {
 	//  Smeagol
 	//
 	DisplayName string
-	// Description describes in a few words what the dogu is and maybe do.
+	// Description describes in a few words what the dogu is and maybe do. This field is mandatory.
 	//
 	// It is used in the setup of the ecosystem in the dogu selection.
 	// Therefor the description should give an uninformed user a brief hint what the dogu is
@@ -287,7 +287,7 @@ type Dogu struct {
 	//  software supply chain are stored and distributed."
 	//
 	Description string
-	// Category organizes the dogus in three categories.
+	// Category organizes the dogus in three categories. This field is mandatory.
 	//
 	// These categories are fixed and must be either:
 	//
@@ -302,7 +302,15 @@ type Dogu struct {
 	//  "Administration Apps": Backup & Restore, User Management
 	//  "Base": Nginx, Registrator, OpenLDAP
 	//
-	Category             string
+	Category string
+	// Tags is a slice of one-word-tags which are in connection with the dogu. This field is optional.
+	//
+	// If the dogu should be displayed in the warp menu the tag "warp" is necessary.
+	// Actually other tags won't be processed.
+	//
+	// Examples for e.g. Jenkins:
+	//  {"warp", "build", "ci", "cd"}
+	//
 	Tags                 []string
 	Logo                 string
 	URL                  string
