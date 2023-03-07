@@ -541,10 +541,19 @@ type Dogu struct {
 	//
 	// [OCI container volumes]: https://opencontainers.org/
 	//
-	Volumes              []Volume
-	HealthCheck          HealthCheck // deprecated use HealthChecks
-	HealthChecks         []HealthCheck
-	ServiceAccounts      []ServiceAccount
+	Volumes         []Volume
+	HealthCheck     HealthCheck // deprecated use HealthChecks
+	HealthChecks    []HealthCheck
+	ServiceAccounts []ServiceAccount
+	// Privileged indicates whether the Docker socket should be mounted into the container file system. This field is
+	// optional. If unset a value of `false` will be assumed.
+	//
+	// For security reasons, it is highly recommended to leave Privileged set to false since almost no dogu should
+	// gain retrospective container insights.
+	//
+	// Example:
+	//   - false
+	//
 	Privileged           bool
 	Configuration        []ConfigurationField
 	Properties           Properties
