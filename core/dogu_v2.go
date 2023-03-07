@@ -379,6 +379,87 @@ type Dogu struct {
 	//   [ { "Type": "tcp", "Container": "2222", "Host":"2222" } ]
 	//
 	ExposedPorts         []ExposedPort
+	// ExposedCommands defines actions which can be executed in different phases of the dogu lifecycle automatically
+	// triggered by a dogu client like the cesapp or the k8s-dogu-operator or manually from an administrative user.
+	// This field is optional.
+	//
+	// Usually commands which are automatically triggered by a dogu-client are those in upgrade or service account processes.
+	// These commands are:
+	// pre-upgrade, post-upgrade, upgrade-notification, service-account-create, service-account-remove
+	//
+	// pre-upgrade:
+	// This command will be executed during an early stage of an upgrade process from a dogu. A dogu client will
+	// mount the pre-upgrade script from the new dogu version in the container of the old still running dogu and
+	// executes it. It is mainly used to prepare data migrations (e.g. export a database). Core of the script should be
+	// the comparison between the version and to determine if a migration is needed. For this the dogu client will call
+	// the script with the old version as the first and the new version as the second parameter. In addition, it is
+	// recommended to set states like "upgrading" or "pre-upgrade done" in the script. This can be very useful because
+	// you can use it in the post-upgrade or the regular startup for a waiting functionality.
+	//
+	// post-upgrade:
+	// This command will be executed after a regular dogu upgrade. Like in the pre-upgrade the old dogu version
+	// is passed as the first and the new dogu version is passed as the second parameter. They should be used to determine
+	// if an action is needed. Keep in mind that in this time the regular startup skript of your new container will be
+	// executed as well. Use a state in the etcd to handle a wait functionality in the startup.
+	// If the post-upgrade ends reset this state and start the regular container.
+	//
+	// upgrade-notification:
+	// If the upgrade process works e.g. with really sensitive data an upgrade notification script can be implemented to
+	// inform the user about the risk of this process and e.g. give a backup instruction. Before an upgrade the dogu
+	// client executes the notification script, prints all upgrade steps and asks the user if he wants to proceed.
+	//
+	// service-account-create:
+	// The service-account-create command is used in the installation process of a dogu. A service account in the CES
+	// are credentials used to authorize to another dogu like a database or an authentication server. The
+	// service-account-create command has to be implemented in the dogu which produces the credentials. If a dogu will be
+	// installed and defines the demand of a service account (for e.g. postgresql) the dogu client will call the
+	// service-account-create script in the postgresql dogu with the service name as the first parameters and custom ones
+	// as further parameters. See ServiceAccounts for how to define custom parameters.
+	// With this information the script should create a service account a save it
+	// (e.g. USER table in db or maybe encrypted in the etcd). After that the credentials have to be printed to console
+	// so that the dogu client save the credentials for the dogu who requested the account. It is also important that these
+	// outputs are the only ones from the script otherwise the dogu client will use them as credentials.
+	//
+	// Example output:
+	//  echo "database: ${DATABASE}"
+	//  echo "username: ${USER}"
+	//  echo "password: ${PASSWORD}"
+	//
+	// service-account-delete:
+	// If a dogu will be deleted the used service account should be deleted too. For this a dogu like postgresql has although
+	// to implement a service-account-delete command. This script will be executed in the deletion process of a dogu
+	// and gets the service account name as the only parameter. In contrast to the service-account-create command
+	// the script can output logs because the dogu client won't use any of this data.
+	//
+	// Example commands for service accounts:
+	//  "ExposedCommands": [
+	//     {
+	//       "Name": "service-account-create",
+	//       "Description": "Creates a new service account",
+	//       "Command": "/create-sa.sh"
+	//     },
+	//     {
+	//       "Name": "service-account-remove",
+	//       "Description": "Removes a service account",
+	//       "Command": "/remove-sa.sh"
+	//     }
+	//   ],
+	//
+	// Custom commands:
+	// Moreover, a dogu can specify commands which are not executed automatically in the dogu lifecycle (e.g. upgrade).
+	// For example a dogu like Redmine can specify a command to delete or install a plugin so at runtime an
+	// administrator can call this command with the cesapp like:
+	//  cesapp command redmine plugin-install scrum-plugin
+	//
+	// Example:
+	//  "ExposedCommands": [
+	//     {
+	//       "Name": "plugin-install",
+	//       "Description": "Installs a plugin",
+	//       "Command": "/installPlugin.sh"
+	//     }
+	//   ],
+	//
 	ExposedCommands      []ExposedCommand
 	Volumes              []Volume
 	HealthCheck          HealthCheck // deprecated use HealthChecks
