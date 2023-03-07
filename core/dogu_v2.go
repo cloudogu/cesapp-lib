@@ -286,7 +286,22 @@ type Dogu struct {
 	//  "The Nexus Repository is like the local warehouse where all the parts and finished goods used in your
 	//  software supply chain are stored and distributed."
 	//
-	Description          string
+	Description string
+	// Category organizes the dogus in three categories.
+	//
+	// These categories are fixed and must be either:
+	//
+	// "Development Apps" - For regular dogus which should be used by a regular user of the ecosystem,
+	// "Administration Apps" - For dogus which should be used by a user with administration rights, or
+	// "Base" - For dogus which are important for the overall system.
+	//
+	// The categories "Development Apps" and "Administration Apps" are represented in the warp menu to order the dogus.
+	//
+	// Example dogus for each category:
+	//  "Development Apps": Redmine, SCM-Manager, Jenkins
+	//  "Administration Apps": Backup & Restore, User Management
+	//  "Base": Nginx, Registrator, OpenLDAP
+	//
 	Category             string
 	Tags                 []string
 	Logo                 string
