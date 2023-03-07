@@ -64,7 +64,7 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// HealthCheck struct will be used to do readyness and health checks for the
+// HealthCheck struct will be used to do readiness and health checks for the
 // final container
 type HealthCheck struct {
 	Type       string            // health check type tcp or state
@@ -74,13 +74,39 @@ type HealthCheck struct {
 	Parameters map[string]string // key value pairs for check specific parameters
 }
 
-// ExposedPort struct is used to define ports which are exported to the host
+// ExposedPort struct is used to define ports which are exported to the host.
+//
+// Example:
+//
+//   { "Type": "tcp", "Container": "2222", "Host":"2222" }
+//   { "Container": "2222", "Host":"2222" }
+//
 type ExposedPort struct {
-	// Type contains the protocol type over which the container communicates (f. i. 'tcp').
+	// Type contains the protocol type over which the container communicates (f. i. 'tcp'). This field is optional (the
+	// value of `tcp` is then assumed).
+	//
+	// Example:
+	//   - tcp
+	//   - udp
+	//   - sctp
+	//
 	Type string
-	// Container contains the mapped port on side of the container.
+	// Container contains the mapped port on side of the container. This field is mandatory. Usual port range
+	// limitations apply.
+	//
+	// Examples:
+	//   - 80
+	//   - 8080
+	//   - 65535
+	//
 	Container int
-	// Host contains the mapped port on side of the host.
+	// Host contains the mapped port on side of the host. This field is mandatory. Usual port range limitations apply.
+	//
+	// Examples:
+	//   - 80
+	//   - 8080
+	//   - 65535
+	//
 	Host int
 }
 
@@ -340,7 +366,18 @@ type Dogu struct {
 	//   - registry.cloudogu.com/official/redmine
 	//
 	// [OCI container]: https://opencontainers.org/
-	Image                string
+	//
+	Image string
+	// ExposedPorts contains a list of core.ExposedPort. This field is optional.
+	//
+	// Exposed ports provide a way to route traffic from outside the Cloudogu EcoSystem towards the dogu. Dogus that
+	// provide a GUI must also expose a port that accepts requests and returns responses. Non-GUI dogus can also expose
+	// ports if the dogu provides services to a consumer (f. i. when the dogu wants to provide an API for a CLI tool).
+	//
+	// Examples:
+	//
+	//   [ { "Type": "tcp", "Container": "2222", "Host":"2222" } ]
+	//
 	ExposedPorts         []ExposedPort
 	ExposedCommands      []ExposedCommand
 	Volumes              []Volume
