@@ -327,7 +327,19 @@ type Dogu struct {
 	// Examples:
 	//   https://github.com/cloudogu/usermgt
 	//   https://www.atlassian.com/software/jira
-	URL                  string
+	//
+	URL string
+	// Image contains a reference to the [OCI container] image which packages the dogu application. This field is
+	// mandatory. The image must not contain image tags, like the image version or "latest" (use for the field Version
+	// for this information instead).
+	//
+	// It is good practice to apply the same name to the image repository as from the Name field in order to enable
+	// access strategies as well as to avoid storage conflicts.
+	//
+	// Examples for official/redmine:
+	//   registry.cloudogu.com/official/redmine
+	//
+	// [OCI container]: https://opencontainers.org/
 	Image                string
 	ExposedPorts         []ExposedPort
 	ExposedCommands      []ExposedCommand
