@@ -7,6 +7,37 @@ import (
 	"encoding/json"
 )
 
+// Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
+// with side effects.
+const (
+	// ExposedCommandServiceAccountCreate identifies a name of a core.ExposedCommand which produces a service account
+	// for other dogus.
+	ExposedCommandServiceAccountCreate = "service-account-create"
+	// ExposedCommandServiceAccountRemove identifies a name of a core.ExposedCommand which removes a service accounts.
+	ExposedCommandServiceAccountRemove = "service-account-remove"
+	// ExposedCommandBackupConsumer identifies a name of a core.ExposedCommand which backs up a service account
+	// consumer dogu's data during the back-up.
+	ExposedCommandPostBackup = "post-backup"
+	// ExposedCommandPreUpgrade identifies a name of a core.ExposedCommand which executes before a dogu upgrade.
+	ExposedCommandPreUpgrade = "pre-upgrade"
+	// ExposedCommandPostUpgrade identifies a name of a core.ExposedCommand which executes after a dogu upgrade.
+	ExposedCommandPostUpgrade = "post-upgrade"
+	// ExposedCommandUpgradeNotification identifies a name of a core.ExposedCommand which informs a user of important,
+	// upcoming changes (possibly with a call for action) that should be acknowledged by the administrator.
+	ExposedCommandUpgradeNotification = "upgrade-notification"
+
+	// deprecated
+
+	ExposedCommandBackupConsumer = "backup-consumer"
+	// ExposedCommandPreBackup
+	//
+	// Deprecated: This field is no longer used. There is no substitute.
+	ExposedCommandPreBackup = "pre-backup"
+	// ExposedCommandPostBackup
+	//
+	// Deprecated: This field is no longer used. There is no substitute.
+)
+
 // VolumeClient adds additional information for clients to create volumes.
 //
 // Example:
@@ -195,19 +226,6 @@ type ExposedCommand struct {
 	Description string
 	Command     string
 }
-
-// Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
-// with side effects.
-const (
-	ExposedCommandServiceAccountCreate = "service-account-create"
-	ExposedCommandServiceAccountRemove = "service-account-remove"
-	ExposedCommandBackupConsumer       = "backup-consumer"
-	ExposedCommandPreBackup            = "pre-backup"
-	ExposedCommandPostBackup           = "post-backup"
-	ExposedCommandPostUpgrade          = "post-upgrade"
-	ExposedCommandPreUpgrade           = "pre-upgrade"
-	ExposedCommandUpgradeNotification  = "upgrade-notification"
-)
 
 // EnvironmentVariable struct represents custom parameters that can change
 // the behaviour of a dogu build process
