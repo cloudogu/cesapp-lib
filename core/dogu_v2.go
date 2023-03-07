@@ -268,7 +268,24 @@ type Dogu struct {
 	//  Smeagol
 	//
 	DisplayName string
-	// Description
+	// Description describes in a few words what the dogu is and maybe do.
+	//
+	// It is used in the setup of the ecosystem in the dogu selection.
+	// Therefor the description should give an uninformed user a brief hint what the dogu is
+	// and maybe the function the dogu fulfills.
+	//
+	// The description may consist of
+	//   - lower and upper case latin characters where the first is upper case
+	//   - special characters minus "-", ampersand "&"
+	//   - ciphers 0-9
+	//   - an overall length of less than 30 words
+	//
+	// Examples:
+	//  "Jenkins Continuous Integration Server"
+	//  "MySQL - Relational database"
+	//  "The Nexus Repository is like the local warehouse where all the parts and finished goods used in your
+	//  software supply chain are stored and distributed."
+	//
 	Description          string
 	Category             string
 	Tags                 []string
