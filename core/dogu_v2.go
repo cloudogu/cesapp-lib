@@ -312,7 +312,9 @@ type Dogu struct {
 	//   - provide the logo in to dogu UI (if the dogu provides one)
 	//
 	Logo string
-	// URL may link the website to the original tool vendor. This field is optional.
+	// URL may link the website to the original tool vendor. This field is optional. Like Logo, the Cloudogu EcoSystem
+	// does not facilitate this information. Anyhow, in a public dogu repository in which a dogu vendor re-packages a
+	// third party application the URL may point users to resources of the original tool vendor.
 	//
 	// Examples:
 	//   https://github.com/cloudogu/usermgt
