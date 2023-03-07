@@ -247,6 +247,8 @@ type Dogu struct {
 	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu.
 	//
 	// Usages:
+	// In the setup of the ecosystem the display name of the dogu is used to select it for installation.
+	//
 	// For dogus with a web ui an important location is the warp menu where you can navigate with a click of the
 	// display name to the dogu.
 	//
@@ -265,7 +267,8 @@ type Dogu struct {
 	//  SCM-Manager
 	//  Smeagol
 	//
-	DisplayName          string
+	DisplayName string
+	// Description
 	Description          string
 	Category             string
 	Tags                 []string
