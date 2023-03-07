@@ -306,7 +306,7 @@ type Dogu struct {
 	Tags     []string
 	// Logo originally represented a URI to a web picture depicting the dogu tool.
 	//
-	// Deprecated: This logo URI is nowhere within the Cloudogu EcoSystem facilitated and is a candidate for removal.
+	// Deprecated: The Cloudogu EcoSystem does not facilitate the logo URI. It is a candidate for removal.
 	// Other options of representing a tool or application can be:
 	//   - embed the logo in the dogu's Git repository (if public)
 	//   - provide the logo in to dogu UI (if the dogu provides one)
