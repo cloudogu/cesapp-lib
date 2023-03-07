@@ -186,7 +186,7 @@ type Dependency struct {
 // meta information for the resulting container.
 type Dogu struct {
 	// Name contains the dogu's full qualified name which consists of the dogu namespace and the dogu simple name,
-	// delimited by a single forward slash "/".
+	// delimited by a single forward slash "/". This field is mandatory.
 	//
 	// The dogu namespace allows to regulate access to dogus in that namespace. There are three reserved dogu
 	// namespaces: The namespaces `official` and `k8s` are open to all users without any further costs. In contrast to
@@ -304,14 +304,19 @@ type Dogu struct {
 	//
 	Category string
 	Tags     []string
-	// Logo originally represented a URI to a web picture depicting the dogu tool.
+	// Logo originally represented a URI to a web picture depicting the dogu tool. This field is optional.
 	//
 	// Deprecated: The Cloudogu EcoSystem does not facilitate the logo URI. It is a candidate for removal.
 	// Other options of representing a tool or application can be:
 	//   - embed the logo in the dogu's Git repository (if public)
 	//   - provide the logo in to dogu UI (if the dogu provides one)
 	//
-	Logo                 string
+	Logo string
+	// URL may link the website to the original tool vendor. This field is optional.
+	//
+	// Examples:
+	//   https://github.com/cloudogu/usermgt
+	//   https://www.atlassian.com/software/jira
 	URL                  string
 	Image                string
 	ExposedPorts         []ExposedPort
