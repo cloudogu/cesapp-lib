@@ -243,7 +243,28 @@ type Dogu struct {
 	//    NAME="official/nginx" \
 	//    VERSION="1.23.2-1"
 	//
-	Version              string
+	Version string
+	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu.
+	//
+	// Usages:
+	// For dogus with a web ui an important location is the warp menu where you can navigate with a click of the
+	// display name to the dogu.
+	//
+	// Another location is the textual output of tools like the cesapp or the k8s-dogu-operator where the name is used
+	// in commands like list upgradeable dogus.
+	//
+	// The display name may consist of
+	//   - lower and upper case latin characters where the first is upper case
+	//   - special characters minus "-", ampersand "&"
+	//   - ciphers 0-9
+	//   - an overall length of less than 30 characters
+	//
+	// Examples:
+	//  Jenkins CI
+	//  Backup & Restore
+	//  SCM-Manager
+	//  Smeagol
+	//
 	DisplayName          string
 	Description          string
 	Category             string
