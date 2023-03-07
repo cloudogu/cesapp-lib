@@ -13,29 +13,35 @@ const (
 	// ExposedCommandServiceAccountCreate identifies a name of a core.ExposedCommand which produces a service account
 	// for other dogus.
 	ExposedCommandServiceAccountCreate = "service-account-create"
+
 	// ExposedCommandServiceAccountRemove identifies a name of a core.ExposedCommand which removes a service accounts.
 	ExposedCommandServiceAccountRemove = "service-account-remove"
-	// ExposedCommandBackupConsumer identifies a name of a core.ExposedCommand which backs up a service account
-	// consumer dogu's data during the back-up.
-	ExposedCommandPostBackup = "post-backup"
+
 	// ExposedCommandPreUpgrade identifies a name of a core.ExposedCommand which executes before a dogu upgrade.
 	ExposedCommandPreUpgrade = "pre-upgrade"
+
 	// ExposedCommandPostUpgrade identifies a name of a core.ExposedCommand which executes after a dogu upgrade.
 	ExposedCommandPostUpgrade = "post-upgrade"
+
 	// ExposedCommandUpgradeNotification identifies a name of a core.ExposedCommand which informs a user of important,
 	// upcoming changes (possibly with a call for action) that should be acknowledged by the administrator.
 	ExposedCommandUpgradeNotification = "upgrade-notification"
 
+	// ExposedCommandBackupConsumer identifies a name of a core.ExposedCommand which backs up a service account
+	// consumer dogu's data during the back-up.
+	ExposedCommandBackupConsumer = "backup-consumer"
+
 	// deprecated
 
-	ExposedCommandBackupConsumer = "backup-consumer"
 	// ExposedCommandPreBackup
 	//
 	// Deprecated: This field is no longer used. There is no substitute.
 	ExposedCommandPreBackup = "pre-backup"
+
 	// ExposedCommandPostBackup
 	//
 	// Deprecated: This field is no longer used. There is no substitute.
+	ExposedCommandPostBackup = "post-backup"
 )
 
 // VolumeClient adds additional information for clients to create volumes.
@@ -356,7 +362,7 @@ type ValidationDescriptor struct {
 	Values []string
 }
 
-// Properties describes generic properties of the dogu.
+// Properties describes generic properties of the dogu which are evaluated .
 type Properties map[string]string
 
 // Contains the different kind of types supported by dogu dependencies
