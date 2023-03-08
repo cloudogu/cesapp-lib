@@ -31,8 +31,6 @@ const (
 	// consumer dogu's data during the back-up.
 	ExposedCommandBackupConsumer = "backup-consumer"
 
-	// deprecated
-
 	// ExposedCommandPreBackup
 	//
 	// Deprecated: This field is no longer used. There is no substitute.
