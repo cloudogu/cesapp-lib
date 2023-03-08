@@ -1,7 +1,6 @@
 #!groovy
-@Library(['github.com/cloudogu/dogu-build-lib@v1.10.0', 'github.com/cloudogu/ces-build-lib@1.57.0', 'github.com/cloudogu/zalenium-build-lib@v2.1.1'])
+@Library(['github.com/cloudogu/dogu-build-lib@v1.10.0', 'github.com/cloudogu/ces-build-lib@1.57.0'])
 import com.cloudogu.ces.cesbuildlib.*
-import com.cloudogu.ces.zaleniumbuildlib.*
 import com.cloudogu.ces.dogubuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
@@ -106,16 +105,20 @@ void stageStaticAnalysisSonarQube() {
 }
 
 void stageAutomaticRelease() {
-    if (gitflow.isReleaseBranch()) {
-        String releaseVersion = gitWrapper.getSimpleBranchName()
+    if (!gitflow.isReleaseBranch()) {
+        return
+    }
 
-        stage('Finish Release') {
-            gitflow.finishRelease(releaseVersion, productionReleaseBranch)
-        }
+    potentiallyCreateDoguDocPR()
 
-        stage('Add Github-Release') {
-            releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
-        }
+    String releaseVersion = gitWrapper.getSimpleBranchName()
+
+    stage('Finish Release') {
+        gitflow.finishRelease(releaseVersion, productionReleaseBranch)
+    }
+
+    stage('Add Github-Release') {
+        releaseId = github.createReleaseWithChangelog(releaseVersion, changelog, productionReleaseBranch)
     }
 }
 
@@ -138,4 +141,55 @@ void withBuildDependencies(Closure closure) {
                                     }
                 }
     }
+}
+
+void potentiallyCreateDoguDocPR() {
+    def targetDoguDocDir = "target/dogu-doc"
+    def coreDoguChapter = "compendium_en.md"
+    def oldCoreDoguChapter="${targetDoguDocDir}/docs/core/${coreDoguChapter}"
+    def newCoreDoguChapter = "target/${coreDoguChapter}"
+    def doguDocRepo = "https://github.com/cloudogu/dogu-development-docs.git"
+    def doguDocTargetBranch ="main"
+    // FIXME
+    def newBranchName = "platano"
+
+    new Docker(this)
+            .image('golang:1.18.6')
+            .mountJenkinsUser()
+            .inside("--network ${buildnetwork} -e ETCD=${etcdContainerName} -e SKIP_SYSLOG_TESTS=true -e SKIP_DOCKER_TESTS=true --volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
+
+                stage('Pull old dogu doc page') {
+                    checkout changelog: false, poll: false, scm: scmGit(branches: [[name: doguDocTargetBranch]], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: targetDoguDocDir]], gitTool: 'Default', userRemoteConfigs: [[credentialsId: 'cesmarvin', url: doguDocRepo]])
+                }
+
+                stage('Build new dogu doc page') {
+                    sh 'gomarkdoc --output ${localCoreDoguChapter} core/dogu_v2.go'
+                }
+
+                def shouldCreateDoguDocsPR = false
+
+                stage('Compare dogu docs') {
+                    // ignore stderr output here, diffing non-existing files always leads to a line count of zero
+                    def diffResult = sh(returnStdout: true, script: "diff ${newCoreDoguChapter} ${oldCoreDoguChapter} | wc -l").toString().trim()
+                    if(diffResult > 0) {
+                        shouldCreateDoguDocsPR = true
+                    }
+                }
+
+                if(shouldCreateDoguDocsPR) {
+                    stage('Create dogu docs PR') {
+                        sh "cd ${targetDoguDocDir} && git checkout -b ${newBranchName}"
+                        // create potential diff by overwriting the original file
+                        sh "cp ${localCoreDoguChapter} ${oldCoreDoguChapter}"
+
+                        sh "cd ${targetDoguDocDir} && git add ${oldCoreDoguChapter}"
+
+                        sh "cd ${targetDoguDocDir} && git --author='ces-marvin <ces-marvin@cloudogu.com>' commit ${oldCoreDoguChapter}"
+
+                        sh "cd ${targetDoguDocDir} && git push --set-upstream origin feature/${newBranchName}"
+
+                        // create PR from branch -> main "tranl8 plz! (o_0')"
+                    }
+                }
+            }
 }
