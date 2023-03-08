@@ -591,17 +591,21 @@ type Dogu struct {
 	//
 	// The dogu itself can then use the service account by reading the credentials with doguctl in the startup script.
 	//
-	// Example:
+	// Examples:
 	//    "ServiceAccounts": [
 	//     {
 	//       "Type": "ldap",
 	//       "Params": [
 	//         "rw"
 	//       ]
+	//     },
+	//     {
+	//      "Type": "k8s-dogu-operator",
+	//      "Kind": "k8s"
 	//     }
 	//   ],
 	//
-	ServiceAccounts      []ServiceAccount
+	ServiceAccounts []ServiceAccount
 	// Privileged indicates whether the Docker socket should be mounted into the container file system. This field is
 	// optional. If unset a value of `false` will be assumed.
 	//
