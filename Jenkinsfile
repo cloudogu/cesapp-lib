@@ -146,10 +146,10 @@ void withBuildDependencies(Closure closure) {
 void potentiallyCreateDoguDocPR() {
     def targetDoguDocDir = "target/dogu-doc"
     def coreDoguChapter = "compendium_en.md"
-    def oldCoreDoguChapter="${targetDoguDocDir}/docs/core/${coreDoguChapter}"
+    def oldCoreDoguChapter = "${targetDoguDocDir}/docs/core/${coreDoguChapter}"
     def newCoreDoguChapter = "target/${coreDoguChapter}"
     def doguDocRepo = "https://github.com/cloudogu/dogu-development-docs.git"
-    def doguDocTargetBranch ="main"
+    def doguDocTargetBranch = "main"
     // FIXME
     def newBranchName = "platano"
 
@@ -171,12 +171,12 @@ void potentiallyCreateDoguDocPR() {
                 stage('Compare dogu docs') {
                     // ignore stderr output here, diffing non-existing files always leads to a line count of zero
                     def diffResult = sh(returnStdout: true, script: "diff ${newCoreDoguChapter} ${oldCoreDoguChapter} | wc -l").toString().trim()
-                    if(diffResult > 0) {
+                    if (diffResult > 0) {
                         shouldCreateDoguDocsPR = true
                     }
                 }
 
-                if(shouldCreateDoguDocsPR) {
+                if (shouldCreateDoguDocsPR) {
                     stage('Create dogu docs PR') {
                         sh "cd ${targetDoguDocDir} && git checkout -b ${newBranchName}"
                         // create potential diff by overwriting the original file
@@ -188,7 +188,16 @@ void potentiallyCreateDoguDocPR() {
 
                         sh "cd ${targetDoguDocDir} && git push --set-upstream origin feature/${newBranchName}"
 
-                        // create PR from branch -> main "tranl8 plz! (o_0')"
+                        withCredentials([usernamePassword(credentialsId: 'cesmarvin', usernameVariable: 'GIT_AUTH_USR', passwordVariable: 'GIT_AUTH_PSW')]) {
+
+                            sh """curl -L \
+                              -X POST \
+                              -H "Accept: application/vnd.github+json" \
+                              -u ${GIT_AUTH_USR}:${GIT_AUTH_PSW} \
+                              -H "X-GitHub-Api-Version: 2022-11-28" \
+                              https://api.github.com/repos/${repositoryOwner}/${repositoryName}/pulls \
+                              -d '{"title":"Update to core.Dogu compendium","body":"Please pull these awesome changes in!","head":"feature/${newBranchName}","base":"${doguDocTargetBranch}"}'"""
+                        }
                     }
                 }
             }
