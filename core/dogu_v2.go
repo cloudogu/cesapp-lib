@@ -768,7 +768,7 @@ type Dogu struct {
 	//	  {"Type": "tcp",  "Port": 8080},
 	//	  {"Type": "http", "Port": 8080, "Path": "/my/health/path"},
 	// 	],
-	HealthChecks    []HealthCheck
+	HealthChecks []HealthCheck
 	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
 	//
 	// A ServiceAccount protects sensitive data used for another dogu. So they are service account consumers and
@@ -836,8 +836,16 @@ type Dogu struct {
 	//       ]
 	//     }
 	//   }
-	Configuration        []ConfigurationField
-	Properties           Properties
+	Configuration []ConfigurationField
+	Properties    Properties
+	// EnvironmentVariables that should be set in the container can be defined here. This field is optional.
+	//
+	// EnvironmentVariables are key value pairs.
+	//
+	// Example:
+	//   [
+	//     {"Key": "my_key", "Value": "my_value"}
+	//   ]
 	EnvironmentVariables []EnvironmentVariable
 	// Dependencies contains a list of core.Dependency. This field is optional.
 	//
