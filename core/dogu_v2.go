@@ -837,7 +837,15 @@ type Dogu struct {
 	//     }
 	//   }
 	Configuration []ConfigurationField
-	Properties    Properties
+	// Properties contains a generic core.Properties struct. This field is optional.
+	// It describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
+	//
+	// Example:
+	//   {
+	//     "key1": "value1",
+	//     "key2": "value2"
+	//   }
+	Properties Properties
 	// EnvironmentVariables that should be set in the container can be defined here. This field is optional.
 	//
 	// EnvironmentVariables are key value pairs.
