@@ -7,19 +7,56 @@ import (
 	"encoding/json"
 )
 
+// Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
+// with side effects.
+const (
+	// ExposedCommandServiceAccountCreate identifies a name of a core.ExposedCommand which produces a service account
+	// for other dogus.
+	ExposedCommandServiceAccountCreate = "service-account-create"
+
+	// ExposedCommandServiceAccountRemove identifies a name of a core.ExposedCommand which removes a service accounts.
+	ExposedCommandServiceAccountRemove = "service-account-remove"
+
+	// ExposedCommandPreUpgrade identifies a name of a core.ExposedCommand which executes before a dogu upgrade.
+	ExposedCommandPreUpgrade = "pre-upgrade"
+
+	// ExposedCommandPostUpgrade identifies a name of a core.ExposedCommand which executes after a dogu upgrade.
+	ExposedCommandPostUpgrade = "post-upgrade"
+
+	// ExposedCommandUpgradeNotification identifies a name of a core.ExposedCommand which informs a user of important,
+	// upcoming changes (possibly with a call for action) that should be acknowledged by the administrator.
+	ExposedCommandUpgradeNotification = "upgrade-notification"
+
+	// ExposedCommandBackupConsumer identifies a name of a core.ExposedCommand which backs up a service account
+	// consumer dogu's data during the back-up.
+	ExposedCommandBackupConsumer = "backup-consumer"
+
+	// deprecated
+
+	// ExposedCommandPreBackup
+	//
+	// Deprecated: This field is no longer used. There is no substitute.
+	ExposedCommandPreBackup = "pre-backup"
+
+	// ExposedCommandPostBackup
+	//
+	// Deprecated: This field is no longer used. There is no substitute.
+	ExposedCommandPostBackup = "post-backup"
+)
+
 // VolumeClient adds additional information for clients to create volumes.
 //
 // Example:
 //
-//   {
-//     "Name": "k8s-dogu-operator",
-//     "Params": {
-//       "Type": "configmap",
-//       "Content": {
-//         "Name": "k8s-ces-menu-json"
-//       }
-//     }
-//   }
+//	{
+//	  "Name": "k8s-dogu-operator",
+//	  "Params": {
+//	    "Type": "configmap",
+//	    "Content": {
+//	      "Name": "k8s-ces-menu-json"
+//	    }
+//	  }
+//	}
 type VolumeClient struct {
 	// Name identifies the client responsible to process this volume definition. This field is mandatory.
 	//
@@ -36,7 +73,6 @@ type VolumeClient struct {
 // Examples:
 //   - { "Name": "data", "Path":"/usr/share/yourtool/data", "Owner":"1000", "Group":"1000", "NeedsBackup": true}
 //   - { "Name": "temp", "Path":"/tmp", "Owner":"1000", "Group":"1000", "NeedsBackup": false}
-//
 type Volume struct {
 	// Name identifies the volume. This field is mandatory. It must be unique in all volumes of the same dogu.
 	//
@@ -137,20 +173,34 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 // HealthCheck struct will be used to do readiness and health checks for the
 // final container
 type HealthCheck struct {
-	Type       string            // health check type tcp or state
-	State      string            // expected state for state health check, default is ready
-	Port       int               // port for tcp state check
-	Path       string            // path for http check
-	Parameters map[string]string // key value pairs for check specific parameters
+	// Type specifies the nature of the health check. It can be either tcp, http or state.
+	//
+	// For Type tcp the given Port needs to be open to be healthy.
+	//
+	// For Type http the service needs to return a status code between >= 200 and < 300 to be healthy.
+	// Port and Path are used to reach the service.
+	//
+	// For Type state the /state/<dogu> key in etcd gets checked.
+	// This key is written by the installation process.
+	// A 'ready' value in etcd means that the dogu is healthy.
+	Type string
+	// State contains the expected health check state of Type state, default is ready
+	State string
+	// Port is the tcp-port for health checks of Type tcp and http.
+	Port int
+	// Path is the Http-Path for health checks of Type http, default is '/health'.
+	Path string
+	// key value pairs for check specific parameters.
+	// Deprecated: is not in use.
+	Parameters map[string]string
 }
 
 // ExposedPort struct is used to define ports which are exported to the host.
 //
 // Example:
 //
-//   { "Type": "tcp", "Container": "2222", "Host":"2222" }
-//   { "Container": "2222", "Host":"2222" }
-//
+//	{ "Type": "tcp", "Container": "2222", "Host":"2222" }
+//	{ "Container": "2222", "Host":"2222" }
 type ExposedPort struct {
 	// Type contains the protocol type over which the container communicates (f. i. 'tcp'). This field is optional (the
 	// value of `tcp` is then assumed).
@@ -226,19 +276,6 @@ type ExposedCommand struct {
 	Command string
 }
 
-// Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
-// with side effects.
-const (
-	ExposedCommandServiceAccountCreate = "service-account-create"
-	ExposedCommandServiceAccountRemove = "service-account-remove"
-	ExposedCommandBackupConsumer       = "backup-consumer"
-	ExposedCommandPreBackup            = "pre-backup"
-	ExposedCommandPostBackup           = "post-backup"
-	ExposedCommandPostUpgrade          = "post-upgrade"
-	ExposedCommandPreUpgrade           = "pre-upgrade"
-	ExposedCommandUpgradeNotification  = "upgrade-notification"
-)
-
 // EnvironmentVariable struct represents custom parameters that can change
 // the behaviour of a dogu build process
 type EnvironmentVariable struct {
@@ -264,34 +301,102 @@ type ServiceAccount struct {
 	Kind string `json:"Kind,omitempty"`
 }
 
-// ConfigurationField describes a field of the dogu configuration which is stored in the registry.
+// ConfigurationField describes a single dogu configuration field which is stored in the Cloudogu EcoSystem registry.
 type ConfigurationField struct {
-	// Name contains the name of the key. It must not be empty. It must not contain leading or trailing slashes "/", but
+	// Name contains the name of the configuration key. The field is mandatory. It must not contain leading or trailing slashes "/", but
 	// it may contain directory keys delimited with slashes within the name.
+	//
+	// The Name syntax is encouraged to consist of:
+	//   - lower case latin characters
+	//   - special characters underscore "_"
+	//   - ciphers 0-9
+	//
+	// Example:
+	//   - feedback_url
+	//   - logging/root
+	//
 	Name string
-	// Description should mention the context and purpose of the config field in human readable format.
+	// Description offers context and purpose of the configuration field in human-readable format. This field is
+	// optional, yet highly recommended to be set.
+	//
+	// Example:
+	//   - "Set the root log level to one of ERROR, WARN, INFO, DEBUG or TRACE. Default is INFO"
+	//   - "URL of the feedback service"
+	//
 	Description string
-	// Optional allows to have this config field unset.
+	// Optional allows to have this configuration field unset otherwise a value must be set. This field is optional.
+	// If unset a value of `false` will be assumed.
+	//
+	// Example:
+	//   - true
+	//
 	Optional bool
-	// Encrypted marks this config field to contain a sensitive value that will be encrypted with the dogu's private key.
+	// Encrypted marks this configuration field to contain a sensitive value that will be encrypted with the dogu's
+	// private key. This field is optional. If unset a value of `false` will be assumed.
+	//
+	// Example:
+	//   - true
+	//
 	Encrypted bool
-	// Global marks this config field to contain a value that is available for all dogus.
+	// Global marks this configuration field to contain a value that is available for all dogus. This field is optional.
+	// If unset a value of `false` will be assumed.
+	//
+	// Example:
+	//   - true
+	//
 	Global bool
-	// Default defines a default value that may be evaluated if no value was configured, or the vallue is empty or even invalid.
+	// Default defines a default value that may be evaluated if no value was configured, or the value is empty or even
+	// invalid. This field is optional.
+	//
+	// Example:
+	//   - "WARN"
+	//   - "true"
+	//   - "https://scm-manager.org/plugins"
+	//
 	Default string
-	// Validation configures a Validator that will be used to validate this config field.
+	// Validation configures a Validator that will be used to validate this config field. This field is optional.
+	//
+	// Example:
+	//  "Validation": {
+	//     "Type": "ONE_OF", // only allows one of these two values
+	//     "Values": [
+	//       "value 1",
+	//       "value 2",
+	//     ]
+	//   }
+	//
+	//  "Validation": {
+	//     "Type": "FLOAT_PERCENTAGE_HUNDRED" // valid values range between 0.0 and 100.0
+	//  }
+	//
+	//  "Validation": {
+	//    "Type": "BINARY_MEASUREMENT" // only allows suffixed integer values measured in byte, kibibyte, mebibyte, gibibyte
+	//   }
+	//
+	//
 	Validation ValidationDescriptor
 }
 
 // ValidationDescriptor describes how to determine if a config value is valid.
 type ValidationDescriptor struct {
-	// Type contains the name of the config value validator.
+	// Type contains the name of the config value validator. This field is mandatory. Valid types are:
+	//
+	//   - ONE_OF
+	//   - BINARY_MEASUREMENT
+	//   - FLOAT_PERCENTAGE_HUNDRED
+	//
 	Type string
-	// Values may contain values that aid the selected validator. It is up to the selected validator whether this field is mandatory, optional, or unused.
+	// Values may contain values that aid the selected validator. The values may or may not be optional, depending on
+	// the ValidationDescriptor.Type used.It is up to the selected validator whether this field is mandatory, optional,
+	// or unused.
 	Values []string
 }
 
-// Properties describes generic properties of the dogu.
+// Properties describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
+//
+// Example:
+//   - { "key": "value" }
+//
 type Properties map[string]string
 
 // Contains the different kind of types supported by dogu dependencies
@@ -571,9 +676,31 @@ type Dogu struct {
 	//
 	// [OCI container volumes]: https://opencontainers.org/
 	//
-	Volumes      []Volume
-	HealthCheck  HealthCheck // deprecated use HealthChecks
-	HealthChecks []HealthCheck
+	Volumes []Volume
+	// HealthCheck defines a single way to check the dogu health for observability.
+	// Deprecated: use HealthChecks instead
+	HealthCheck HealthCheck
+	// HealthChecks defines multiple ways to check the dogu health for observability.
+	// They are used for various reasons:
+	//  - to show the 'dogu is starting' page until the dogu is healthy at startup
+	//  - for monitoring via 'cesapp healthy <dogu-name>'
+	//  - for monitoring via the admin dogu
+	//  - to back up healthy dogu states only
+	//
+	// There are different types of health checks:
+	//  - state, via the '/state/<dogu>' etcd key set by ces-setup
+	//  - tcp, to check for an open port
+	//  - http, to check a status code of a http response
+	//
+	// They must be executable without authentication required.
+	//
+	// Example:
+	//	"HealthChecks": [
+	//	  {"Type": "state"}
+	//	  {"Type": "tcp",  "Port": 8080},
+	//	  {"Type": "http", "Port": 8080, "Path": "/my/health/path"},
+	// 	],
+	HealthChecks    []HealthCheck
 	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
 	//
 	// A ServiceAccount protects sensitive data used for another dogu. So they are service account consumers and
@@ -615,7 +742,32 @@ type Dogu struct {
 	// Example:
 	//   - false
 	//
-	Privileged           bool
+	Privileged bool
+	// Configuration contains a list of core.ConfigurationField. This field is optional.
+	//
+	// Examples:
+	//   {
+	//     "Name": "plugin_center_url",
+	//     "Description": "URL of SCM-Manager Plugin Center",
+	//     "Optional": true
+	//   }
+	//
+	//   {
+	//     "Name": "logging/root",
+	//     "Description": "Set the root log level to one of ERROR, WARN, INFO, DEBUG or TRACE. Default is INFO",
+	//     "Optional": true,
+	//     "Default": "INFO",
+	//     "Validation": {
+	//       "Type": "ONE_OF",
+	//       "Values": [
+	//         "WARN",
+	//         "ERROR",
+	//         "INFO",
+	//         "DEBUG",
+	//         "TRACE"
+	//       ]
+	//     }
+	//   }
 	Configuration        []ConfigurationField
 	Properties           Properties
 	EnvironmentVariables []EnvironmentVariable
