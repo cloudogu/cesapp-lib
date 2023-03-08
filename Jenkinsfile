@@ -152,19 +152,20 @@ void potentiallyCreateDoguDocPR() {
     def doguDocRepo = "https://github.com/cloudogu/dogu-development-docs.git"
     def doguDocTargetBranch = "main"
     // FIXME
-    def newBranchName = "platano"
+    def newBranchName = "feature/platano"
 
     new Docker(this)
             .image('golang:1.18.6')
             .mountJenkinsUser()
-            .inside("--network ${buildnetwork} -e ETCD=${etcdContainerName} -e SKIP_SYSLOG_TESTS=true -e SKIP_DOCKER_TESTS=true --volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
+            .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
 
                 stage('Pull old dogu doc page') {
                     checkout changelog: false, poll: false, scm: scmGit(branches: [[name: doguDocTargetBranch]], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: targetDoguDocDir]], gitTool: 'Default', userRemoteConfigs: [[credentialsId: 'cesmarvin', url: doguDocRepo]])
                 }
 
                 stage('Build new dogu doc page') {
-                    sh 'gomarkdoc --output ${localCoreDoguChapter} core/dogu_v2.go'
+//                    sh 'gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go'
+                    sh "echo 't,ach p,ah, t,ach p,eh' > ${newCoreDoguChapter}"
                 }
 
                 def shouldCreateDoguDocsPR = false
@@ -181,23 +182,26 @@ void potentiallyCreateDoguDocPR() {
                     stage('Create dogu docs PR') {
                         sh "cd ${targetDoguDocDir} && git checkout -b ${newBranchName}"
                         // create potential diff by overwriting the original file
-                        sh "cp ${localCoreDoguChapter} ${oldCoreDoguChapter}"
+                        sh "cp ${newCoreDoguChapter} ${oldCoreDoguChapter}"
 
-                        sh "cd ${targetDoguDocDir} && git add ${oldCoreDoguChapter}"
+                        sh "cd ${targetDoguDocDir} && git add docs/core/${coreDoguChapter}"
 
-                        sh "cd ${targetDoguDocDir} && git --author='ces-marvin <ces-marvin@cloudogu.com>' commit ${oldCoreDoguChapter}"
+                        sh "cd ${targetDoguDocDir} && " +
+                                "git config user.email ces-marvin@cloudogu.com && " +
+                                "git config user.name ces-marvin && " +
+                                "git commit -m 'Update to core.Dogu compendium'"
 
-                        sh "cd ${targetDoguDocDir} && git push --set-upstream origin feature/${newBranchName}"
+                        sh "cd ${targetDoguDocDir} && git push --set-upstream origin ${newBranchName}"
 
                         withCredentials([usernamePassword(credentialsId: 'cesmarvin', usernameVariable: 'GIT_AUTH_USR', passwordVariable: 'GIT_AUTH_PSW')]) {
 
                             sh """curl -L \
                               -X POST \
                               -H "Accept: application/vnd.github+json" \
-                              -u ${GIT_AUTH_USR}:${GIT_AUTH_PSW} \
+                              -u "${GIT_AUTH_USR}:${GIT_AUTH_PSW}" \
                               -H "X-GitHub-Api-Version: 2022-11-28" \
                               https://api.github.com/repos/${repositoryOwner}/${repositoryName}/pulls \
-                              -d '{"title":"Update to core.Dogu compendium","body":"Please pull these awesome changes in!","head":"feature/${newBranchName}","base":"${doguDocTargetBranch}"}'"""
+                              -d '{"title":"Update to core.Dogu compendium","body":"Please pull these awesome changes in!","head":"${newBranchName}","base":"${doguDocTargetBranch}"}'"""
                         }
                     }
                 }
