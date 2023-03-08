@@ -396,7 +396,6 @@ type ValidationDescriptor struct {
 //
 // Example:
 //   - { "key": "value" }
-//
 type Properties map[string]string
 
 // Contains the different kind of types supported by dogu dependencies
@@ -413,27 +412,27 @@ const (
 // Dependency describes the quality of a dogu dependency towards another entity.
 //
 // Examples:
-//  {
-//    "type": "dogu",
-//    "name": "postgresql"
-//  }
 //
-//  {
-//    "name": "postgresql"
-//  }
+//	{
+//	  "type": "dogu",
+//	  "name": "postgresql"
+//	}
 //
-//  {
-//    "type": "client",
-//    "name": "k8s-dogu-operator",
-//    "version": ">=0.16.0"
-//  }
+//	{
+//	  "name": "postgresql"
+//	}
 //
-//  {
-//    "type": "package",
-//    "name": "cesappd",
-//    "version": ">=3.2.0"
-//  }
+//	{
+//	  "type": "client",
+//	  "name": "k8s-dogu-operator",
+//	  "version": ">=0.16.0"
+//	}
 //
+//	{
+//	  "type": "package",
+//	  "name": "cesappd",
+//	  "version": ">=3.2.0"
+//	}
 type Dependency struct {
 	// Type identifies the entity from which the dogu depends on. This field is optional. If unset a value of `dogu` is
 	// then assumed.
@@ -751,13 +750,13 @@ type Dogu struct {
 	HealthCheck HealthCheck
 	// HealthChecks defines multiple ways to check the dogu health for observability.
 	// They are used for various reasons:
-	//  - to show the 'dogu is starting' page until the dogu is healthy at startup
-	//  - for monitoring via 'cesapp healthy <dogu-name>'
+	//  - to show the `dogu is starting` page until the dogu is healthy at startup
+	//  - for monitoring via `cesapp healthy <dogu-name>`
 	//  - for monitoring via the admin dogu
 	//  - to back up healthy dogu states only
 	//
 	// There are different types of health checks:
-	//  - state, via the '/state/<dogu>' etcd key set by ces-setup
+	//  - state, via the `/state/<dogu>` etcd key set by ces-setup
 	//  - tcp, to check for an open port
 	//  - http, to check a status code of a http response
 	//
