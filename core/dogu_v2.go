@@ -537,8 +537,8 @@ type Dogu struct {
 	//
 	// Recommended example in the Dockerfile:
 	//  LABEL maintainer="hello@cloudogu.com" \
-	//    NAME="official/nginx" \
-	//    VERSION="1.23.2-1"
+	//  NAME="official/nginx" \
+	//  VERSION="1.23.2-1"
 	//
 	Version string
 	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu. This field is mandatory.
@@ -546,61 +546,60 @@ type Dogu struct {
 	// Usages:
 	// In the setup of the ecosystem the display name of the dogu is used to select it for installation.
 	//
-	// For dogus with a web ui an important location is the warp menu where you can navigate with a click of the
-	// display name to the dogu.
+	// the display name is used in the warp menu to let the user navigate to the web ui of the dogu.
 	//
-	// Another location is the textual output of tools like the cesapp or the k8s-dogu-operator where the name is used
+	// Another usage is the textual output of tools like the cesapp or the k8s-dogu-operator where the name is used
 	// in commands like list upgradeable dogus.
 	//
-	// The display name may consist of
+	// The display name may consist of:
 	//   - lower and upper case latin characters where the first is upper case
 	//   - special characters minus "-", ampersand "&"
 	//   - ciphers 0-9
 	//   - an overall length of less than 30 characters
 	//
 	// Examples:
-	//  Jenkins CI
-	//  Backup & Restore
-	//  SCM-Manager
-	//  Smeagol
+	//  - Jenkins CI
+	//  - Backup & Restore
+	//  - SCM-Manager
+	//  - Smeagol
 	//
 	DisplayName string
-	// Description describes in a few words what the dogu is and maybe do. This field is mandatory.
+	// Description contains a short explanation, what the dogu does. This field is mandatory.
 	//
 	// It is used in the setup of the ecosystem in the dogu selection.
-	// Therefor the description should give an uninformed user a brief hint what the dogu is
+	// Therefore, the description should give an uninformed user a brief hint what the dogu is
 	// and maybe the function the dogu fulfills.
 	//
-	// The description may consist of
+	// The description may consist of:
 	//   - lower and upper case latin characters where the first is upper case
 	//   - special characters minus "-", ampersand "&"
 	//   - ciphers 0-9
 	//   - an overall length of less than 30 words
 	//
 	// Examples:
-	//  "Jenkins Continuous Integration Server"
-	//  "MySQL - Relational database"
-	//  "The Nexus Repository is like the local warehouse where all the parts and finished goods used in your
-	//  software supply chain are stored and distributed."
+	//  - Jenkins Continuous Integration Server
+	//  - MySQL - Relational database
+	//  - The Nexus Repository is like the local warehouse where all the parts and finished goods used in your
+	//     software supply chain are stored and distributed.
 	//
 	Description string
 	// Category organizes the dogus in three categories. This field is mandatory.
 	//
 	// These categories are fixed and must be either:
 	//
-	// "Development Apps" - For regular dogus which should be used by a regular user of the ecosystem,
-	// "Administration Apps" - For dogus which should be used by a user with administration rights, or
-	// "Base" - For dogus which are important for the overall system.
+	//  - `Development Apps` - For regular dogus which should be used by a regular user of the ecosystem,
+	//  - `Administration Apps` - For dogus which should be used by a user with administration rights
+	//  - `Base` - For dogus which are important for the overall system.
 	//
 	// The categories "Development Apps" and "Administration Apps" are represented in the warp menu to order the dogus.
 	//
 	// Example dogus for each category:
-	//  "Development Apps": Redmine, SCM-Manager, Jenkins
-	//  "Administration Apps": Backup & Restore, User Management
-	//  "Base": Nginx, Registrator, OpenLDAP
+	//  - `Development Apps`: Redmine, SCM-Manager, Jenkins
+	//  - `Administration Apps`: Backup & Restore, User Management
+	//  - `Base`: Nginx, Registrator, OpenLDAP
 	//
 	Category string
-	// Tags is a slice of one-word-tags which are in connection with the dogu. This field is optional.
+	// Tags contains a list of one-word-tags which are in connection with the dogu. This field is optional.
 	//
 	// If the dogu should be displayed in the warp menu the tag "warp" is necessary.
 	// Actually other tags won't be processed.
@@ -609,7 +608,7 @@ type Dogu struct {
 	//  {"warp", "build", "ci", "cd"}
 	//
 	Tags []string
-	// Logo originally represented a URI to a web picture depicting the dogu tool. This field is optional.
+	// Logo represents a URI to a web picture depicting the dogu tool. This field is optional.
 	//
 	// Deprecated: The Cloudogu EcoSystem does not facilitate the logo URI. It is a candidate for removal.
 	// Other options of representing a tool or application can be:
@@ -617,18 +616,21 @@ type Dogu struct {
 	//   - provide the logo in to dogu UI (if the dogu provides one)
 	//
 	Logo string
-	// URL may link the website to the original tool vendor. This field is optional. Like Logo, the Cloudogu EcoSystem
-	// does not facilitate this information. Anyhow, in a public dogu repository in which a dogu vendor re-packages a
-	// third party application the URL may point users to resources of the original tool vendor.
+	// URL links the website to the original tool vendor. This field is optional.
+	//
+	// The Cloudogu EcoSystem does not facilitate this information.
+	// Anyhow, in a public dogu repository in which a dogu vendor re-packages
+	// a third party application the URL may point users to resources of the original tool vendor.
 	//
 	// Examples:
 	//   - https://github.com/cloudogu/usermgt
 	//   - https://www.atlassian.com/software/jira
 	//
 	URL string
-	// Image contains a reference to the [OCI container] image which packages the dogu application. This field is
-	// mandatory. The image must not contain image tags, like the image version or "latest" (use for the field Version
-	// for this information instead). The image registry part of this field must point to "registry.cloudogu.com".
+	// Image links to the [OCI container] image which packages the dogu application. This field is mandatory.
+	//
+	// The image must not contain image tags, like the image version or "latest" (use the field Version
+	// for this information instead). The image registry part of this field must point to `registry.cloudogu.com`.
 	//
 	// It is good practice to apply the same name to the image repository as from the Name field in order to enable
 	// access strategies as well as to avoid storage conflicts.
@@ -743,11 +745,12 @@ type Dogu struct {
 	// [OCI container volumes]: https://opencontainers.org/
 	//
 	Volumes []Volume
-	// HealthCheck defines a single way to check the dogu health for observability.
+	// HealthCheck defines a single way to check the dogu health for observability. This field is optional.
 	// Deprecated: use HealthChecks instead
 	HealthCheck HealthCheck
-	// HealthChecks defines multiple ways to check the dogu health for observability.
-	// They are used for various reasons:
+	// HealthChecks defines multiple ways to check the dogu health for observability. This field is optional.
+	//
+	// They are used in various use cases:
 	//  - to show the `dogu is starting` page until the dogu is healthy at startup
 	//  - for monitoring via `cesapp healthy <dogu-name>`
 	//  - for monitoring via the admin dogu
@@ -765,7 +768,7 @@ type Dogu struct {
 	//	  {"Type": "state"}
 	//	  {"Type": "tcp",  "Port": 8080},
 	//	  {"Type": "http", "Port": 8080, "Path": "/my/health/path"},
-	// 	],
+	// 	]
 	HealthChecks []HealthCheck
 	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
 	//
@@ -773,14 +776,14 @@ type Dogu struct {
 	// producers. To produce a service account a dogu has to implement service-account-create and service-account-delete
 	// scripts in ExposedCommands. To consume a service account a dogu should define a request in ServiceAccounts.
 	//
-	// In the installation process a dogu client recognize a service account request and execute with this information
-	// the service-account-create script from the service account producer. The credentials will be then stored in the
-	// etcd.
+	// In the installation process a dogu client recognizes a service account request and executes
+	// the service-account-create script with this information from the service account producer.
+	// The credentials will be then stored in the etcd.
 	//
 	// Example paths:
-	// - config/redmine/sa-postgresql/username
-	// - config/redmine/sa-postgresql/password
-	// - config/redmine/sa-postgresql/database
+	//  - config/redmine/sa-postgresql/username
+	//  - config/redmine/sa-postgresql/password
+	//  - config/redmine/sa-postgresql/database
 	//
 	// The dogu itself can then use the service account by reading the credentials with doguctl in the startup script.
 	//
@@ -800,16 +803,17 @@ type Dogu struct {
 	//
 	ServiceAccounts []ServiceAccount
 	// Privileged indicates whether the Docker socket should be mounted into the container file system. This field is
-	// optional. If unset a value of `false` will be assumed.
+	// optional. The default value is `false`.
 	//
 	// For security reasons, it is highly recommended to leave Privileged set to false since almost no dogu should
 	// gain retrospective container insights.
 	//
 	// Example:
 	//   - false
-	//
 	Privileged bool
 	// Configuration contains a list of core.ConfigurationField. This field is optional.
+	//
+	// It describes generic properties of the dogu in the Cloudogu EcoSystem registry.
 	//
 	// Examples:
 	//   {
@@ -844,9 +848,7 @@ type Dogu struct {
 	//     "key2": "value2"
 	//   }
 	Properties Properties
-	// EnvironmentVariables that should be set in the container can be defined here. This field is optional.
-	//
-	// EnvironmentVariables are key value pairs.
+	// EnvironmentVariables contains a list of core.EnvironmentVariable that get set in the container. This field is optional.
 	//
 	// Example:
 	//   [
@@ -855,7 +857,7 @@ type Dogu struct {
 	EnvironmentVariables []EnvironmentVariable
 	// Dependencies contains a list of core.Dependency. This field is optional.
 	//
-	// This field allows to define dependencies that must be fulfilled during the dependency check. If the dependency
+	// This field defines dependencies that must be fulfilled during the dependency check. If the dependency
 	// cannot be fulfilled during the check an error will be thrown and the processing will be stopped.
 	//
 	// Examples:
