@@ -188,7 +188,7 @@ type HealthCheck struct {
 	State string
 	// Port is the tcp-port for health checks of Type tcp and http.
 	Port int
-	//Path is the Http-Path for health checks of Type http, default is '/health'.
+	// Path is the Http-Path for health checks of Type http, default is '/health'.
 	Path string
 	// key value pairs for check specific parameters.
 	// Deprecated: is not in use.
@@ -362,7 +362,11 @@ type ValidationDescriptor struct {
 	Values []string
 }
 
-// Properties describes generic properties of the dogu which are evaluated .
+// Properties describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
+//
+// Example:
+//   - { "key": "value" }
+//
 type Properties map[string]string
 
 // Contains the different kind of types supported by dogu dependencies
