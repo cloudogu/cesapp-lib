@@ -479,8 +479,11 @@ type Dependency struct {
 	Version string `json:"version"`
 }
 
-// Dogu defines an application for the CES. A dogu defines the image and
-// meta information for the resulting container.
+// Dogu describes properties of a containerized application for the Cloudogu EcoSystem. Besides the meta information and
+// the [OCI container image], Dogu describes all necessities for automatic container instantiation, f. i. volumes,
+// dependencies towards other dogus, and much more.
+//
+// [OCI container image]: https://opencontainers.org/
 type Dogu struct {
 	// Name contains the dogu's full qualified name which consists of the dogu namespace and the dogu simple name,
 	// delimited by a single forward slash "/". This field is mandatory.
