@@ -534,8 +534,8 @@ type Dogu struct {
 	// installation and release the version should also be placed as a label in the dockerfile from the dogu.
 	//
 	// Example versions in the dogu.json:
-	//  1.7.8-1
-	//  2.2.0-4
+	//  - 1.7.8-1
+	//  - 2.2.0-4
 	//
 	// Recommended example in the Dockerfile:
 	//  LABEL maintainer="hello@cloudogu.com" \
