@@ -149,10 +149,11 @@ void potentiallyCreateDoguDocPR() {
     def coreDoguChapter = "compendium_en.md"
     def oldCoreDoguChapter = "${targetDoguDocDir}/docs/core/${coreDoguChapter}"
     def newCoreDoguChapter = "target/${coreDoguChapter}"
-    def doguDocRepo = "https://github.com/cloudogu/dogu-development-docs.git"
+    def doguDocRepoParts = "cloudogu/dogu-development-docs"
+    def doguDocRepo = "github.com/${doguDocRepoParts}.git"
     def doguDocTargetBranch = "main"
-    // FIXME
-    def newBranchName = "feature/platano"
+    def newBranchName = "feature/update_compendium_after_release_${currentBranch}"
+    String releaseVersion = gitWrapper.getSimpleBranchName()
 
     new Docker(this)
             .image('golang:1.18.6')
@@ -160,7 +161,7 @@ void potentiallyCreateDoguDocPR() {
             .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
 
                 stage('Pull old dogu doc page') {
-                    checkout changelog: false, poll: false, scm: scmGit(branches: [[name: doguDocTargetBranch]], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: targetDoguDocDir]], gitTool: 'Default', userRemoteConfigs: [[credentialsId: 'cesmarvin', url: doguDocRepo]])
+                    checkout changelog: false, poll: false, scm: scmGit(branches: [[name: doguDocTargetBranch]], extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: targetDoguDocDir]], gitTool: 'Default', userRemoteConfigs: [[credentialsId: 'cesmarvin', url: "https://${doguDocRepo}"]])
                 }
 
                 stage('Build new dogu doc page') {
@@ -180,28 +181,49 @@ void potentiallyCreateDoguDocPR() {
 
                 if (shouldCreateDoguDocsPR) {
                     stage('Create dogu docs PR') {
+                        def ghIssueTitle = ":memo: Update and translate dogu.json compendium"
+                        def ghIssueBody = "The cesapp-lib release ${releaseVersion} has changed the core.Dogu documentation. Please review the change and translate it. :blue_heart:"
+                        def ghPRTitle ="Update to core.Dogu compendium"
+                        def ghPRBody1 ="This PR resolves"
+                        def ghPRBody2 ="from cesapp-lib version ${releaseVersion}"
+
                         sh "cd ${targetDoguDocDir} && git checkout -b ${newBranchName}"
                         // create potential diff by overwriting the original file
                         sh "cp ${newCoreDoguChapter} ${oldCoreDoguChapter}"
 
                         sh "cd ${targetDoguDocDir} && git add docs/core/${coreDoguChapter}"
 
-                        sh "cd ${targetDoguDocDir} && " +
-                                "git config user.email ces-marvin@cloudogu.com && " +
-                                "git config user.name ces-marvin && " +
-                                "git commit -m 'Update to core.Dogu compendium'"
-
-                        sh "cd ${targetDoguDocDir} && git push --set-upstream origin ${newBranchName}"
-
                         withCredentials([usernamePassword(credentialsId: 'cesmarvin', usernameVariable: 'GIT_AUTH_USR', passwordVariable: 'GIT_AUTH_PSW')]) {
+                            def issueResult = sh(returnStdout: true, script: """curl -L \
+                                --write-out '%{http_code}' \
+                                -X POST \
+                                -H "Accept: application/vnd.github+json" \
+                                -u "${GIT_AUTH_USR}:${GIT_AUTH_PSW}" \
+                                -H "X-GitHub-Api-Version: 2022-11-28" \
+                                -d '{"title":"${ghIssueTitle}","body":"${ghIssueBody}","labels":["enhancement"]}' \
+                                https://api.github.com/repos/${doguDocRepoParts}/issues""")
+
+                            // avoid adding more containers (yq is missing here) and mange the issue id by shell foo
+                            def issueID = sh(returnStdout: true, script:  """echo -n '${issueResult}' | grep -m 1 '"number":'""")
+                            issueID=issueID.replaceAll(/.+:\s+(\d+),/, "\$1").replace("\n", "")
+                            sh "echo 'Found issue ->#${issueID}<-'"
+
+                            sh "cd ${targetDoguDocDir} && " +
+                                    "git config user.email ces-marvin@cloudogu.com && " +
+                                    "git config user.name ces-marvin && " +
+                                    "git commit -m '#${issueID} Update to core.Dogu compendium'"
+                            sh "cd ${targetDoguDocDir} && git remote set-url origin https://{GIT_AUTH_USR}:${GIT_AUTH_PSW}@${doguDocRepo}"
+
+                            sh "cd ${targetDoguDocDir} && git push --set-upstream origin ${newBranchName}"
 
                             sh """curl -L \
+                              --write-out '%{http_code}' \
                               -X POST \
                               -H "Accept: application/vnd.github+json" \
                               -u "${GIT_AUTH_USR}:${GIT_AUTH_PSW}" \
                               -H "X-GitHub-Api-Version: 2022-11-28" \
-                              https://api.github.com/repos/${repositoryOwner}/${repositoryName}/pulls \
-                              -d '{"title":"Update to core.Dogu compendium","body":"Please pull these awesome changes in!","head":"${newBranchName}","base":"${doguDocTargetBranch}"}'"""
+                              -d '{"title":"${ghPRTitle}","body":"${ghPRBody1} #${issueID} ${ghPRBody2}","head":"${newBranchName}","base":"${doguDocTargetBranch}"}' \
+                              https://api.github.com/repos/${doguDocRepoParts}/pulls"""
                         }
                     }
                 }
