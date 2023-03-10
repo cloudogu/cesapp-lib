@@ -74,8 +74,8 @@ type VolumeClient struct {
 type Volume struct {
 	// Name identifies the volume. This field is mandatory. It must be unique in all volumes of the same dogu.
 	//
-	// The name syntax comply with the file system syntax of the respective host operating system and is encouraged to
-	// consist of:
+	// The name syntax must comply with the file system syntax of the respective host operating system and is encouraged
+	// to consist of:
 	//   - lower case latin characters
 	//   - special characters underscore "_", minus "-"
 	//   - ciphers 0-9
@@ -127,11 +127,10 @@ type Volume struct {
 	//
 	Group string
 	// NeedsBackup controls whether the Cloudogu EcoSystem backup facility backs up the whole the volume or not. This
-	// field is optional. If unset a value of `false` will be assumed.
+	// field is optional. If unset, a value of `false` will be assumed.
 	NeedsBackup bool
 	// Clients contains a list of client-specific (t. i., the client that interprets the dogu.json) configurations for
 	// the volume. This field is optional.
-	//
 	//
 	Clients []VolumeClient `json:"Clients,omitempty"`
 }
@@ -168,27 +167,30 @@ func (v *Volume) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// HealthCheck struct will be used to do readiness and health checks for the
-// final container
+// HealthCheck provide readiness and health checks for the dogu container.
 type HealthCheck struct {
-	// Type specifies the nature of the health check. It can be either tcp, http or state.
+	// Type specifies the nature of the health check. This field is mandatory. It can be either tcp, http or state.
 	//
-	// For Type tcp the given Port needs to be open to be healthy.
+	// For Type "tcp" the given Port needs to be open to be healthy.
 	//
-	// For Type http the service needs to return a status code between >= 200 and < 300 to be healthy.
+	// For Type "http" the service needs to return a status code between >= 200 and < 300 to be healthy.
 	// Port and Path are used to reach the service.
 	//
-	// For Type state the /state/<dogu> key in etcd gets checked.
+	// For Type "state" the /state/<dogu> key in the Cloudogu EcoSystem registry gets checked.
 	// This key is written by the installation process.
 	// A 'ready' value in etcd means that the dogu is healthy.
 	Type string
-	// State contains the expected health check state of Type state, default is ready
+	// State contains the expected health check state of Type state. This field is optional, even for health checks of
+	// the type "state". The default is "ready".
 	State string
-	// Port is the tcp-port for health checks of Type tcp and http.
+	// Port is the tcp-port for health checks of Type tcp and http. This field is mandatory for the health check of type
+	// "tcp" and "http"
 	Port int
-	// Path is the Http-Path for health checks of Type http, default is '/health'.
+	// Path is the Http-Path for health checks of Type "http". This field is mandatory for the health check of type
+	// "http". The default is '/health'.
 	Path string
-	// key value pairs for check specific parameters.
+	// Parameters may contain key-value pairs for check specific parameters.
+	//
 	// Deprecated: is not in use.
 	Parameters map[string]string
 }
@@ -241,7 +243,7 @@ func (ep *ExposedPort) GetType() string {
 type ExposedCommand struct {
 	// Name identifies the exposed command. This field is mandatory. It must be unique in all commands of the same dogu.
 	//
-	// The name has to be consists of:
+	// The name must consist of:
 	//   - lower case latin characters
 	//   - special characters underscore "_", minus "-"
 	//   - ciphers 0-9
@@ -260,12 +262,11 @@ type ExposedCommand struct {
 	Description string
 	// Command identifies the script to be executed for this command. This field is mandatory.
 	//
-	// The name syntax comply with the file system syntax of the respective host operating system and is encouraged to
-	// consist of:
+	// The name syntax must comply with the file system syntax of the respective host operating system and is encouraged
+	// to consist of:
 	//   - lower case latin characters
 	//   - special characters underscore "_", minus "-"
 	//   - ciphers 0-9
-	//
 	//
 	// Examples:
 	//   - /resources/create-sa.sh
@@ -287,22 +288,39 @@ func (env EnvironmentVariable) String() string {
 	return env.Key + "=" + env.Value
 }
 
-// ServiceAccount struct can be used to get access to a other dogu.
+// ServiceAccount struct can be used to get access to another dogu.
+//
+// Example:
+//  {
+//   "Type": "k8s-dogu-operator",
+//   "Kind": "k8s"
+//  }
+//
 type ServiceAccount struct {
-	// Type contains the name of the service on which the account should be created.
+	// Type contains the name of the service on which the account should be created. This field is mandatory.
+	//
+	// Example:
+	//   - postgresql
+	//   - your-dogu
+	//
 	Type string
-	// Params contains additional arguments necessary for the service account creation.
+	// Params contains additional arguments necessary for the service account creation. The optionality of this field
+	// depends on the desired service account producer dogu. Please consult the service account producer dogu in
+	// question.
 	Params []string
-	// Kind defines the kind of service on which the account should be created, e.g. `dogu` or `k8s`.
+	// Kind defines the kind of service on which the account should be created, e.g. `dogu` or `k8s`. This field is
+	// optional. If empty, a default value of `dogu` should be assumed.
+	//
 	// Reading this property and creating a corresponding service account is up to the client.
-	// If empty, a default value of `dogu` should be assumed.
+	//
 	Kind string `json:"Kind,omitempty"`
 }
 
 // ConfigurationField describes a single dogu configuration field which is stored in the Cloudogu EcoSystem registry.
 type ConfigurationField struct {
-	// Name contains the name of the configuration key. The field is mandatory. It must not contain leading or trailing slashes "/", but
-	// it may contain directory keys delimited with slashes within the name.
+	// Name contains the name of the configuration key. The field is mandatory. It
+	// must not contain leading or trailing slashes "/", but it may contain
+	// directory keys delimited with slashes "/" within the name.
 	//
 	// The Name syntax is encouraged to consist of:
 	//   - lower case latin characters
@@ -322,22 +340,22 @@ type ConfigurationField struct {
 	//   - "URL of the feedback service"
 	//
 	Description string
-	// Optional allows to have this configuration field unset otherwise a value must be set. This field is optional.
-	// If unset a value of `false` will be assumed.
+	// Optional allows to have this configuration field unset, otherwise a value must be set. This field is optional.
+	// If unset, a value of `false` will be assumed.
 	//
 	// Example:
 	//   - true
 	//
 	Optional bool
 	// Encrypted marks this configuration field to contain a sensitive value that will be encrypted with the dogu's
-	// private key. This field is optional. If unset a value of `false` will be assumed.
+	// private key. This field is optional. If unset, a value of `false` will be assumed.
 	//
 	// Example:
 	//   - true
 	//
 	Encrypted bool
 	// Global marks this configuration field to contain a value that is available for all dogus. This field is optional.
-	// If unset a value of `false` will be assumed.
+	// If unset, a value of `false` will be assumed.
 	//
 	// Example:
 	//   - true
@@ -352,7 +370,8 @@ type ConfigurationField struct {
 	//   - "https://scm-manager.org/plugins"
 	//
 	Default string
-	// Validation configures a Validator that will be used to validate this config field. This field is optional.
+	// Validation configures a validator that will be used to mark invalid or
+	// out-of-range values for this configuration field. This field is optional.
 	//
 	// Example:
 	//  "Validation": {
@@ -384,8 +403,9 @@ type ValidationDescriptor struct {
 	//   - FLOAT_PERCENTAGE_HUNDRED
 	//
 	Type string
-	// Values may contain values that aid the selected validator. The values may or may not be optional, depending on
-	// the ValidationDescriptor.Type used.It is up to the selected validator whether this field is mandatory, optional,
+	// Values may contain values that aid the selected validator. The values may or
+	// may not be optional, depending on the ValidationDescriptor.Type being used.
+	// It is up to the selected validator whether this field is mandatory, optional,
 	// or unused.
 	Values []string
 }
@@ -432,18 +452,20 @@ const (
 //	  "version": ">=3.2.0"
 //	}
 type Dependency struct {
-	// Type identifies the entity from which the dogu depends on. This field is optional. If unset a value of `dogu` is
-	// then assumed.
+	// Type identifies the entity on which the dogu depends. This field is optional.
+	// If unset, a value of `dogu` is then assumed.
 	//
-	// Valid is one of these: "dogu", "client", "package".
+	// Valid values are one of these: "dogu", "client", "package".
 	//
-	// A type of "dogu" references another dogu which must be present and running during the dependency check.
+	// A type of "dogu" references another dogu which must be present and running
+	// during the dependency check.
 	//
-	// A type of "client" references the client which processes this dogu's dogu.json. Several client dependencies of a
-	// different client type can be used f. i. to prohibit the processing of a certain client.
+	// A type of "client" references the client which processes this dogu's
+	// "dogu.json". Several client dependencies of a different client type can be
+	// used f. i. to prohibit the processing of a certain client.
 	//
-	// A type of "package" references a necessary operating system package that must be present during the dependency
-	// check.
+	// A type of "package" references a necessary operating system package that must
+	// be present during the dependency check.
 	//
 	// Examples:
 	//  - "dogu"
@@ -452,7 +474,7 @@ type Dependency struct {
 	//
 	Type string `json:"type"`
 	// Name identifies the entity selected by Type. This field is mandatory. If the Type selects another dogu, Name
-	// must use the dogu simple name (f. e. "postgres"), not the full qualified dogu name (not "official/postgres").
+	// must use the simple dogu name (f. e. "postgres"), not the full qualified dogu name (not "official/postgres").
 	//
 	// Examples:
 	//  - "postgresql"
@@ -463,13 +485,17 @@ type Dependency struct {
 	// Version selects the version of entity selected by Type. This field is optional. If unset, any version of the
 	// selected entity will be accepted during the dependency check.
 	//
-	// Version accepts different version styles and compare operators. Examples:
+	// Version accepts different version styles and compare operators.
+	//
+	// Examples:
 	//
 	//  - ">=4.1.1-2" - select the entity version greater than or equal to version 4.1.1-2
 	//  - "<=1.0.1" - select the entity version less than or equal to version 1.0.1
 	//  - "1.2.3.4" - select exactly the version 1.2.3.4
 	//
-	// With a non-existing version it is possible to negate a dependency. Example:
+	// With a non-existing version it is possible to negate a dependency.
+	//
+	// Example:
 	//
 	//   - "<=0.0.0" - prohibit the selected entity being present
 	//
@@ -541,7 +567,7 @@ type Dogu struct {
 	//  VERSION="1.23.2-1"
 	//
 	Version string
-	// DisplayName is the name of the dogu which is used in ui frontends to represent the dogu. This field is mandatory.
+	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu. This field is mandatory.
 	//
 	// Usages:
 	// In the setup of the ecosystem the display name of the dogu is used to select it for installation.
@@ -551,11 +577,13 @@ type Dogu struct {
 	// Another usage is the textual output of tools like the cesapp or the k8s-dogu-operator where the name is used
 	// in commands like list upgradeable dogus.
 	//
-	// The display name may consist of:
+	// The description may consist of:
 	//   - lower and upper case latin characters where the first is upper case
-	//   - special characters minus "-", ampersand "&"
+	//   - any special characters
 	//   - ciphers 0-9
-	//   - an overall length of less than 30 characters
+	//
+	// Description is encouraged to consist of less than 30 characters because it is displayed in the Cloudogu EcoSystem
+	// warp menu.
 	//
 	// Examples:
 	//  - Jenkins CI
@@ -572,9 +600,10 @@ type Dogu struct {
 	//
 	// The description may consist of:
 	//   - lower and upper case latin characters where the first is upper case
-	//   - special characters minus "-", ampersand "&"
+	//   - any special characters
 	//   - ciphers 0-9
-	//   - an overall length of less than 30 words
+	//
+	// Description is encouraged to consist a readable sentence which explains shortly the dogu's main topic.
 	//
 	// Examples:
 	//  - Jenkins Continuous Integration Server
@@ -602,7 +631,7 @@ type Dogu struct {
 	// Tags contains a list of one-word-tags which are in connection with the dogu. This field is optional.
 	//
 	// If the dogu should be displayed in the warp menu the tag "warp" is necessary.
-	// Actually other tags won't be processed.
+	// Other tags won't be automatically processed.
 	//
 	// Examples for e.g. Jenkins:
 	//  {"warp", "build", "ci", "cd"}
@@ -652,46 +681,62 @@ type Dogu struct {
 	//   [ { "Type": "tcp", "Container": "2222", "Host":"2222" } ]
 	//
 	ExposedPorts []ExposedPort
-	// ExposedCommands defines actions which can be executed in different phases of the dogu lifecycle automatically
-	// triggered by a dogu client like the cesapp or the k8s-dogu-operator or manually from an administrative user.
-	// This field is optional.
+	// ExposedCommands defines actions which can be executed in different phases of
+	// the dogu lifecycle automatically triggered by a dogu client like the cesapp
+	// or the k8s-dogu-operator or manually from an administrative user. This
+	// field is optional.
 	//
-	// Usually commands which are automatically triggered by a dogu-client are those in upgrade or service account processes.
-	// These commands are:
-	// pre-upgrade, post-upgrade, upgrade-notification, service-account-create, service-account-remove
+	// Usually, commands which are automatically triggered by a dogu-client are
+	// those in upgrade or service account processes. These commands are:
+	// pre-upgrade, post-upgrade, upgrade-notification, service-account-create,
+	// service-account-remove
 	//
 	// pre-upgrade:
-	// This command will be executed during an early stage of an upgrade process from a dogu. A dogu client will
-	// mount the pre-upgrade script from the new dogu version in the container of the old still running dogu and
-	// executes it. It is mainly used to prepare data migrations (e.g. export a database). Core of the script should be
-	// the comparison between the version and to determine if a migration is needed. For this the dogu client will call
-	// the script with the old version as the first and the new version as the second parameter. In addition, it is
-	// recommended to set states like "upgrading" or "pre-upgrade done" in the script. This can be very useful because
-	// you can use it in the post-upgrade or the regular startup for a waiting functionality.
+	// This command will be executed during an early stage of an
+	// upgrade process from a dogu. A dogu client will mount the pre-upgrade script
+	// from the new dogu version in the container of the old still running dogu and
+	// executes it. It is mainly used to prepare data migrations  (e.g. export a
+	// database). Core of the script should be the comparison between the version
+	// and to determine if a migration is needed. For this, the dogu client will
+	// call the script with the old version as the first and the new version as the
+	// second parameter. In addition, it is recommended to set states like
+	// "upgrading" or "pre-upgrade done" in the script. This can be very useful
+	// because you can use it in the post-upgrade or the regular startup for a
+	// waiting functionality.
 	//
 	// post-upgrade:
-	// This command will be executed after a regular dogu upgrade. Like in the pre-upgrade the old dogu version
-	// is passed as the first and the new dogu version is passed as the second parameter. They should be used to determine
-	// if an action is needed. Keep in mind that in this time the regular startup skript of your new container will be
-	// executed as well. Use a state in the etcd to handle a wait functionality in the startup.
-	// If the post-upgrade ends reset this state and start the regular container.
+	// This command will be executed after a regular dogu upgrade.
+	// Like in the pre-upgrade the old dogu version is passed as the first and the
+	// new dogu version is passed as the second parameter. They should be used to
+	// determine if an action is needed. Keep in mind that in this time the regular
+	// startup script of your new container will be executed as well. Use a state in
+	// the etcd to handle a wait functionality in the startup. If the post-upgrade
+	// ends reset this state and start the regular container.
 	//
 	// upgrade-notification:
-	// If the upgrade process works e.g. with really sensitive data an upgrade notification script can be implemented to
-	// inform the user about the risk of this process and e.g. give a backup instruction. Before an upgrade the dogu
-	// client executes the notification script, prints all upgrade steps and asks the user if he wants to proceed.
+	// If the upgrade process works, e.g. with really sensitive data an upgrade
+	// notification script can be implemented to inform the user about the risk of
+	// this process and e.g. give a backup instruction. Before an upgrade the dogu
+	// client executes the notification script, prints all upgrade steps and asks
+	// the user if he wants to proceed.
 	//
 	// service-account-create:
-	// The service-account-create command is used in the installation process of a dogu. A service account in the CES
-	// are credentials used to authorize to another dogu like a database or an authentication server. The
-	// service-account-create command has to be implemented in the dogu which produces the credentials. If a dogu will be
-	// installed and defines the demand of a service account (for e.g. postgresql) the dogu client will call the
-	// service-account-create script in the postgresql dogu with the service name as the first parameters and custom ones
-	// as further parameters. See ServiceAccounts for how to define custom parameters.
-	// With this information the script should create a service account a save it
-	// (e.g. USER table in db or maybe encrypted in the etcd). After that the credentials have to be printed to console
-	// so that the dogu client save the credentials for the dogu who requested the account. It is also important that these
-	// outputs are the only ones from the script otherwise the dogu client will use them as credentials.
+	// The service-account-create command is used in the
+	// installation process of a dogu. A service account in the Cloudogu EcoSystem
+	// represents credentials to authorize another dogu, like a database or an
+	// authentication server. The service-account-create command has to be
+	// implemented in the service account producer dogu which produces the
+	// credentials. If a service account consuming dogu will be installed and
+	// requires a service account (e.g. for postgresql) the dogu client will call
+	// the service-account-create script in the postgresql dogu with the service
+	// name as the first parameters and custom ones as additional parameters. See
+	// core.ServiceAccounts for how to define custom parameters. With this
+	// information the script should create a service account and save it (e.g. USER
+	// table in an underlying database or maybe encrypted in the etcd). After that,
+	// the credentials must be printed to console so that the dogu client saves the
+	// credentials for the dogu which requested the service account. It is also
+	// important that these outputs are the only ones from the script, otherwise the
+	// dogu client will use them as credentials.
 	//
 	// Example output:
 	//  echo "database: ${DATABASE}"
@@ -699,10 +744,13 @@ type Dogu struct {
 	//  echo "password: ${PASSWORD}"
 	//
 	// service-account-delete:
-	// If a dogu will be deleted the used service account should be deleted too. For this a dogu like postgresql has although
-	// to implement a service-account-delete command. This script will be executed in the deletion process of a dogu
-	// and gets the service account name as the only parameter. In contrast to the service-account-create command
-	// the script can output logs because the dogu client won't use any of this data.
+	// If a dogu will be deleted the used service account
+	// should be deleted too. Because of this, the service account producing dogu
+	// (like postgresql) must implement a service-account-delete command. This
+	// script will be executed in the deletion process of a dogu. The dogu
+	// processing client passes the service account name as the only parameter. In
+	// contrast to the service-account-create command the script can output logs
+	// because the dogu client won't use any of this data.
 	//
 	// Example commands for service accounts:
 	//  "ExposedCommands": [
@@ -719,8 +767,9 @@ type Dogu struct {
 	//   ],
 	//
 	// Custom commands:
-	// Moreover, a dogu can specify commands which are not executed automatically in the dogu lifecycle (e.g. upgrade).
-	// For example a dogu like Redmine can specify a command to delete or install a plugin so at runtime an
+	// Moreover, a dogu can specify commands which are not executed
+	// automatically in the dogu lifecycle (e.g. upgrade). For example, a dogu like
+	// Redmine can specify a command to delete or install a plugin. At runtime an
 	// administrator can call this command with the cesapp like:
 	//  cesapp command redmine plugin-install scrum-plugin
 	//
@@ -746,15 +795,16 @@ type Dogu struct {
 	//
 	Volumes []Volume
 	// HealthCheck defines a single way to check the dogu health for observability. This field is optional.
+	//
 	// Deprecated: use HealthChecks instead
 	HealthCheck HealthCheck
 	// HealthChecks defines multiple ways to check the dogu health for observability. This field is optional.
 	//
-	// They are used in various use cases:
+	// HealthChecks are used in various use cases:
 	//  - to show the `dogu is starting` page until the dogu is healthy at startup
 	//  - for monitoring via `cesapp healthy <dogu-name>`
 	//  - for monitoring via the admin dogu
-	//  - to back up healthy dogu states only
+	//  - to avoid backing up unhealthy dogus
 	//
 	// There are different types of health checks:
 	//  - state, via the `/state/<dogu>` etcd key set by ces-setup
@@ -772,20 +822,20 @@ type Dogu struct {
 	HealthChecks []HealthCheck
 	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
 	//
-	// A ServiceAccount protects sensitive data used for another dogu. So they are service account consumers and
-	// producers. To produce a service account a dogu has to implement service-account-create and service-account-delete
-	// scripts in ExposedCommands. To consume a service account a dogu should define a request in ServiceAccounts.
+	// A ServiceAccount protects sensitive data used for another dogu. Service account consumers are distinguished from
+	// service account producers. To produce a service account a dogu has to implement service-account-create and service-account-delete
+	// scripts in core.ExposedCommands. To consume a service account a dogu should define a request in ServiceAccounts.
 	//
 	// In the installation process a dogu client recognizes a service account request and executes
 	// the service-account-create script with this information from the service account producer.
-	// The credentials will be then stored in the etcd.
+	// The credentials will be then stored in the Cloudogu EcoSystem registry.
 	//
 	// Example paths:
 	//  - config/redmine/sa-postgresql/username
 	//  - config/redmine/sa-postgresql/password
 	//  - config/redmine/sa-postgresql/database
 	//
-	// The dogu itself can then use the service account by reading the credentials with doguctl in the startup script.
+	// The dogu itself can then use the service account by read and decrypt the credentials with `doguctl` in the startup script.
 	//
 	// Examples:
 	//    "ServiceAccounts": [
@@ -839,7 +889,7 @@ type Dogu struct {
 	//     }
 	//   }
 	Configuration []ConfigurationField
-	// Properties contains a generic core.Properties struct. This field is optional.
+	// Properties contains core.Properties. This field is optional.
 	// It describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
 	//
 	// Example:
@@ -848,7 +898,8 @@ type Dogu struct {
 	//     "key2": "value2"
 	//   }
 	Properties Properties
-	// EnvironmentVariables contains a list of core.EnvironmentVariable that get set in the container. This field is optional.
+	// EnvironmentVariables contains a list of core.EnvironmentVariable that should
+	// be set in the container. This field is optional.
 	//
 	// Example:
 	//   [
@@ -881,10 +932,12 @@ type Dogu struct {
 	Dependencies []Dependency
 	// OptionalDependencies contains a list of core.Dependency. This field is optional.
 	//
-	// Other than Dependencies, OptionalDependencies allows to define dependencies that may be fulfilled if they are
-	// existent. There is no negative impact during the dependency check if an optional dependency does not exist. But
-	// if the optional dependency is present and the dependency cannot be fulfilled during the check then an error will
-	// be thrown and the processing will be stopped.
+	// In contrast to core.Dependencies, OptionalDependencies allows to define
+	// dependencies that may be fulfilled if they are existent. There is no negative
+	// impact during the dependency check if an optional dependency does not exist.
+	// But if the optional dependency is present and the dependency cannot be
+	// fulfilled during the dependency check then an error will be thrown and the
+	// processing will be stopped.
 	//
 	// Examples:
 	//  [
