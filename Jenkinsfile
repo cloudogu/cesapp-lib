@@ -154,6 +154,7 @@ void potentiallyCreateDoguDocPR() {
     def doguDocTargetBranch = "main"
     def newBranchName = "feature/update_compendium_after_release_${currentBranch}"
     String releaseVersion = gitWrapper.getSimpleBranchName()
+    def gomarkVersion = "d51108a"
 
     new Docker(this)
             .image('golang:1.18.6')
@@ -165,8 +166,8 @@ void potentiallyCreateDoguDocPR() {
                 }
 
                 stage('Build new dogu doc page') {
-//                    sh 'gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go'
-                    sh "echo 't,ach p,ah, t,ach p,eh' > ${newCoreDoguChapter}"
+                    sh "go install github.com/cloudogu/gomarkdoc/cmd/gomarkdoc@${gomarkVersion}"
+                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go"
                 }
 
                 def shouldCreateDoguDocsPR = false
