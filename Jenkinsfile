@@ -186,6 +186,7 @@ void potentiallyCreateDoguDocPR() {
                         def ghPRTitle ="Update to core.Dogu compendium"
                         def ghPRBody1 ="This PR resolves"
                         def ghPRBody2 ="from cesapp-lib version ${releaseVersion}"
+                        def ghPRCommentBody = "- [ ] This PR includes a translation :speech_balloon:"
 
                         sh "cd ${targetDoguDocDir} && git checkout -b ${newBranchName}"
                         // create potential diff by overwriting the original file
@@ -216,14 +217,26 @@ void potentiallyCreateDoguDocPR() {
 
                             sh "cd ${targetDoguDocDir} && git push --set-upstream origin ${newBranchName}"
 
-                            sh """curl -L \
+                            def pullRequestResult=sh(returnStdout: true, script: """curl -L \
                               --write-out '%{http_code}' \
                               -X POST \
                               -H "Accept: application/vnd.github+json" \
                               -u "${GIT_AUTH_USR}:${GIT_AUTH_PSW}" \
                               -H "X-GitHub-Api-Version: 2022-11-28" \
                               -d '{"title":"${ghPRTitle}","body":"${ghPRBody1} #${issueID} ${ghPRBody2}","head":"${newBranchName}","base":"${doguDocTargetBranch}"}' \
-                              https://api.github.com/repos/${doguDocRepoParts}/pulls"""
+                              https://api.github.com/repos/${doguDocRepoParts}/pulls""")
+                            def pullRequestID = sh(returnStdout: true, script:  """echo -n '${pullRequestResult}' | grep -m 1 '"number":'""")
+                            pullRequestID=pullRequestID.replaceAll(/.+:\s+(\d+),/, "\$1").replace("\n", "")
+                            sh "echo 'Found pullRequestID ->#${pullRequestID}<-'"
+
+                            sh """curl -L \
+                              --write-out '%{http_code}' \
+                              -X POST \
+                              -H "Accept: application/vnd.github+json" \
+                              -u "${GIT_AUTH_USR}:${GIT_AUTH_PSW}" \
+                              -H "X-GitHub-Api-Version: 2022-11-28" \
+                              -d '{"body":"${ghPRCommentBody}"}' \
+                              https://api.github.com/repos/${doguDocRepoParts}/issues/${pullRequestID}/comments"""
                         }
                     }
                 }
