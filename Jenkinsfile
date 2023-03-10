@@ -154,10 +154,10 @@ void potentiallyCreateDoguDocPR() {
     def doguDocTargetBranch = "main"
     def newBranchName = "feature/update_compendium_after_release_${currentBranch}"
     String releaseVersion = gitWrapper.getSimpleBranchName()
-    def gomarkVersion = "d51108a"
+    def gomarkVersion = "0b21b7f"
 
     new Docker(this)
-            .image('golang:1.18.6')
+            .image('golang:1.20') // gomarkdoc needs /go/doc/comment from go 1.19+
             .mountJenkinsUser()
             .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
 
