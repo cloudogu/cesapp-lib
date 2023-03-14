@@ -1,0 +1,8 @@
+header: |
+  # Compendium
+  This document represents the compendium of the `dogu.json`. It describes all fields including the depending types in detail,
+  the syntax and example contents.
+repository:
+  url: https://github.com/cloudogu/cesapp-lib
+  defaultBranch: main
+  path: /
