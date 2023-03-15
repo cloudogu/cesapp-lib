@@ -681,7 +681,7 @@ type Dogu struct {
 	//   [ { "Type": "tcp", "Container": "2222", "Host":"2222" } ]
 	//
 	ExposedPorts []ExposedPort
-	// ExposedCommands defines actions which can be executed in different phases of
+	// ExposedCommands defines actions of type [ExposedCommand] which can be executed in different phases of
 	// the dogu lifecycle automatically triggered by a dogu client like the cesapp
 	// or the k8s-dogu-operator or manually from an administrative user. This
 	// field is optional.
@@ -820,7 +820,7 @@ type Dogu struct {
 	//	  {"Type": "http", "Port": 8080, "Path": "/my/health/path"},
 	// 	]
 	HealthChecks []HealthCheck
-	// ServiceAccounts contains a list of core.ServiceAccount. This field is optional.
+	// ServiceAccounts contains a list of [ServiceAccount]. This field is optional.
 	//
 	// A ServiceAccount protects sensitive data used for another dogu. Service account consumers are distinguished from
 	// service account producers. To produce a service account a dogu has to implement service-account-create and service-account-delete
@@ -861,7 +861,7 @@ type Dogu struct {
 	// Example:
 	//   - false
 	Privileged bool
-	// Configuration contains a list of core.ConfigurationField. This field is optional.
+	// Configuration contains a list of [ConfigurationField]. This field is optional.
 	//
 	// It describes generic properties of the dogu in the Cloudogu EcoSystem registry.
 	//
@@ -889,7 +889,7 @@ type Dogu struct {
 	//     }
 	//   }
 	Configuration []ConfigurationField
-	// Properties contains core.Properties. This field is optional.
+	// Properties contains [Properties]. This field is optional.
 	// It describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
 	//
 	// Example:
@@ -906,7 +906,7 @@ type Dogu struct {
 	//     {"Key": "my_key", "Value": "my_value"}
 	//   ]
 	EnvironmentVariables []EnvironmentVariable
-	// Dependencies contains a list of core.Dependency. This field is optional.
+	// Dependencies contains a list of [Dependency]. This field is optional.
 	//
 	// This field defines dependencies that must be fulfilled during the dependency check. If the dependency
 	// cannot be fulfilled during the check an error will be thrown and the processing will be stopped.
@@ -930,7 +930,7 @@ type Dogu struct {
 	//  ]
 	//
 	Dependencies []Dependency
-	// OptionalDependencies contains a list of core.Dependency. This field is optional.
+	// OptionalDependencies contains a list of [Dependency]. This field is optional.
 	//
 	// In contrast to core.Dependencies, OptionalDependencies allows to define
 	// dependencies that may be fulfilled if they are existent. There is no negative
