@@ -507,6 +507,40 @@ type Dependency struct {
 // dependencies towards other dogus, and much more.
 //
 // [OCI container image]: https://opencontainers.org/
+//
+// Example:
+//  {
+//   "Name": "official/newdogu",
+//   "Version": "1.0.0-1",
+//   "DisplayName": "My new Dogu",
+//   "Description": "Newdogu is a test application",
+//   "Category": "Development Apps",
+//   "Tags": ["warp"],
+//   "Url": "https://www.company.com/newdogu",
+//   "Image": "registry.cloudogu.com/namespace/newdogu",
+//   "Dependencies": [
+//     {
+//       "type":"dogu",
+//       "name":"nginx"
+//     }
+//   ],
+//   "Volumes": [
+//     {
+//       "Name": "temp",
+//       "Path":"/tmp",
+//       "Owner":"1000",
+//       "Group":"1000",
+//       "NeedsBackup": false
+//     }
+//   ],
+//   "HealthChecks": [
+//     {
+//       "Type": "tcp",
+//       "Port": 8080
+//     }
+//   ]
+//  }
+//
 type Dogu struct {
 	// Name contains the dogu's full qualified name which consists of the dogu namespace and the dogu simple name,
 	// delimited by a single forward slash "/". This field is mandatory.
