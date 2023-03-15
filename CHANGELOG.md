@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.11.0] - 2023-03-15
+### Changed
+- [#28] supplement core.Dogu documentation comments
+  - these doc comments will result in the public [dogu documentation](https://github.com/cloudogu/dogu-development-docs)
+
 ## [v0.10.0] - 2023-03-03
 ### Added
 - [#25] Extract the dogu configuration facility from cesapp to share them. 
