@@ -132,8 +132,6 @@ type Volume struct {
 	// Clients contains a list of client-specific (t. i., the client that interprets the dogu.json) configurations for
 	// the volume. This field is optional.
 	//
-	// See [VolumeClient]
-	//
 	Clients []VolumeClient `json:"Clients,omitempty"`
 }
 
@@ -475,7 +473,7 @@ type Dependency struct {
 	//  - "package"
 	//
 	Type string `json:"type"`
-	// Name identifies the entity selected by [Type]. This field is mandatory. If the Type selects another dogu, Name
+	// Name identifies the entity selected by Type. This field is mandatory. If the Type selects another dogu, Name
 	// must use the simple dogu name (f. e. "postgres"), not the full qualified dogu name (not "official/postgres").
 	//
 	// Examples:
@@ -484,7 +482,7 @@ type Dependency struct {
 	//  - "cesappd"
 	//
 	Name string `json:"name"`
-	// Version selects the version of entity selected by [Type]. This field is optional. If unset, any version of the
+	// Version selects the version of entity selected by Type. This field is optional. If unset, any version of the
 	// selected entity will be accepted during the dependency check.
 	//
 	// Version accepts different version styles and compare operators.
@@ -660,10 +658,10 @@ type Dogu struct {
 	URL string
 	// Image links to the [OCI container] image which packages the dogu application. This field is mandatory.
 	//
-	// The image must not contain image tags, like the image version or "latest" (use the field [Version]
+	// The image must not contain image tags, like the image version or "latest" (use the field Version
 	// for this information instead). The image registry part of this field must point to `registry.cloudogu.com`.
 	//
-	// It is good practice to apply the same name to the image repository as from the [Name] field in order to enable
+	// It is good practice to apply the same name to the image repository as from the Name field in order to enable
 	// access strategies as well as to avoid storage conflicts.
 	//
 	// Examples for official/redmine:
@@ -857,7 +855,7 @@ type Dogu struct {
 	// Privileged indicates whether the Docker socket should be mounted into the container file system. This field is
 	// optional. The default value is `false`.
 	//
-	// For security reasons, it is highly recommended to leave [Privileged] set to false since almost no dogu should
+	// For security reasons, it is highly recommended to leave Privileged set to false since almost no dogu should
 	// gain retrospective container insights.
 	//
 	// Example:
