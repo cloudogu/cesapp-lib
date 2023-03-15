@@ -282,7 +282,7 @@ type EnvironmentVariable struct {
 	Value string
 }
 
-// String returns a string representation of this EnvironmentVariable
+// String returns a string representation of this [EnvironmentVariable]
 func (env EnvironmentVariable) String() string {
 	// Formatting of an EnvironmentVariable "ENV1=VALUE1"
 	return env.Key + "=" + env.Value
@@ -404,7 +404,7 @@ type ValidationDescriptor struct {
 	//
 	Type string
 	// Values may contain values that aid the selected validator. The values may or
-	// may not be optional, depending on the ValidationDescriptor.Type being used.
+	// may not be optional, depending on the Type being used.
 	// It is up to the selected validator whether this field is mandatory, optional,
 	// or unused.
 	Values []string
@@ -670,7 +670,7 @@ type Dogu struct {
 	// [OCI container]: https://opencontainers.org/
 	//
 	Image string
-	// ExposedPorts contains a list of core.ExposedPort. This field is optional.
+	// ExposedPorts contains a list of [ExposedPort]. This field is optional.
 	//
 	// Exposed ports provide a way to route traffic from outside the Cloudogu EcoSystem towards the dogu. Dogus that
 	// provide a GUI must also expose a port that accepts requests and returns responses. Non-GUI dogus can also expose
@@ -783,7 +783,7 @@ type Dogu struct {
 	//   ],
 	//
 	ExposedCommands []ExposedCommand
-	// Volumes contains a list of core.Volume which defines [OCI container volumes]. This field is optional.
+	// Volumes contains a list of [Volume] which defines [OCI container volumes]. This field is optional.
 	//
 	// Volumes are created during the dogu creation or upgrade. Volumes provide a performance boost compared to
 	// in-container storage.
@@ -898,7 +898,7 @@ type Dogu struct {
 	//     "key2": "value2"
 	//   }
 	Properties Properties
-	// EnvironmentVariables contains a list of core.EnvironmentVariable that should
+	// EnvironmentVariables contains a list of [EnvironmentVariable] that should
 	// be set in the container. This field is optional.
 	//
 	// Example:
@@ -1044,7 +1044,7 @@ func (d *Dogu) GetExposedCommand(commandName string) *ExposedCommand {
 	return nil
 }
 
-// GetEnvironmentVariables returns environment variables formatted as array of key value objects
+// GetEnvironmentVariables returns a slice of [EnvironmentVariable] formatted as array of key value objects
 func (d *Dogu) GetEnvironmentVariables() []EnvironmentVariable {
 	return d.EnvironmentVariables
 }
