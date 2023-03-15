@@ -154,7 +154,7 @@ void potentiallyCreateDoguDocPR() {
     def doguDocTargetBranch = "main"
     def newBranchName = "feature/update_compendium_after_release_${currentBranch}"
     String releaseVersion = gitWrapper.getSimpleBranchName()
-    def gomarkVersion = "v0.4.1-7"
+    def gomarkVersion = "v0.4.1-8"
 
     new Docker(this)
             .image('golang:1.20') // gomarkdoc needs /go/doc/comment from go 1.19+
