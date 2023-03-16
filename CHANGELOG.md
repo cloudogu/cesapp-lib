@@ -10,7 +10,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [#24] Add package `ssl` with functionality to generate selfsigned certificates.
 
 ### Removed
-- Remove dogu and zalenium build library
+- Remove dogu-build-lib
 
 ### Changed
 - Update ces-build-lib to 1.62.0
