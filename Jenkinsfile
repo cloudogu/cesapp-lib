@@ -1,8 +1,6 @@
 #!groovy
-@Library(['github.com/cloudogu/dogu-build-lib@v1.10.0', 'github.com/cloudogu/ces-build-lib@1.57.0', 'github.com/cloudogu/zalenium-build-lib@v2.1.1'])
+@Library(['github.com/cloudogu/ces-build-lib@1.62.0'])
 import com.cloudogu.ces.cesbuildlib.*
-import com.cloudogu.ces.zaleniumbuildlib.*
-import com.cloudogu.ces.dogubuildlib.*
 
 // Creating necessary git objects, object cannot be named 'git' as this conflicts with the method named 'git' from the library
 gitWrapper = new Git(this, "cesmarvin")

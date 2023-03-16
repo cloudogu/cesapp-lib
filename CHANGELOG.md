@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#24] Add package `ssl` with functionality to generate selfsigned certificates.
+
+### Removed
+- Remove dogu and zalenium build library
+
+### Changed
+- Update ces-build-lib to 1.62.0
 
 ## [v0.11.0] - 2023-03-15
 ### Changed
