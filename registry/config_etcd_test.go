@@ -13,7 +13,7 @@ import (
 func TestGet(t *testing.T) {
 	t.Run("successfully get key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Get", "test/testKey").Return("testValue", nil)
 
 		sut := &etcdConfigurationContext{
@@ -32,7 +32,7 @@ func TestGet(t *testing.T) {
 
 	t.Run("error on getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Get", "test/testKey").Return("", assert.AnError)
 
 		sut := &etcdConfigurationContext{
@@ -52,7 +52,7 @@ func TestGet(t *testing.T) {
 func Test_etcdConfigurationContext_Delete(t *testing.T) {
 	t.Run("Successfully delete key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Delete", "test/testKey", mock.Anything).Return(nil)
 
 		sut := etcdConfigurationContext{
@@ -70,7 +70,7 @@ func Test_etcdConfigurationContext_Delete(t *testing.T) {
 
 	t.Run("error on deleting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Delete", "test/testKey", mock.Anything).Return(assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -90,7 +90,7 @@ func Test_etcdConfigurationContext_Delete(t *testing.T) {
 func Test_etcdConfigurationContext_DeleteRecursive(t *testing.T) {
 	t.Run("Successfully delete key recursively from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("DeleteRecursive", "test/testKey").Return(nil)
 
 		sut := etcdConfigurationContext{
@@ -108,7 +108,7 @@ func Test_etcdConfigurationContext_DeleteRecursive(t *testing.T) {
 
 	t.Run("error on deleting key recursively from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("DeleteRecursive", "test/testKey").Return(assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -128,7 +128,7 @@ func Test_etcdConfigurationContext_DeleteRecursive(t *testing.T) {
 func Test_etcdConfigurationContext_Exists(t *testing.T) {
 	t.Run("Successfully checking key existence in registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey", mock.Anything).Return(true, nil)
 
 		sut := etcdConfigurationContext{
@@ -147,7 +147,7 @@ func Test_etcdConfigurationContext_Exists(t *testing.T) {
 
 	t.Run("error on checking key existence in registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey", mock.Anything).Return(false, assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -168,7 +168,7 @@ func Test_etcdConfigurationContext_Exists(t *testing.T) {
 func Test_etcdConfigurationContext_Get(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Get", "test/testKey").Return("testValue", nil)
 
 		sut := etcdConfigurationContext{
@@ -194,7 +194,7 @@ func Test_etcdConfigurationContext_GetAll(t *testing.T) {
 			"test2Key": "test2Value",
 		}
 
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("GetRecursive", "test").Return(testKeys, nil)
 
 		sut := etcdConfigurationContext{
@@ -214,7 +214,7 @@ func Test_etcdConfigurationContext_GetAll(t *testing.T) {
 
 	t.Run("error on getting all keys in registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("GetRecursive", "test").Return(map[string]string{}, assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -233,7 +233,7 @@ func Test_etcdConfigurationContext_GetAll(t *testing.T) {
 func Test_etcdConfigurationContext_GetOrFalse(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey").Return(true, nil)
 		etcdClientMock.On("Get", "test/testKey").Return("testValue", nil)
 
@@ -254,7 +254,7 @@ func Test_etcdConfigurationContext_GetOrFalse(t *testing.T) {
 
 	t.Run("error on checking existence of key", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey").Return(false, assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -272,7 +272,7 @@ func Test_etcdConfigurationContext_GetOrFalse(t *testing.T) {
 
 	t.Run("return false if key does not exist", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey").Return(false, nil)
 
 		sut := etcdConfigurationContext{
@@ -290,7 +290,7 @@ func Test_etcdConfigurationContext_GetOrFalse(t *testing.T) {
 
 	t.Run("error when getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Exists", "test/testKey").Return(true, nil)
 		etcdClientMock.On("Get", "test/testKey").Return("", assert.AnError)
 
@@ -316,7 +316,7 @@ func Test_etcdConfigurationContext_Refresh(t *testing.T) {
 			Refresh: true,
 		}
 
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Set", "test/testKey", "", options).Return("", nil)
 
 		sut := etcdConfigurationContext{
@@ -336,7 +336,7 @@ func Test_etcdConfigurationContext_Refresh(t *testing.T) {
 func Test_etcdConfigurationContext_RemoveAll(t *testing.T) {
 	t.Run("successfully delete all keys recursively key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("DeleteRecursive", "test").Return(nil)
 
 		sut := etcdConfigurationContext{
@@ -353,7 +353,7 @@ func Test_etcdConfigurationContext_RemoveAll(t *testing.T) {
 	})
 	t.Run("error on deleting all keys recursively key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("DeleteRecursive", "test").Return(assert.AnError)
 
 		sut := etcdConfigurationContext{
@@ -373,7 +373,7 @@ func Test_etcdConfigurationContext_RemoveAll(t *testing.T) {
 func Test_etcdConfigurationContext_Set(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Set", "test/testKey", "testValue", mock.Anything).Return("", nil)
 
 		sut := etcdConfigurationContext{
@@ -393,7 +393,7 @@ func Test_etcdConfigurationContext_Set(t *testing.T) {
 func Test_etcdConfigurationContext_SetWithLifetime(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Set", "test/testKey", "testValue", &client.SetOptions{
 			TTL: time.Second * 500,
 		}).Return("", nil)
@@ -415,7 +415,7 @@ func Test_etcdConfigurationContext_SetWithLifetime(t *testing.T) {
 func Test_etcdWatchConfigurationContext_Get(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Get", "/testKey").Return("testValue", nil)
 
 		sut := etcdWatchConfigurationContext{
@@ -435,7 +435,7 @@ func Test_etcdWatchConfigurationContext_Get(t *testing.T) {
 func Test_etcdWatchConfigurationContext_GetChildrenPaths(t *testing.T) {
 	t.Run("Successfully getting key from registry", func(t *testing.T) {
 		// given
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("GetChildrenPaths", "testKey").Return([]string{"test1", "test2"}, nil)
 
 		sut := etcdWatchConfigurationContext{
@@ -458,7 +458,7 @@ func Test_etcdWatchConfigurationContext_Watch(t *testing.T) {
 		// given
 		eventChannel := make(chan *client.Response)
 
-		etcdClientMock := &etcdClientMock{}
+		etcdClientMock := newMockEtcdClient(t)
 		etcdClientMock.On("Watch", context.Background(), "testKey", true, eventChannel).Return()
 
 		sut := etcdWatchConfigurationContext{

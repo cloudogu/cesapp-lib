@@ -1,9 +1,9 @@
 # Set these to the desired values
 ARTIFACT_ID=cesapp-lib
-VERSION=0.9.0
+VERSION=0.11.0
 
 GOTAG?=1.18.6
-MAKEFILES_VERSION=7.0.1
+MAKEFILES_VERSION=7.4.0
 
 GO_BUILD_FLAGS?=-mod=vendor -a ./...
 .DEFAULT_GOAL:=default
@@ -20,6 +20,7 @@ include build/make/test-unit.mk
 include build/make/static-analysis.mk
 include build/make/clean.mk
 include build/make/release.mk
+include build/make/mocks.mk
 
 
 default: compile
