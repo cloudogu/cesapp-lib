@@ -13,16 +13,23 @@ import (
 	"time"
 )
 
+// CES default values that can be used to generate self-signed certs.
+const (
+	Country  = "DE"
+	Province = "Lower Saxony"
+	Locality = "Brunswick"
+)
+
 type sslGenerator struct {
 }
 
-// NewSSLGenerator creates a new sslGenerator instance to generate a self-signed cert and key
+// NewSSLGenerator creates a new sslGenerator instance to generate a self-signed cert and key.
 func NewSSLGenerator() *sslGenerator {
 	return &sslGenerator{}
 }
 
 // GenerateSelfSignedCert generates a self-signed certificate for the ces and returns the certificate chain and the
-// private key as string
+// private key as string.
 func (sg *sslGenerator) GenerateSelfSignedCert(fqdn string, domain string, certExpireDays int, country string,
 	province string, locality string, altDNSNames []string) (string, string, error) {
 	// create x509 certificate and key (ca)
