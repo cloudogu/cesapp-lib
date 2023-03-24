@@ -165,7 +165,7 @@ void potentiallyCreateDoguDocPR() {
 
                 stage('Build new dogu doc page') {
                     sh "go install github.com/cloudogu/gomarkdoc/cmd/gomarkdoc@${gomarkVersion}"
-                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --includeFiles dogu_v2.go"
+                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --include-files dogu_v2.go"
                 }
 
                 def shouldCreateDoguDocsPR = false
