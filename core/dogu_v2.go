@@ -894,7 +894,7 @@ type Dogu struct {
 	// optional. The default value is `false`.
 	//
 	// For security reasons, it is highly recommended to leave Privileged set to false since almost no dogu should
-	// gain retrospective container insights.
+	// gain introspective container insights.
 	//
 	// Example:
 	//   - false
