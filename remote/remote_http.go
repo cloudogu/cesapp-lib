@@ -231,7 +231,7 @@ func (r *httpRemote) receiveDoguFromRemoteOrCache(requestUrl string, cacheDirect
 		return r.request(requestUrl, &dogu, true)
 	})
 
-	if err == errNotFound {
+	if errors.Is(err, errNotFound) {
 		return nil, errors.Errorf(`received status code "404 not found" from remote`)
 	}
 
@@ -294,7 +294,7 @@ func (r *httpRemote) GetVersionsOf(name string) ([]core.Version, error) {
 func (r *httpRemote) handleCachingIfNecessary(cachingType interface{}, requestError error, dirname string, filename string) error {
 	if r.useCache {
 		if requestError != nil {
-			core.GetLogger().Debugf("failed to read from remote registry: %s", requestError)
+			core.GetLogger().Errorf("failed to read from remote registry: %s", requestError)
 			core.GetLogger().Info("reading from cache")
 			err := r.readCacheWithFilename(cachingType, dirname, filename)
 			if err != nil {
