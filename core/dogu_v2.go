@@ -819,8 +819,12 @@ type Dogu struct {
 	ExposedCommands []ExposedCommand
 	// Volumes contains a list of [Volume] which defines [OCI container volumes]. This field is optional.
 	//
-	// Volumes are created during the dogu creation or upgrade. Volumes provide a performance boost compared to
-	// in-container storage.
+	// Volumes are created during the dogu creation or upgrade.
+	//
+	// All dynamic data of a Dogu should be stored inside volumes. This holds multiple advantages:
+	//   - Data inside volumes is not lost when the Dogu is upgraded.
+	//   - Data inside volumes can be backed up and restored. See [needsbackup] flag.
+	//   - The access to data stored inside volumes is much faster than to data stored inside the Dogu container.
 	//
 	// Examples:
 	//   [ { "Name": "temp", "Path":"/tmp", "Owner":"1000", "Group":"1000", "NeedsBackup": false} ]
@@ -890,7 +894,7 @@ type Dogu struct {
 	// optional. The default value is `false`.
 	//
 	// For security reasons, it is highly recommended to leave Privileged set to false since almost no dogu should
-	// gain retrospective container insights.
+	// gain introspective container insights.
 	//
 	// Example:
 	//   - false
@@ -923,7 +927,7 @@ type Dogu struct {
 	//     }
 	//   }
 	Configuration []ConfigurationField
-	// Properties contains [Properties]. This field is optional.
+	// Properties is a `map[string]string` of Properties. This field is optional.
 	// It describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
 	//
 	// Example:
