@@ -282,11 +282,11 @@ func (etcd *resilentEtcdClient) doWatch(ctx context.Context, watcher client.Watc
 	resp, err := watcher.Next(ctx)
 	if err != nil {
 		if strings.Contains(err.Error(), "etcd cluster is unavailable or misconfigured") {
-			core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 300 seconds. Error: %v", err)
+			core.GetLogger().Infof("Cannot reach etcd cluster. Try again in 10 seconds. Error: %v", err)
 			etcd.indexMutex.Lock()
 			defer etcd.indexMutex.Unlock()
 			etcd.recentIndex = 0
-			time.Sleep(time.Minute * 5)
+			time.Sleep(time.Second * 10)
 			return
 		} else {
 			core.GetLogger().Infof("Could not get event. Try again in 30 seconds. Error: %v", err)
