@@ -173,7 +173,7 @@ void potentiallyCreateDoguDocPR() {
                 stage('Compare dogu docs') {
                     // ignore stderr output here, diffing non-existing files always leads to a line count of zero
                     def diffResult = sh(returnStdout: true, script: "diff ${newCoreDoguChapter} ${oldCoreDoguChapter} | wc -l").toString().trim()
-                    if (diffResult > 0) {
+                    if ((diffResult as Integer) > 0) {
                         shouldCreateDoguDocsPR = true
                     }
                 }

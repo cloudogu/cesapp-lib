@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.12.2] - 2023-10-24
+### Changed
+- [#34] Reduce the wait time on failures while watching the etcd from 5 minutes to 10 seconds.
+
 ## [v0.12.1] - 2023-08-23
 ### Changed
 - [#32] Change the log to error, if a dogu `GET` returns a `401` and the cache handles the request error.
