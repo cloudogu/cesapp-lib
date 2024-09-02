@@ -606,17 +606,17 @@ type Dogu struct {
 	// Usages:
 	// In the setup of the ecosystem the display name of the dogu is used to select it for installation.
 	//
-	// the display name is used in the warp menu to let the user navigate to the web ui of the dogu.
+	// The display name is used in the warp menu to let the user navigate to the web ui of the dogu.
 	//
 	// Another usage is the textual output of tools like the cesapp or the k8s-dogu-operator where the name is used
 	// in commands like list upgradeable dogus.
 	//
-	// The description may consist of:
+	// The display name may consist of:
 	//   - lower and upper case latin characters where the first is upper case
 	//   - any special characters
 	//   - ciphers 0-9
 	//
-	// Description is encouraged to consist of less than 30 characters because it is displayed in the Cloudogu EcoSystem
+	// DisplayName is encouraged to consist of less than 30 characters because it is displayed in the Cloudogu EcoSystem
 	// warp menu.
 	//
 	// Examples:
