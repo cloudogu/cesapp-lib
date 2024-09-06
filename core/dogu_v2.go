@@ -348,7 +348,7 @@ type ConfigurationField struct {
 	//
 	Optional bool
 	// Encrypted marks this configuration field to contain a sensitive value that will be encrypted with the dogu's
-	// private key. This field is optional. If unset, a value of `false` will be assumed.
+	// public key. This field is optional. If unset, a value of `false` will be assumed.
 	//
 	// Example:
 	//   - true
