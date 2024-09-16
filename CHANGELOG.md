@@ -7,6 +7,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.13.0] - 2024-09-16
+### Added
+- [#38] add a struct dedicated for dogu marketing data
+   - Marketing information for dogus like description, deprecation state, URL to different translated release note, etc are bound to change independendly from an actual dogu release. 
+   - This data can now reside in a different, independent structure.
+
+### Fixed
+- fix a typo regarding which key will be used for encryption
+
 ## [v0.12.2] - 2023-10-24
 ### Changed
 - [#34] Reduce the wait time on failures while watching the etcd from 5 minutes to 10 seconds.
