@@ -126,7 +126,7 @@ void make(String makeArgs) {
 }
 
 void withBuildDependencies(Closure closure) {
-    def etcdImage = docker.image('quay.io/coreos/etcd:v3.2.5')
+    def etcdImage = docker.image('quay.io/coreos/etcd:v3.2.32')
     def etcdContainerName = "${JOB_BASE_NAME}-${BUILD_NUMBER}".replaceAll("\\/|%2[fF]", "-")
     withDockerNetwork { buildnetwork ->
         etcdImage.withRun("--network ${buildnetwork} --name ${etcdContainerName}", 'etcd --listen-client-urls http://0.0.0.0:4001 --advertise-client-urls http://0.0.0.0:4001')

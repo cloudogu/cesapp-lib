@@ -1,8 +1,8 @@
 version: "2"
 services:
   etcd:
-    image: quay.io/coreos/etcd:v3.2.5
-    command: ["etcd","--listen-client-urls", "http://0.0.0.0:4001", "--advertise-client-urls", "http://0.0.0.0:4001"]
+    image: quay.io/coreos/etcd:v3.2.32
+    command: ["etcd", "--listen-client-urls", "http://0.0.0.0:4001", "--advertise-client-urls", "http://0.0.0.0:4001"]
     ports:
       - "4001:4001"
       - "2379:2379"
