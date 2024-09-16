@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- fixes a typo regarding which key will be used for encryption
 
 ## [v0.12.2] - 2023-10-24
 ### Changed
