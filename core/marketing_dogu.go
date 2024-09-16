@@ -12,11 +12,11 @@ package core
 //		"DisplayName": "My New Dogu",
 //		"Provider": [
 //			{
-//				"Slug": "provider",
-//				"Name": "Provider",
+//				"Slug": "cloudogu",
+//				"Name": "Cloudogu GmbH",
 //				"Logo": {
 //					"ID": "34393ef9-a96d-4d1d-823e-0c17b10b762d",
-//					"Title": "Provider logo"
+//					"Title": "Cloudogu GmbH logo"
 //				}
 //			}
 //		],
@@ -48,7 +48,9 @@ type MarketingDogu struct {
 	//   - 34393ef9-a96d-4d1d-823e-0c17b10b762d
 	//
 	ID string
-	// Deprecated indicates if the dogu is deprecated.
+	// Deprecated indicates that this dogu is not recommended for new installations.
+	// There will be no further development and updates.
+	// In the Software Catalogue, deprecated dogus are marked with a warning sign.
 	//
 	Deprecated bool
 	// Namespace contains the dogu's namespace without the name.
@@ -59,6 +61,7 @@ type MarketingDogu struct {
 	//   - official
 	//   - premium
 	//
+	// See also Dogu.Name for how dogu names are constructed.
 	Namespace string
 	// Name contains the dogu's simple name without the namespace.
 	//
@@ -69,6 +72,7 @@ type MarketingDogu struct {
 	//   - confluence
 	//   - newdogu
 	//
+	// See also Dogu.Name for how dogu names are constructed.
 	Name string
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu.
 	//
@@ -78,17 +82,18 @@ type MarketingDogu struct {
 	//  - My New Dogu
 	//
 	DisplayName string
-	// Provider contains information about the provider of the dogu.
+	// A provider is an entity that provides / maintains / develops the dogu.
+	// The provider is a company in most cases.
 	//
 	// Example:
-	// 	{
-	//		"Slug": "provider",
-	//		"Name": "Provider",
+	// 	[{
+	//		"Slug": "cloudogu",
+	//		"Name": "Cloudogu GmbH",
 	//		"Logo": {
 	//			"ID": "34393ef9-a96d-4d1d-823e-0c17b10b762d",
-	//			"Title": "Provider Logo"
+	//			"Title": "Cloudogu GmbH logo"
 	//		}
-	//	}
+	//	}]
 	//
 	Provider []Provider
 	// Logo contains information about the logo or icon of the dogu.
@@ -128,16 +133,16 @@ type MarketingDogu struct {
 	ReleaseNotes string
 }
 
-// Provider describes properties of the provider of the dogu which can be used to represent the provider in UI frontends.
+// Provider describes properties of the dogu's publisher.  These properties can be used to represent the provider in UI frontends so administrators and users can faster find appropriate support.
 //
 // Example:
 //
 //	{
-//		"Slug": "provider",
-//		"Name": "Provider",
+//		"Slug": "cloudogu",
+//		"Name": "Cloudogu GmbH",
 //		"Logo": {
 //			"ID": "34393ef9-a96d-4d1d-823e-0c17b10b762d",
-//			"Title": "Provider Logo"
+//			"Title": "Cloudogu GmbH logo"
 //		}
 //	}
 type Provider struct {
