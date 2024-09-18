@@ -1,5 +1,3 @@
-![Cloudogu logo](https://cloudogu.com/images/logo.png)
-
 # cesapp-lib
 
 The cesapp-lib is a golang library fundamental structs and functionality shared across the application of the Cloudogu
