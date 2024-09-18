@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.14.0] - 2024-09-18
+### Changed
+- Relicense to AGPL-3.0-only (#40)
+
 ## [v0.13.0] - 2024-09-16
 ### Added
 - [#38] add a struct dedicated for dogu marketing data
