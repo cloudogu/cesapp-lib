@@ -10,21 +10,20 @@ import (
 
 func TestSortByDependency(t *testing.T) {
 	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-001.json")
-	assert.Nil(t, err)
+	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-009.json")
+	require.NoError(t, err)
 	ordered := SortDogusByDependency(dogus)
-	assert.Equal(t, "ldap", ordered[0].GetSimpleName())
-	assert.Equal(t, "mysql", ordered[1].GetSimpleName())
-	assert.Equal(t, "postfix", ordered[2].GetSimpleName())
-	assert.Equal(t, "registrator", ordered[3].GetSimpleName())
-	assert.Equal(t, "nginx", ordered[4].GetSimpleName())
-	assert.Equal(t, "cas", ordered[5].GetSimpleName())
-	assert.Equal(t, "jenkins", ordered[6].GetSimpleName())
-	assert.Equal(t, "nexus", ordered[7].GetSimpleName())
-	assert.Equal(t, "scm", ordered[8].GetSimpleName())
-	assert.Equal(t, "usermgt", ordered[9].GetSimpleName())
-	assert.Equal(t, "redmine", ordered[10].GetSimpleName())
-	assert.Equal(t, "sonar", ordered[11].GetSimpleName())
+	assert.Equal(t, "gotenberg", ordered[0].GetSimpleName())
+	assert.Equal(t, "postfix", ordered[1].GetSimpleName())
+	assert.Equal(t, "nginx", ordered[2].GetSimpleName())
+	assert.Equal(t, "cas", ordered[3].GetSimpleName())
+	assert.Equal(t, "backup", ordered[4].GetSimpleName())
+	assert.Equal(t, "nexus", ordered[5].GetSimpleName())
+	assert.Equal(t, "redmine", ordered[6].GetSimpleName())
+	assert.Equal(t, "scm", ordered[7].GetSimpleName())
+	assert.Equal(t, "smeagol", ordered[8].GetSimpleName())
+	assert.Equal(t, "sonar", ordered[9].GetSimpleName())
+	assert.Equal(t, "usermgt", ordered[10].GetSimpleName())
 }
 
 func TestSortByDependencyWithSmallList(t *testing.T) {
