@@ -1,6 +1,7 @@
 package core
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,20 +11,29 @@ import (
 
 func TestSortByDependency(t *testing.T) {
 	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-009.json")
+	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-004.json")
 	require.NoError(t, err)
+	var doguNames []string
+	for _, dogu := range dogus {
+		doguNames = append(doguNames, dogu.GetSimpleName())
+	}
 	ordered := SortDogusByDependency(dogus)
-	assert.Equal(t, "gotenberg", ordered[0].GetSimpleName())
-	assert.Equal(t, "postfix", ordered[1].GetSimpleName())
-	assert.Equal(t, "nginx", ordered[2].GetSimpleName())
-	assert.Equal(t, "cas", ordered[3].GetSimpleName())
-	assert.Equal(t, "backup", ordered[4].GetSimpleName())
-	assert.Equal(t, "nexus", ordered[5].GetSimpleName())
-	assert.Equal(t, "redmine", ordered[6].GetSimpleName())
-	assert.Equal(t, "scm", ordered[7].GetSimpleName())
-	assert.Equal(t, "smeagol", ordered[8].GetSimpleName())
-	assert.Equal(t, "sonar", ordered[9].GetSimpleName())
-	assert.Equal(t, "usermgt", ordered[10].GetSimpleName())
+	var installedDogus []string
+	assert.Equal(t, len(dogus), len(ordered))
+	for _, orderedDogu := range ordered {
+		for _, dependency := range orderedDogu.GetDependenciesOfType(DependencyTypeDogu) {
+			assert.Contains(t, installedDogus, dependency.Name,
+				"%s installed before dependency: %s", orderedDogu.GetSimpleName(), dependency.Name)
+		}
+
+		for _, optionalDependency := range orderedDogu.GetOptionalDependenciesOfType(DependencyTypeDogu) {
+			if slices.Contains(doguNames, optionalDependency.Name) {
+				assert.Contains(t, installedDogus, optionalDependency.Name,
+					"%s installed before dependency: %s", orderedDogu.GetSimpleName(), optionalDependency.Name)
+			}
+		}
+		installedDogus = append(installedDogus, orderedDogu.GetSimpleName())
+	}
 }
 
 func TestSortByDependencyWithSmallList(t *testing.T) {
@@ -55,12 +65,17 @@ func TestSortByDependencyWithTransitiveDependencies(t *testing.T) {
 	assert.Nil(t, err)
 
 	ordered := SortDogusByDependency(dogus)
+	var orderedNames []string
+	for _, orderedDogu := range ordered {
+		orderedNames = append(orderedNames, orderedDogu.GetSimpleName())
+	}
 
-	assert.Equal(t, "dogud", ordered[0].GetSimpleName())
-	assert.Equal(t, "dogue", ordered[1].GetSimpleName())
-	assert.Equal(t, "doguc", ordered[2].GetSimpleName())
-	assert.Equal(t, "dogub", ordered[3].GetSimpleName())
-	assert.Equal(t, "dogua", ordered[4].GetSimpleName())
+	// Dogu E and Dogu D can both be installed first and the sort algorithm is not deterministic.
+	assert.Contains(t, orderedNames[0:2], "dogue")
+	assert.Contains(t, orderedNames[0:2], "dogud")
+	assert.Equal(t, "doguc", orderedNames[2])
+	assert.Equal(t, "dogub", orderedNames[3])
+	assert.Equal(t, "dogua", orderedNames[4])
 }
 
 func TestSortByDependencyWithOptionalDependencies(t *testing.T) {
@@ -198,90 +213,4 @@ func TestTransformsDependencyListToDoguList(t *testing.T) {
 	assert.Equal(t, result[2].Name, "testing/doguc")
 	assert.Equal(t, result[3].Name, "testing/dogud")
 	assert.Equal(t, result[4].Name, "testing/dogue")
-}
-
-func TestGetDependenciesRecursive(t *testing.T) {
-	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-003.json")
-	require.Nil(t, err)
-	sorter := sortByDependency{dogus}
-
-	tests := []struct {
-		name                 string
-		dogu                 *Dogu
-		expectedDependencies []Dependency
-	}{
-		{
-			name: "dependencies for dogua",
-			dogu: getDoguBySimpleName(t, dogus, "dogua"),
-			expectedDependencies: []Dependency{
-				createDependency(t, "nginx"),
-				createDependency(t, "dogub"),
-				createDependency(t, "doguc"),
-				createDependency(t, "dogud"),
-				createDependency(t, "dogue"),
-			},
-		},
-		{
-			name: "dependencies for dogub",
-			dogu: getDoguBySimpleName(t, dogus, "dogub"),
-			expectedDependencies: []Dependency{
-				createDependency(t, "nginx"),
-				createDependency(t, "doguc"),
-				createDependency(t, "dogud"),
-				createDependency(t, "dogue"),
-			},
-		},
-		{
-			name: "dependencies for doguc",
-			dogu: getDoguBySimpleName(t, dogus, "doguc"),
-			expectedDependencies: []Dependency{
-				createDependency(t, "nginx"),
-				createDependency(t, "dogud"),
-				createDependency(t, "dogue"),
-			},
-		},
-		{
-			name: "dependencies for dogud",
-			dogu: getDoguBySimpleName(t, dogus, "dogud"),
-			expectedDependencies: []Dependency{
-				createDependency(t, "nginx"),
-			},
-		},
-		{
-			name: "dependencies for dogue",
-			dogu: getDoguBySimpleName(t, dogus, "dogue"),
-			expectedDependencies: []Dependency{
-				createDependency(t, "nginx"),
-			},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			dependencies := sorter.getAllDoguDependenciesRecursive(test.dogu)
-			assert.Len(t, dependencies, len(test.expectedDependencies))
-			for _, expectedDependency := range test.expectedDependencies {
-				assert.True(t, contains(dependencies, expectedDependency.Name))
-			}
-		})
-	}
-}
-
-func createDependency(t *testing.T, name string) Dependency {
-	t.Helper()
-	return Dependency{
-		Type: DependencyTypeDogu,
-		Name: name,
-	}
-}
-
-func getDoguBySimpleName(t *testing.T, dogus []*Dogu, doguName string) *Dogu {
-	t.Helper()
-	for _, dogu := range dogus {
-		if dogu.GetSimpleName() == doguName {
-			return dogu
-		}
-	}
-
-	return nil
 }

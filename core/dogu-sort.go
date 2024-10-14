@@ -1,6 +1,8 @@
 package core
 
 import (
+	"fmt"
+	"github.com/gammazero/toposort"
 	"sort"
 )
 
@@ -8,8 +10,7 @@ import (
 // importance of their dependencies descending, that is: the most needed dogu will be the first element.
 func SortDogusByDependency(dogus []*Dogu) []*Dogu {
 	ordered := sortByDependency{dogus}
-	sort.Stable(&ordered)
-	return ordered.dogus
+	return ordered.sortDogus()
 }
 
 // SortDogusByInvertedDependency takes an unsorted slice of Dogu structs and returns a new slice of Dogus ordered by the
@@ -19,7 +20,7 @@ func SortDogusByInvertedDependency(dogus []*Dogu) []*Dogu {
 
 	orderedAsc := []*Dogu{}
 	for i := len(orderedDesc) - 1; i >= 0; i-- {
-		orderedAsc = append(orderedAsc, dogus[i])
+		orderedAsc = append(orderedAsc, orderedDesc[i])
 	}
 
 	return orderedAsc
@@ -64,48 +65,47 @@ func contains(slice []Dependency, item string) bool {
 	return false
 }
 
-func (bd *sortByDependency) Len() int {
-	return len(bd.dogus)
-}
-
-func (bd *sortByDependency) Swap(i, j int) {
-	bd.dogus[i], bd.dogus[j] = bd.dogus[j], bd.dogus[i]
-}
-
-func (bd *sortByDependency) Less(i, j int) bool {
-	leftName := bd.dogus[i].GetSimpleName()
-	rightName := bd.dogus[j].GetSimpleName()
-
-	leftDependenciesRecursive := bd.getAllDoguDependenciesRecursive(bd.dogus[i])
-	rightDependenciesRecursive := bd.getAllDoguDependenciesRecursive(bd.dogus[j])
-
-	leftDependenciesDirect := bd.dogus[i].GetAllDependenciesOfType(DependencyTypeDogu)
-	rightDependenciesDirect := bd.dogus[j].GetAllDependenciesOfType(DependencyTypeDogu)
-
-	if contains(rightDependenciesRecursive, leftName) {
-		return true
-	} else if contains(leftDependenciesRecursive, rightName) {
-		return false
-	} else if len(leftDependenciesDirect) == len(rightDependenciesDirect) {
-		return leftName < rightName
+func (bd *sortByDependency) sortDogus() []*Dogu {
+	dependencyEdges := bd.getDependencyEdges()
+	sorted, err := toposort.Toposort(dependencyEdges)
+	if err != nil {
+		return nil
 	}
 
-	return len(leftDependenciesDirect) < len(rightDependenciesDirect)
+	sortedDogus, err := toDoguSlice(sorted)
+	if err != nil {
+		return nil
+	}
+
+	return sortedDogus
 }
 
-func (bd *sortByDependency) getAllDoguDependenciesRecursive(inputDogu *Dogu) []Dependency {
-	dependencies := inputDogu.GetAllDependenciesOfType(DependencyTypeDogu)
-	dependenciesAsDogus := bd.dependenciesToDogus(dependencies)
-
-	for _, dogu := range dependenciesAsDogus {
-		for _, dep := range bd.getAllDoguDependenciesRecursive(dogu) {
-			if !contains(dependencies, dep.Name) {
-				dependencies = append(dependencies, dep)
+func (bd *sortByDependency) getDependencyEdges() []toposort.Edge {
+	var dependencyEdges []toposort.Edge
+	for _, dogu := range bd.dogus {
+		dependencies := dogu.GetAllDependenciesOfType(DependencyTypeDogu)
+		if len(dependencies) > 0 {
+			dependentDogus := bd.dependenciesToDogus(dependencies)
+			for _, dependency := range dependentDogus {
+				dependencyEdges = append(dependencyEdges, toposort.Edge{dependency, dogu})
 			}
+		} else {
+			dependencyEdges = append(dependencyEdges, toposort.Edge{nil, dogu})
 		}
 	}
+	return dependencyEdges
+}
 
-	return dependencies
+func toDoguSlice(dogus []interface{}) ([]*Dogu, error) {
+	result := make([]*Dogu, len(dogus))
+	for i, dogu := range dogus {
+		if castedDogu, ok := dogu.(*Dogu); ok {
+			result[i] = castedDogu
+		} else {
+			return nil, fmt.Errorf("expected Dogu, got %T", dogu)
+		}
+	}
+	return result, nil
 }
 
 func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Dogu {
