@@ -1,7 +1,6 @@
 package core
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,13 +26,22 @@ func TestSortByDependency(t *testing.T) {
 		}
 
 		for _, optionalDependency := range orderedDogu.GetOptionalDependenciesOfType(DependencyTypeDogu) {
-			if slices.Contains(doguNames, optionalDependency.Name) {
+			if stringSliceContains(doguNames, optionalDependency.Name) {
 				assert.Contains(t, installedDogus, optionalDependency.Name,
 					"%s installed before dependency: %s", orderedDogu.GetSimpleName(), optionalDependency.Name)
 			}
 		}
 		installedDogus = append(installedDogus, orderedDogu.GetSimpleName())
 	}
+}
+
+func stringSliceContains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 func TestSortByDependencyWithSmallList(t *testing.T) {
