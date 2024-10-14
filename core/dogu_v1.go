@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // DoguV1 defines an application for the CES. A dogu defines the image and meta information for
@@ -12,6 +13,7 @@ import (
 type DoguV1 struct {
 	Name                 string
 	Version              string
+	PublishedAt          time.Time
 	DisplayName          string
 	Description          string
 	Category             string
@@ -38,6 +40,7 @@ func (d *DoguV1) CreateV2Copy() Dogu {
 	dogu := Dogu{}
 	dogu.Name = d.Name
 	dogu.Version = d.Version
+	dogu.PublishedAt = d.PublishedAt
 	dogu.DisplayName = d.DisplayName
 	dogu.Description = d.Description
 	dogu.Category = d.Category

@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"encoding/json"
 )
@@ -291,11 +292,11 @@ func (env EnvironmentVariable) String() string {
 // ServiceAccount struct can be used to get access to another dogu.
 //
 // Example:
-//  {
-//   "Type": "k8s-dogu-operator",
-//   "Kind": "k8s"
-//  }
 //
+//	{
+//	 "Type": "k8s-dogu-operator",
+//	 "Kind": "k8s"
+//	}
 type ServiceAccount struct {
 	// Type contains the name of the service on which the account should be created. This field is mandatory.
 	//
@@ -506,41 +507,41 @@ type Dependency struct {
 // the [OCI container image], Dogu describes all necessities for automatic container instantiation, f. i. volumes,
 // dependencies towards other dogus, and much more.
 //
-// [OCI container image]: https://opencontainers.org/
-//
 // Example:
-//  {
-//   "Name": "official/newdogu",
-//   "Version": "1.0.0-1",
-//   "DisplayName": "My new Dogu",
-//   "Description": "Newdogu is a test application",
-//   "Category": "Development Apps",
-//   "Tags": ["warp"],
-//   "Url": "https://www.company.com/newdogu",
-//   "Image": "registry.cloudogu.com/namespace/newdogu",
-//   "Dependencies": [
-//     {
-//       "type":"dogu",
-//       "name":"nginx"
-//     }
-//   ],
-//   "Volumes": [
-//     {
-//       "Name": "temp",
-//       "Path":"/tmp",
-//       "Owner":"1000",
-//       "Group":"1000",
-//       "NeedsBackup": false
-//     }
-//   ],
-//   "HealthChecks": [
-//     {
-//       "Type": "tcp",
-//       "Port": 8080
-//     }
-//   ]
-//  }
 //
+//	{
+//	 "Name": "official/newdogu",
+//	 "Version": "1.0.0-1",
+//	 "DisplayName": "My new Dogu",
+//	 "Description": "Newdogu is a test application",
+//	 "Category": "Development Apps",
+//	 "Tags": ["warp"],
+//	 "Url": "https://www.company.com/newdogu",
+//	 "Image": "registry.cloudogu.com/namespace/newdogu",
+//	 "Dependencies": [
+//	   {
+//	     "type":"dogu",
+//	     "name":"nginx"
+//	   }
+//	 ],
+//	 "Volumes": [
+//	   {
+//	     "Name": "temp",
+//	     "Path":"/tmp",
+//	     "Owner":"1000",
+//	     "Group":"1000",
+//	     "NeedsBackup": false
+//	   }
+//	 ],
+//	 "HealthChecks": [
+//	   {
+//	     "Type": "tcp",
+//	     "Port": 8080
+//	   }
+//	 ]
+//	}
+//
+// [OCI container image]: https://opencontainers.org/
 type Dogu struct {
 	// Name contains the dogu's full qualified name which consists of the dogu namespace and the dogu simple name,
 	// delimited by a single forward slash "/". This field is mandatory.
@@ -601,6 +602,16 @@ type Dogu struct {
 	//  VERSION="1.23.2-1"
 	//
 	Version string
+	// PublishedAt is the date and time when the dogu was created.
+  //
+  // This field does not need to be filled in by the developer. The dogu.cloudogu.com service automatically replaces
+  // the content with the current time when the new dogu is created.
+  //
+  // Examples:
+  //   - 2024-10-16T07:49:34.738Z
+  //   - 2019-05-03T13:31:48.612Z
+  //
+	PublishedAt time.Time
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu. This field is mandatory.
 	//
 	// Usages:
@@ -1176,6 +1187,7 @@ func (d *Dogu) CreateV1Copy() DoguV1 {
 	dogu := DoguV1{}
 	dogu.Name = d.Name
 	dogu.Version = d.Version
+  dogu.PublishedAt = d.PublishedAt
 	dogu.DisplayName = d.DisplayName
 	dogu.Description = d.Description
 	dogu.Category = d.Category
