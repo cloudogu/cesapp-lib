@@ -74,6 +74,27 @@ type MarketingDogu struct {
 	//
 	// See also Dogu.Name for how dogu names are constructed.
 	Name string
+	// Version defines the actual version of the dogu.
+	//
+	// The version follows the format from semantic versioning and additionally is split in two parts.
+	// The application version and the dogu version.
+	//
+	// An example would be 1.7.8-1 or 2.2.0-4. The first part of the version (e.g. 1.7.8) represents the
+	// version of the application (e.g. the nginx version in the nginx dogu). The second part represents the version
+	// of the dogu and for an initial release it should start at 1 (e.g. 1.7.8-1).
+	//
+	// Example versions in the dogu.json:
+	//  - 1.7.8-1
+	//  - 2.2.0-4
+	//
+	Version string
+	// PublishedAt is the date and time when the dogu was created.
+	//
+	// Examples:
+	//   - 2024-10-16T07:49:34.738Z
+	//   - 2019-05-03T13:31:48.612Z
+	//
+	PublishedAt string
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu.
 	//
 	// Examples:

@@ -603,14 +603,14 @@ type Dogu struct {
 	//
 	Version string
 	// PublishedAt is the date and time when the dogu was created.
-  //
-  // This field does not need to be filled in by the developer. The dogu.cloudogu.com service automatically replaces
-  // the content with the current time when the new dogu is created.
-  //
-  // Examples:
-  //   - 2024-10-16T07:49:34.738Z
-  //   - 2019-05-03T13:31:48.612Z
-  //
+	//
+	// This field does not need to be filled in by the developer. The dogu.cloudogu.com service automatically replaces
+	// the content with the current time when the new dogu is created.
+	//
+	// Examples:
+	//   - 2024-10-16T07:49:34.738Z
+	//   - 2019-05-03T13:31:48.612Z
+	//
 	PublishedAt time.Time
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu. This field is mandatory.
 	//
@@ -1187,7 +1187,7 @@ func (d *Dogu) CreateV1Copy() DoguV1 {
 	dogu := DoguV1{}
 	dogu.Name = d.Name
 	dogu.Version = d.Version
-  dogu.PublishedAt = d.PublishedAt
+	dogu.PublishedAt = d.PublishedAt
 	dogu.DisplayName = d.DisplayName
 	dogu.Description = d.Description
 	dogu.Category = d.Category
