@@ -8,31 +8,141 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSortByDependency(t *testing.T) {
-	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-004.json")
-	require.NoError(t, err)
-	var doguNames []string
-	for _, dogu := range dogus {
-		doguNames = append(doguNames, dogu.GetSimpleName())
-	}
-	ordered := SortDogusByDependency(dogus)
-	var installedDogus []string
-	assert.Equal(t, len(dogus), len(ordered))
-	for _, orderedDogu := range ordered {
-		for _, dependency := range orderedDogu.GetDependenciesOfType(DependencyTypeDogu) {
-			assert.Contains(t, installedDogus, dependency.Name,
-				"%s installed before dependency: %s", orderedDogu.GetSimpleName(), dependency.Name)
+func TestSortDogusByDependencyWithError(t *testing.T) {
+	t.Run("should return ordered dogu slice with many dogus", func(t *testing.T) {
+		dogus := []*Dogu{}
+		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-004.json")
+		require.NoError(t, err)
+		var doguNames []string
+		for _, dogu := range dogus {
+			doguNames = append(doguNames, dogu.GetSimpleName())
+		}
+		ordered, err := SortDogusByDependencyWithError(dogus)
+		require.NoError(t, err)
+
+		var installedDogus []string
+		assert.Equal(t, len(dogus), len(ordered))
+		for _, orderedDogu := range ordered {
+			for _, dependency := range orderedDogu.GetDependenciesOfType(DependencyTypeDogu) {
+				assert.Contains(t, installedDogus, dependency.Name,
+					"%s installed before dependency: %s", orderedDogu.GetSimpleName(), dependency.Name)
+			}
+
+			for _, optionalDependency := range orderedDogu.GetOptionalDependenciesOfType(DependencyTypeDogu) {
+				if stringSliceContains(doguNames, optionalDependency.Name) {
+					assert.Contains(t, installedDogus, optionalDependency.Name,
+						"%s installed before dependency: %s", orderedDogu.GetSimpleName(), optionalDependency.Name)
+				}
+			}
+			installedDogus = append(installedDogus, orderedDogu.GetSimpleName())
+		}
+	})
+
+	t.Run("should return ordered dogu slice with small list of dogus", func(t *testing.T) {
+		dogus := []*Dogu{}
+		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-002.json")
+		assert.Nil(t, err)
+		ordered, err := SortDogusByDependencyWithError(dogus)
+		require.NoError(t, err)
+
+		assert.Equal(t, "registrator", ordered[0].GetSimpleName())
+		assert.Equal(t, "nginx", ordered[1].GetSimpleName())
+		assert.Equal(t, "icoordinator", ordered[2].GetSimpleName())
+	})
+
+	t.Run("should return ordered dogu slice with transitive dogu dependencies", func(t *testing.T) {
+		// a needs b in 1.0-2 and nginx
+		// b needs c in 1.0-2 and nginx
+		// c needs e in 1.0-2 and nginx and optional d in 1.0-2
+		// e needs nginx
+		// d needs nginx
+		// Dependency tree:
+		// 					(opt)-> d
+		// 					/		|
+		// a ---> b ---> c ---> e	|
+		// |	  |		 |		|	|
+		// |	  |		 |		|	|
+		// --------------------------->nginx
+		dogus := []*Dogu{}
+		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-003.json")
+		assert.Nil(t, err)
+
+		ordered, err := SortDogusByDependencyWithError(dogus)
+		require.NoError(t, err)
+
+		var orderedNames []string
+		for _, orderedDogu := range ordered {
+			orderedNames = append(orderedNames, orderedDogu.GetSimpleName())
 		}
 
-		for _, optionalDependency := range orderedDogu.GetOptionalDependenciesOfType(DependencyTypeDogu) {
-			if stringSliceContains(doguNames, optionalDependency.Name) {
-				assert.Contains(t, installedDogus, optionalDependency.Name,
-					"%s installed before dependency: %s", orderedDogu.GetSimpleName(), optionalDependency.Name)
-			}
+		// Dogu E and Dogu D can both be installed first and the sort algorithm is not deterministic.
+		assert.Contains(t, orderedNames[0:2], "dogue")
+		assert.Contains(t, orderedNames[0:2], "dogud")
+		assert.Equal(t, "doguc", orderedNames[2])
+		assert.Equal(t, "dogub", orderedNames[3])
+		assert.Equal(t, "dogua", orderedNames[4])
+	})
+
+	t.Run("should return ordered dogu slice with optional dogu dependencies", func(t *testing.T) {
+		// Dependency tree:
+		// d ----> a ----> b
+		//          \_    ^
+		//            \   |
+		//             -> c
+		a := &Dogu{
+			Name:                 "a",
+			Dependencies:         []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
 		}
-		installedDogus = append(installedDogus, orderedDogu.GetSimpleName())
-	}
+
+		b := &Dogu{Name: "b"}
+
+		c := &Dogu{
+			Name:                 "c",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+		}
+
+		d := &Dogu{
+			Name:                 "d",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
+		}
+
+		dogus, err := SortDogusByDependencyWithError([]*Dogu{a, b, c, d})
+		require.NoError(t, err)
+		assert.Equal(t, "b", dogus[0].Name)
+		assert.Equal(t, "c", dogus[1].Name)
+		assert.Equal(t, "a", dogus[2].Name)
+		assert.Equal(t, "d", dogus[3].Name)
+	})
+
+	t.Run("should return error when cyclic dependencies", func(t *testing.T) {
+		// Dependency tree:
+		// a <--- b
+		//  \_    ^
+		//    \   |
+		//     -> c
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		b := &Dogu{
+			Name:         "b",
+			Dependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
+		}
+
+		c := &Dogu{
+			Name:                 "c",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+		}
+
+		dogus, err := SortDogusByDependencyWithError([]*Dogu{a, b, c})
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "sort by dependency failed")
+		assert.ErrorContains(t, err, "error in sorting dogus by dependency")
+		assert.Nil(t, dogus)
+	})
+
 }
 
 func stringSliceContains(slice []string, item string) bool {
@@ -42,79 +152,6 @@ func stringSliceContains(slice []string, item string) bool {
 		}
 	}
 	return false
-}
-
-func TestSortByDependencyWithSmallList(t *testing.T) {
-	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-002.json")
-	assert.Nil(t, err)
-	ordered := SortDogusByDependency(dogus)
-
-	assert.Equal(t, "registrator", ordered[0].GetSimpleName())
-	assert.Equal(t, "nginx", ordered[1].GetSimpleName())
-	assert.Equal(t, "icoordinator", ordered[2].GetSimpleName())
-}
-
-func TestSortByDependencyWithTransitiveDependencies(t *testing.T) {
-	// a needs b in 1.0-2 and nginx
-	// b needs c in 1.0-2 and nginx
-	// c needs e in 1.0-2 and nginx and optional d in 1.0-2
-	// e needs nginx
-	// d needs nginx
-	// Dependency tree:
-	// 					(opt)-> d
-	// 					/		|
-	// a ---> b ---> c ---> e	|
-	// |	  |		 |		|	|
-	// |	  |		 |		|	|
-	// --------------------------->nginx
-	dogus := []*Dogu{}
-	dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-003.json")
-	assert.Nil(t, err)
-
-	ordered := SortDogusByDependency(dogus)
-	var orderedNames []string
-	for _, orderedDogu := range ordered {
-		orderedNames = append(orderedNames, orderedDogu.GetSimpleName())
-	}
-
-	// Dogu E and Dogu D can both be installed first and the sort algorithm is not deterministic.
-	assert.Contains(t, orderedNames[0:2], "dogue")
-	assert.Contains(t, orderedNames[0:2], "dogud")
-	assert.Equal(t, "doguc", orderedNames[2])
-	assert.Equal(t, "dogub", orderedNames[3])
-	assert.Equal(t, "dogua", orderedNames[4])
-}
-
-func TestSortByDependencyWithOptionalDependencies(t *testing.T) {
-	// Dependency tree:
-	// d ----> a ----> b
-	//          \_    ^
-	//            \   |
-	//             -> c
-	a := &Dogu{
-		Name:                 "a",
-		Dependencies:         []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
-		OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
-	}
-
-	b := &Dogu{Name: "b"}
-
-	c := &Dogu{
-		Name:                 "c",
-		OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
-	}
-
-	d := &Dogu{
-		Name:                 "d",
-		OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
-	}
-
-	dogus := SortDogusByDependency([]*Dogu{a, b, c, d})
-	assert.Equal(t, "b", dogus[0].Name)
-	assert.Equal(t, "c", dogus[1].Name)
-	assert.Equal(t, "a", dogus[2].Name)
-	assert.Equal(t, "d", dogus[3].Name)
 }
 
 func TestSortByName(t *testing.T) {
@@ -136,9 +173,10 @@ func TestSortByName(t *testing.T) {
 	assert.Equal(t, "usermgt", ordered[11].GetSimpleName())
 }
 
-func TestSortDogusByInvertedDependency(t *testing.T) {
+func TestSortDogusByInvertedDependencyWithError(t *testing.T) {
 	t.Run("should return empty slice", func(t *testing.T) {
-		actual := SortDogusByInvertedDependency([]*Dogu{})
+		actual, err := SortDogusByInvertedDependencyWithError([]*Dogu{})
+		require.NoError(t, err)
 
 		require.Empty(t, actual)
 	})
@@ -147,14 +185,15 @@ func TestSortDogusByInvertedDependency(t *testing.T) {
 		dogus := []*Dogu{}
 		dogus, _, _ = ReadDogusFromFile("../resources/test/dogu-sort-002.json")
 
-		actual := SortDogusByInvertedDependency(dogus)
+		actual, err := SortDogusByInvertedDependencyWithError(dogus)
+		require.NoError(t, err)
 
 		assert.Equal(t, "icoordinator", actual[0].GetSimpleName())
 		assert.Equal(t, "nginx", actual[1].GetSimpleName())
 		assert.Equal(t, "registrator", actual[2].GetSimpleName())
 	})
 
-	t.Run("should return dogus sorted by by least important dogus first including optional dogus", func(t *testing.T) {
+	t.Run("should return dogus sorted by least important dogus first including optional dogus", func(t *testing.T) {
 		// Dependency tree:
 		// d ----> a ----> b
 		//          \_    ^
@@ -178,11 +217,98 @@ func TestSortDogusByInvertedDependency(t *testing.T) {
 			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
 		}
 
-		dogus := SortDogusByInvertedDependency([]*Dogu{a, b, c, d})
+		dogus, err := SortDogusByInvertedDependencyWithError([]*Dogu{a, b, c, d})
+		require.NoError(t, err)
+
 		assert.Equal(t, "d", dogus[0].Name)
 		assert.Equal(t, "a", dogus[1].Name)
 		assert.Equal(t, "c", dogus[2].Name)
 		assert.Equal(t, "b", dogus[3].Name)
+	})
+
+	t.Run("should return error when cyclic dependencies", func(t *testing.T) {
+		// Dependency tree:
+		// a <--- b
+		//  \_    ^
+		//    \   |
+		//     -> c
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		b := &Dogu{
+			Name:         "b",
+			Dependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
+		}
+
+		c := &Dogu{
+			Name:                 "c",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+		}
+
+		dogus, err := SortDogusByInvertedDependencyWithError([]*Dogu{a, b, c})
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "sort by dependency failed")
+		assert.ErrorContains(t, err, "error in sorting dogus by inverted dependency")
+		assert.Nil(t, dogus)
+	})
+}
+
+func TestSortDogusByDependency(t *testing.T) {
+	t.Run("should return nil slice and no error when cyclic dependencies", func(t *testing.T) {
+		// Dependency tree:
+		// a <--- b
+		//  \_    ^
+		//    \   |
+		//     -> c
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		b := &Dogu{
+			Name:         "b",
+			Dependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
+		}
+
+		c := &Dogu{
+			Name:                 "c",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+		}
+
+		//goland:noinspection GoDeprecation
+		dogus := SortDogusByDependency([]*Dogu{a, b, c})
+		assert.Nil(t, dogus)
+	})
+
+}
+
+func TestSortDogusByInvertedDependency(t *testing.T) {
+	t.Run("should return nil slice and no error when cyclic dependencies", func(t *testing.T) {
+		// Dependency tree:
+		// a <--- b
+		//  \_    ^
+		//    \   |
+		//     -> c
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		b := &Dogu{
+			Name:         "b",
+			Dependencies: []Dependency{{Type: DependencyTypeDogu, Name: "a"}},
+		}
+
+		c := &Dogu{
+			Name:                 "c",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "b"}},
+		}
+
+		//goland:noinspection GoDeprecation
+		dogus := SortDogusByInvertedDependency([]*Dogu{a, b, c})
+		assert.Nil(t, dogus)
 	})
 }
 

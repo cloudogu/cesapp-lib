@@ -8,22 +8,48 @@ import (
 
 // SortDogusByDependency takes an unsorted slice of Dogu structs and returns a slice of Dogus ordered by the
 // importance of their dependencies descending, that is: the most needed dogu will be the first element.
+//
+// Deprecated: This function returns nil on error. For better error-handling use SortDogusByDependencyWithError instead.
+//
+//goland:noinspection GoDeprecation
 func SortDogusByDependency(dogus []*Dogu) []*Dogu {
+	orderedDogus, _ := SortDogusByDependencyWithError(dogus)
+	return orderedDogus
+}
+
+// SortDogusByDependencyWithError takes an unsorted slice of Dogu structs and returns a slice of Dogus ordered by the
+// importance of their dependencies descending, that is: the most needed dogu will be the first element.
+func SortDogusByDependencyWithError(dogus []*Dogu) ([]*Dogu, error) {
 	ordered := sortByDependency{dogus}
-	return ordered.sortDogus()
+	orderedDogus, err := ordered.sortDogusByDependency()
+	if err != nil {
+		err = fmt.Errorf("error in sorting dogus by dependency: %s", err)
+		log.Error(err)
+	}
+	return orderedDogus, err
 }
 
 // SortDogusByInvertedDependency takes an unsorted slice of Dogu structs and returns a new slice of Dogus ordered by the
 // importance of their dependencies ascending, that is: the most independent dogu will be the first element.
+//
+// Deprecated: This function returns nil on error. For better error-handling use SortDogusByInvertedDependencyWithError instead.
+//
+//goland:noinspection GoDeprecation
 func SortDogusByInvertedDependency(dogus []*Dogu) []*Dogu {
-	orderedDesc := SortDogusByDependency(dogus)
+	orderedDogus, _ := SortDogusByInvertedDependencyWithError(dogus)
+	return orderedDogus
+}
 
-	orderedAsc := []*Dogu{}
-	for i := len(orderedDesc) - 1; i >= 0; i-- {
-		orderedAsc = append(orderedAsc, orderedDesc[i])
+// SortDogusByInvertedDependencyWithError takes an unsorted slice of Dogu structs and returns a new slice of Dogus ordered by the
+// importance of their dependencies ascending, that is: the most independent dogu will be the first element.
+func SortDogusByInvertedDependencyWithError(dogus []*Dogu) ([]*Dogu, error) {
+	ordered := sortByDependency{dogus}
+	orderedDogus, err := ordered.sortDogusByInvertedDependency()
+	if err != nil {
+		err = fmt.Errorf("error in sorting dogus by inverted dependency: %s", err)
+		log.Error(err)
 	}
-
-	return orderedAsc
+	return orderedDogus, err
 }
 
 // SortDogusByName takes an unsorted slice of Dogus
@@ -65,19 +91,10 @@ func contains(slice []Dependency, item string) bool {
 	return false
 }
 
-func (bd *sortByDependency) sortDogus() []*Dogu {
+func (bd *sortByDependency) sortDogusByDependency() ([]*Dogu, error) {
 	dependencyEdges := bd.getDependencyEdges()
 	sorted, err := toposort.Toposort(dependencyEdges)
-	if err != nil {
-		return nil
-	}
-
-	sortedDogus, err := toDoguSlice(sorted)
-	if err != nil {
-		return nil
-	}
-
-	return sortedDogus
+	return bd.handleSortResult(sorted, err)
 }
 
 func (bd *sortByDependency) getDependencyEdges() []toposort.Edge {
@@ -118,4 +135,27 @@ func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Do
 	}
 
 	return result
+}
+
+func (bd *sortByDependency) sortDogusByInvertedDependency() ([]*Dogu, error) {
+	dependencyEdges := bd.getDependencyEdges()
+	sorted, err := toposort.ToposortR(dependencyEdges)
+	return bd.handleSortResult(sorted, err)
+}
+
+func (bd *sortByDependency) handleSortResult(sorted []interface{}, err error) ([]*Dogu, error) {
+	if err != nil {
+		err = fmt.Errorf("sort by dependency failed: %s", err)
+		log.Error(err)
+		return nil, err
+	}
+
+	sortedDogus, err := toDoguSlice(sorted)
+	if err != nil {
+		err = fmt.Errorf("sort by dependency failed: %s", err)
+		log.Error(err)
+		return nil, err
+	}
+
+	return sortedDogus, nil
 }
