@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/eapache/go-resiliency v1.2.0
+	github.com/gammazero/toposort v0.1.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1

@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.14.1] - 2024-10-17
+### Changed
+- use topological sorting to sort dogus by dependency
+
+### Deprecated
+- `SortDogusByDependency`: Use `SortDogusByDependencyWithError` instead for better error handling
+- `SortDogusByInvertedDependency`: Use `SortDogusByInvertedDependencyWithError` instead for better error handling
+
 ## [v0.14.0] - 2024-09-18
 ### Changed
 - Relicense to AGPL-3.0-only (#40)
