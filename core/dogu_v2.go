@@ -1184,27 +1184,28 @@ func GetNamespace(fullDoguName string) string {
 
 // CreateV1Copy converts this dogu object into a deep-copied DoguV1 object (for legacy reasons).
 func (d *Dogu) CreateV1Copy() DoguV1 {
-	dogu := DoguV1{}
-	dogu.Name = d.Name
-	dogu.Version = d.Version
-	dogu.PublishedAt = d.PublishedAt
-	dogu.DisplayName = d.DisplayName
-	dogu.Description = d.Description
-	dogu.Category = d.Category
-	dogu.Tags = d.Tags
-	dogu.Logo = d.Logo
-	dogu.URL = d.URL
-	dogu.Image = d.Image
-	dogu.ExposedPorts = d.ExposedPorts
-	dogu.ExposedCommands = d.ExposedCommands
-	dogu.Volumes = d.Volumes
-	dogu.HealthCheck = d.HealthCheck
-	dogu.HealthChecks = d.HealthChecks
-	dogu.ServiceAccounts = d.ServiceAccounts
-	dogu.Privileged = d.Privileged
-	dogu.Configuration = d.Configuration
-	dogu.Properties = d.Properties
-	dogu.EnvironmentVariables = d.EnvironmentVariables
+	dogu := DoguV1{
+		Name:                 d.Name,
+		Version:              d.Version,
+		PublishedAt:          d.PublishedAt,
+		DisplayName:          d.DisplayName,
+		Description:          d.Description,
+		Category:             d.Category,
+		Tags:                 d.Tags,
+		Logo:                 d.Logo,
+		URL:                  d.URL,
+		Image:                d.Image,
+		ExposedPorts:         d.ExposedPorts,
+		ExposedCommands:      d.ExposedCommands,
+		Volumes:              d.Volumes,
+		HealthCheck:          d.HealthCheck,
+		HealthChecks:         d.HealthChecks,
+		ServiceAccounts:      d.ServiceAccounts,
+		Privileged:           d.Privileged,
+		Configuration:        d.Configuration,
+		Properties:           d.Properties,
+		EnvironmentVariables: d.EnvironmentVariables,
+	}
 
 	var dependencies []string
 	for _, dependency := range d.GetDependenciesOfType(DependencyTypeDogu) {
