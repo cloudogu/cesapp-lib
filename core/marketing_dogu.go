@@ -1,5 +1,7 @@
 package core
 
+import "time"
+
 // MarketingDogu describes properties of a dogu which can be used to enhance the representation of a dogu in UI frontends.
 //
 // Example:
@@ -94,7 +96,7 @@ type MarketingDogu struct {
 	//   - 2024-10-16T07:49:34.738Z
 	//   - 2019-05-03T13:31:48.612Z
 	//
-	PublishedAt string
+	PublishedAt time.Time
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu.
 	//
 	// Examples:
