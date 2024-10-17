@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- [#43] add a timestamp to `dogu_v1` and `dogu_v2` which represents the date and time when a dogu was created
+
 ## [v0.14.0] - 2024-09-18
 ### Changed
 - Relicense to AGPL-3.0-only (#40)
