@@ -1,0 +1,602 @@
+[
+   {
+      "Name": "premium/backup",
+      "Version": "1.11.2-2",
+      "DisplayName": "Backup & Restore",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "package",
+            "name": "backup-watcher",
+            "version": ""
+         },
+         {
+            "type": "package",
+            "name": "cesapp",
+            "version": ">=7.3.0"
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/redmine",
+      "Version": "5.1.3-4",
+      "DisplayName": "Redmine",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "postgresql",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/usermgt",
+      "Version": "1.16.3-1",
+      "DisplayName": "User Management",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "ldap",
+            "version": ">=2.6.2-7"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/smeagol",
+      "Version": "1.7.3-4",
+      "DisplayName": "Smeagol",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "scm",
+            "version": ">=2.20.0-1"
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/scm",
+      "Version": "3.4.1-3",
+      "DisplayName": "SCM-Manager",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": [
+         {
+            "type": "dogu",
+            "name": "redmine",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "easyredmine",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "jenkins",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "cockpit",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "jira",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "gotenberg",
+            "version": ""
+         }
+      ]
+   },
+   {
+      "Name": "official/nexus",
+      "Version": "3.70.2-3",
+      "DisplayName": "Sonatype Nexus",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/jenkins",
+      "Version": "2.462.2-1",
+      "DisplayName": "Jenkins CI",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/cockpit",
+      "Version": "2.1.0-1",
+      "DisplayName": "Cockpit",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "postgresql",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/cas",
+      "Version": "7.0.8-2",
+      "DisplayName": "Central Authentication Service",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ">=1.26.1-5"
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": [
+         {
+            "type": "dogu",
+            "name": "ldap",
+            "version": ""
+         }
+      ]
+   },
+   {
+      "Name": "official/plantuml",
+      "Version": "2024.7-1",
+      "DisplayName": "PlantUML",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/nginx",
+      "Version": "1.26.1-11",
+      "DisplayName": "Nginx",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "registrator",
+            "version": ">=0.10.0-1"
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/registrator",
+      "Version": "0.12.0-1",
+      "DisplayName": "Registrator",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/postgresql",
+      "Version": "14.12-3",
+      "DisplayName": "PostgreSQL",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/postfix",
+      "Version": "3.9.0-3",
+      "DisplayName": "Postfix",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/ldap",
+      "Version": "2.6.7-4",
+      "DisplayName": "OpenLDAP",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/swaggerui",
+      "Version": "4.9.0-5",
+      "DisplayName": "Swagger UI",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "premium/monitoring",
+      "Version": "0.3.3-1",
+      "DisplayName": "Monitoring",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": [
+         {
+            "type": "dogu",
+            "name": "backup",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "registrator",
+            "version": ""
+         }
+      ]
+   },
+   {
+      "Name": "official/gotenberg",
+      "Version": "8.8.0-3",
+      "DisplayName": "Gotenberg",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/redis",
+      "Version": "6.2.14-4",
+      "DisplayName": "Redis",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "official/mysql",
+      "Version": "8.0.38-3",
+      "DisplayName": "MySQL",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "itz-bund/teamscale",
+      "Version": "2024.7.3-1",
+      "DisplayName": "Teamscale",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "ldap",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": [
+         {
+            "type": "dogu",
+            "name": "scm",
+            "version": ""
+         }
+      ]
+   },
+   {
+      "Name": "hallowelt/bluespice",
+      "Version": "4.5.2-1",
+      "DisplayName": "BlueSpice",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "mysql",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "postfix",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "bluespice-opensearch",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "bluespice-pdfrenderer",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "drawio",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "bluespice-mathoid",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "mongodb",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "bluespice-collabpadsbackend",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/bluespice-pdfrenderer",
+      "Version": "4.4-1",
+      "DisplayName": "BlueSpice - PdfRenderer-Service",
+      "Dependencies": [],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/drawio",
+      "Version": "20.3.7-6",
+      "DisplayName": "Drawio-Service",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/bluespice-opensearch",
+      "Version": "2.11.1-2",
+      "DisplayName": "BlueSpice - opensearch-Service",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/bluespice-mathoid",
+      "Version": "4.4-3",
+      "DisplayName": "BlueSpice - mathoid-Service",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/bluespice-collabpadsbackend",
+      "Version": "1.0.2-1",
+      "DisplayName": "BlueSpice - Collabpads Service",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "mongodb",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "hallowelt/mongodb",
+      "Version": "4.4.29-1",
+      "DisplayName": "MongoDB Service",
+      "Dependencies": null,
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "premium/admin",
+      "Version": "2.12.3-1",
+      "DisplayName": "Administration",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "package",
+            "name": "cesappd",
+            "version": ">=3.5.1"
+         }
+      ],
+      "OptionalDependencies": [
+         {
+            "type": "package",
+            "name": "ces-setup",
+            "version": ">1.8.0"
+         }
+      ]
+   },
+   {
+      "Name": "premium/portainer",
+      "Version": "2.21.2-1",
+      "DisplayName": "Portainer",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-4"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "itz-bund/baseline",
+      "Version": "1.5.1-4",
+      "DisplayName": "Baseline",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "cas",
+            "version": ">=7.0.5.1-6"
+         },
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         },
+         {
+            "type": "dogu",
+            "name": "scm",
+            "version": ">=2.24.0-1"
+         },
+         {
+            "type": "dogu",
+            "name": "nexus",
+            "version": ">=3.34.1-3"
+         }
+      ],
+      "OptionalDependencies": null
+   },
+   {
+      "Name": "premium/whitelabeling",
+      "Version": "1.0.0-1",
+      "DisplayName": "Whitelabeling",
+      "Dependencies": [
+         {
+            "type": "dogu",
+            "name": "nginx",
+            "version": ""
+         }
+      ],
+      "OptionalDependencies": null
+   }
+]
