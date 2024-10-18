@@ -143,6 +143,18 @@ func TestSortDogusByDependencyWithError(t *testing.T) {
 		assert.Nil(t, dogus)
 	})
 
+	t.Run("should return dogu if only irrelevant optional dependencies are set", func(t *testing.T) {
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		dogus, err := SortDogusByDependencyWithError([]*Dogu{a})
+		assert.NoError(t, err)
+		assert.Len(t, dogus, 1)
+		assert.Equal(t, "a", dogus[0].Name)
+	})
+
 }
 
 func stringSliceContains(slice []string, item string) bool {
@@ -309,6 +321,18 @@ func TestSortDogusByInvertedDependency(t *testing.T) {
 		//goland:noinspection GoDeprecation
 		dogus := SortDogusByInvertedDependency([]*Dogu{a, b, c})
 		assert.Nil(t, dogus)
+	})
+
+	t.Run("should return dogu if only irrelevant optional dependencies are set", func(t *testing.T) {
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		dogus, err := SortDogusByInvertedDependencyWithError([]*Dogu{a})
+		assert.NoError(t, err)
+		assert.Len(t, dogus, 1)
+		assert.Equal(t, "a", dogus[0].Name)
 	})
 }
 
