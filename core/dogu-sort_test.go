@@ -143,6 +143,18 @@ func TestSortDogusByDependencyWithError(t *testing.T) {
 		assert.Nil(t, dogus)
 	})
 
+	t.Run("should map k8s dependencies correctly and sort accordingly", func(t *testing.T) {
+		dogus := []*Dogu{}
+		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-005.json")
+		assert.Nil(t, err)
+		ordered, err := SortDogusByDependencyWithError(dogus)
+		require.NoError(t, err)
+
+		assert.Equal(t, "nginx-ingress", ordered[0].GetSimpleName())
+		assert.Equal(t, "nginx-static", ordered[1].GetSimpleName())
+		assert.Equal(t, "cas", ordered[2].GetSimpleName())
+	})
+
 }
 
 func stringSliceContains(slice []string, item string) bool {
@@ -252,6 +264,18 @@ func TestSortDogusByInvertedDependencyWithError(t *testing.T) {
 		assert.ErrorContains(t, err, "sort by dependency failed")
 		assert.ErrorContains(t, err, "error in sorting dogus by inverted dependency")
 		assert.Nil(t, dogus)
+	})
+
+	t.Run("should map k8s dependencies correctly and sort accordingly", func(t *testing.T) {
+		dogus := []*Dogu{}
+		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-005.json")
+		assert.Nil(t, err)
+		ordered, err := SortDogusByInvertedDependencyWithError(dogus)
+		require.NoError(t, err)
+
+		assert.Equal(t, "cas", ordered[0].GetSimpleName())
+		assert.Equal(t, "nginx-static", ordered[1].GetSimpleName())
+		assert.Equal(t, "nginx-ingress", ordered[2].GetSimpleName())
 	})
 }
 

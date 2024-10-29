@@ -1,0 +1,67 @@
+[
+  {
+    "Name": "official/cas",
+    "Version": "7.0.8-2",
+    "DisplayName": "Central Authentication Service",
+    "Dependencies": [
+      {
+        "type": "dogu",
+        "name": "nginx",
+        "version": ">=1.26.1-5"
+      }
+    ],
+    "OptionalDependencies": [
+      {
+        "type": "dogu",
+        "name": "ldap",
+        "version": ""
+      }
+    ]
+  },
+  {
+    "Name": "k8s/nginx-static",
+    "Version": "1.26.1-7",
+    "DisplayName": "Nginx Static",
+    "Dependencies": [
+      {
+        "type": "dogu",
+        "name": "nginx-ingress",
+        "version": ""
+      },
+      {
+        "type": "client",
+        "name": "k8s-dogu-operator",
+        "version": ""
+      },
+      {
+        "type": "client",
+        "name": "cesapp",
+        "version": "<0.0.0"
+      }
+    ],
+    "OptionalDependencies": null
+  },
+  {
+    "Name": "k8s/nginx-ingress",
+    "Version": "1.11.1-3",
+    "DisplayName": "Nginx Ingress",
+    "Dependencies": [
+      {
+        "type": "client",
+        "name": "k8s-dogu-operator",
+        "version": ">=0.16.0"
+      },
+      {
+        "type": "client",
+        "name": "cesapp",
+        "version": "<0.0.0"
+      },
+      {
+        "type": "client",
+        "name": "ces-setup",
+        "version": "<0.0.0"
+      }
+    ],
+    "OptionalDependencies": null
+  }
+]
