@@ -115,8 +115,8 @@ func (bd *sortByDependency) getDependencyEdges() []toposort.Edge {
 	var dependencyEdges []toposort.Edge
 	for _, dogu := range bd.dogus {
 		dependencies := dogu.GetAllDependenciesOfType(DependencyTypeDogu)
-		if len(dependencies) > 0 {
-			dependentDogus := bd.dependenciesToDogus(dependencies)
+		dependentDogus := bd.dependenciesToDogus(dependencies)
+		if len(dependentDogus) > 0 {
 			for _, dependency := range dependentDogus {
 				dependencyEdges = append(dependencyEdges, toposort.Edge{dependency, dogu})
 			}

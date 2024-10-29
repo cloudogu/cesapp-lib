@@ -143,6 +143,18 @@ func TestSortDogusByDependencyWithError(t *testing.T) {
 		assert.Nil(t, dogus)
 	})
 
+	t.Run("should return dogu if only irrelevant optional dependencies are set", func(t *testing.T) {
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		dogus, err := SortDogusByDependencyWithError([]*Dogu{a})
+		assert.NoError(t, err)
+		assert.Len(t, dogus, 1)
+		assert.Equal(t, "a", dogus[0].Name)
+	})
+
 	t.Run("should map k8s dependencies correctly and sort accordingly", func(t *testing.T) {
 		dogus := []*Dogu{}
 		dogus, _, err := ReadDogusFromFile("../resources/test/dogu-sort-005.json")
@@ -264,6 +276,18 @@ func TestSortDogusByInvertedDependencyWithError(t *testing.T) {
 		assert.ErrorContains(t, err, "sort by dependency failed")
 		assert.ErrorContains(t, err, "error in sorting dogus by inverted dependency")
 		assert.Nil(t, dogus)
+	})
+
+	t.Run("should return dogu if only irrelevant optional dependencies are set", func(t *testing.T) {
+		a := &Dogu{
+			Name:                 "a",
+			OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
+		}
+
+		dogus, err := SortDogusByInvertedDependencyWithError([]*Dogu{a})
+		assert.NoError(t, err)
+		assert.Len(t, dogus, 1)
+		assert.Equal(t, "a", dogus[0].Name)
 	})
 
 	t.Run("should map k8s dependencies correctly and sort accordingly", func(t *testing.T) {
