@@ -7,7 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 ### Fixed
-- map nginx dependencies to k8s equivalent dogus 
+- [#47] map nginx dependencies to k8s equivalent dogus 
 
 ## [v0.14.2] - 2024-10-18
 ### Fixed
