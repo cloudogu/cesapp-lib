@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- [#47] map nginx dependencies to k8s equivalent dogus 
 
 ## [v0.14.2] - 2024-10-18
 ### Fixed
