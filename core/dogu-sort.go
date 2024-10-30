@@ -6,6 +6,16 @@ import (
 	"sort"
 )
 
+var (
+	nginxIngressDependency = Dependency{
+		Type: DependencyTypeDogu,
+		Name: "nginx-ingress",
+	}
+	k8sDependencyMapping = map[string]Dependency{
+		"nginx": nginxIngressDependency,
+	}
+)
+
 // SortDogusByDependency takes an unsorted slice of Dogu structs and returns a slice of Dogus ordered by the
 // importance of their dependencies descending, that is: the most needed dogu will be the first element.
 //
@@ -128,6 +138,9 @@ func toDoguSlice(dogus []interface{}) ([]*Dogu, error) {
 func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Dogu {
 	var result []*Dogu
 
+	// we can just append all k8s mappings here, since not installed dogus will be removed in the next step
+	dependencies = appendK8sMappedDependencies(dependencies)
+
 	for _, dogu := range bd.dogus {
 		if contains(dependencies, dogu.GetSimpleName()) {
 			result = append(result, dogu)
@@ -135,6 +148,15 @@ func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Do
 	}
 
 	return result
+}
+
+func appendK8sMappedDependencies(dependencies []Dependency) []Dependency {
+	for _, dep := range dependencies {
+		if _, ok := k8sDependencyMapping[dep.Name]; ok {
+			dependencies = append(dependencies, k8sDependencyMapping[dep.Name])
+		}
+	}
+	return dependencies
 }
 
 func (bd *sortByDependency) sortDogusByInvertedDependency() ([]*Dogu, error) {

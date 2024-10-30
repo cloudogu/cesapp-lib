@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.14.3] - 2024-10-30
+### Fixed
+- [#47] map nginx dependencies to k8s equivalent dogus 
+
 ## [v0.14.2] - 2024-10-18
 ### Fixed
 - [#44] fix, that dogus with irrelevant optional dependencies were not included when sorting by dependency
