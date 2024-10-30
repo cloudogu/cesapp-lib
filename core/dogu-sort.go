@@ -11,7 +11,7 @@ var (
 		Type: DependencyTypeDogu,
 		Name: "nginx-ingress",
 	}
-	K8sDependencyMapping = map[string]Dependency{
+	k8sDependencyMapping = map[string]Dependency{
 		"nginx": nginxIngressDependency,
 	}
 )
@@ -152,8 +152,8 @@ func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Do
 
 func appendK8sMappedDependencies(dependencies []Dependency) []Dependency {
 	for _, dep := range dependencies {
-		if _, ok := K8sDependencyMapping[dep.Name]; ok {
-			dependencies = append(dependencies, K8sDependencyMapping[dep.Name])
+		if _, ok := k8sDependencyMapping[dep.Name]; ok {
+			dependencies = append(dependencies, k8sDependencyMapping[dep.Name])
 		}
 	}
 	return dependencies
