@@ -11,12 +11,8 @@ var (
 		Type: DependencyTypeDogu,
 		Name: "nginx-ingress",
 	}
-	nginxStaticDependency = Dependency{
-		Type: DependencyTypeDogu,
-		Name: "nginx-static",
-	}
-	K8sDependencyMapping = map[string][]Dependency{
-		"nginx": {nginxIngressDependency, nginxStaticDependency},
+	K8sDependencyMapping = map[string]Dependency{
+		"nginx": nginxIngressDependency,
 	}
 )
 
@@ -142,6 +138,7 @@ func toDoguSlice(dogus []interface{}) ([]*Dogu, error) {
 func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Dogu {
 	var result []*Dogu
 
+	// we can just append all k8s mappings here, since not installed dogus will be removed in the next step
 	dependencies = appendK8sMappedDependencies(dependencies)
 
 	for _, dogu := range bd.dogus {
@@ -156,7 +153,7 @@ func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Do
 func appendK8sMappedDependencies(dependencies []Dependency) []Dependency {
 	for _, dep := range dependencies {
 		if _, ok := K8sDependencyMapping[dep.Name]; ok {
-			dependencies = append(dependencies, K8sDependencyMapping[dep.Name]...)
+			dependencies = append(dependencies, K8sDependencyMapping[dep.Name])
 		}
 	}
 	return dependencies
