@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+- [#48] Map nginx dependency to `nginx-ingress` and `nginx-static`.
+Both Dogus are required in the installation process in the dogu-operator.
+Only mapping `nginx-ingress` can result in following installation order `ingress`, `cas`, `static` because the `nginx-ingress` has no dependency and the new dependency sorting algorithm is not deterministic.
+
 ## [v0.14.3] - 2024-10-30
 ### Fixed
 - [#47] map nginx dependencies to k8s equivalent dogus 
