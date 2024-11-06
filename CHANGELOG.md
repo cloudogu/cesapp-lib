@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.14.4] - 2024-11-06
 ### Fixed
 - [#48] Map nginx dependency to `nginx-ingress` and `nginx-static`.
 Both Dogus are required in the installation process in the dogu-operator.
