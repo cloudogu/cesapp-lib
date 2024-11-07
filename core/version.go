@@ -65,7 +65,7 @@ func ParseVersion(raw string) (Version, error) {
 }
 
 // Version struct can be used to extract single parts of a version number or to compare version with each other.
-// The version struct can with four or less digits, plus an extra version which is divided by a hyphen.
+// The version struct can with four or fewer digits, plus an extra version which is divided by a hyphen.
 // For example: 4.0.7.11-3 => 4 Major, 0 Minor, 7 Patch, 11 Nano, 3 Extra
 type Version struct {
 	Raw   string
@@ -140,6 +140,31 @@ func (v *Version) compare(o Version) comparisonResult {
 
 func (v *Version) getParts() []int {
 	return []int{v.Major, v.Minor, v.Patch, v.Nano, v.Extra}
+}
+
+// String returns a string representation of a Version object. The string will be reduced to the format Major.Minor.Patch
+// if the values of Extra and/or Nano are equal to zero and thus indicating that they are not set.
+func (v *Version) String() string {
+	if v.Raw != "" {
+		return v.Raw
+	}
+
+	verBuilder := strings.Builder{}
+	verBuilder.WriteString(strconv.Itoa(v.Major))
+	verBuilder.WriteString(".")
+	verBuilder.WriteString(strconv.Itoa(v.Minor))
+	verBuilder.WriteString(".")
+	verBuilder.WriteString(strconv.Itoa(v.Patch))
+	if v.Nano != 0 || v.Extra != 0 {
+		verBuilder.WriteString(".")
+		verBuilder.WriteString(strconv.Itoa(v.Nano))
+	}
+	if v.Extra != 0 {
+		verBuilder.WriteString("-")
+		verBuilder.WriteString(strconv.Itoa(v.Extra))
+	}
+
+	return verBuilder.String()
 }
 
 // ByVersion implements sort.Interface for []Version to sort versions
