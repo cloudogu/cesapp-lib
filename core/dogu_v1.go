@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // DoguV1 defines an application for the CES. A dogu defines the image and meta information for
@@ -12,6 +13,7 @@ import (
 type DoguV1 struct {
 	Name                 string
 	Version              string
+	PublishedAt          time.Time
 	DisplayName          string
 	Description          string
 	Category             string
@@ -35,26 +37,28 @@ type DoguV1 struct {
 
 // CreateV2Copy creates a deep DoguV2 copy from an existing DoguV1 object.
 func (d *DoguV1) CreateV2Copy() Dogu {
-	dogu := Dogu{}
-	dogu.Name = d.Name
-	dogu.Version = d.Version
-	dogu.DisplayName = d.DisplayName
-	dogu.Description = d.Description
-	dogu.Category = d.Category
-	dogu.Tags = d.Tags
-	dogu.Logo = d.Logo
-	dogu.URL = d.URL
-	dogu.Image = d.Image
-	dogu.ExposedPorts = d.ExposedPorts
-	dogu.ExposedCommands = d.ExposedCommands
-	dogu.Volumes = d.Volumes
-	dogu.HealthCheck = d.HealthCheck
-	dogu.HealthChecks = d.HealthChecks
-	dogu.ServiceAccounts = d.ServiceAccounts
-	dogu.Privileged = d.Privileged
-	dogu.Configuration = d.Configuration
-	dogu.Properties = d.Properties
-	dogu.EnvironmentVariables = d.EnvironmentVariables
+	dogu := Dogu{
+		Name:                 d.Name,
+		Version:              d.Version,
+		PublishedAt:          d.PublishedAt,
+		DisplayName:          d.DisplayName,
+		Description:          d.Description,
+		Category:             d.Category,
+		Tags:                 d.Tags,
+		Logo:                 d.Logo,
+		URL:                  d.URL,
+		Image:                d.Image,
+		ExposedPorts:         d.ExposedPorts,
+		ExposedCommands:      d.ExposedCommands,
+		Volumes:              d.Volumes,
+		HealthCheck:          d.HealthCheck,
+		HealthChecks:         d.HealthChecks,
+		ServiceAccounts:      d.ServiceAccounts,
+		Privileged:           d.Privileged,
+		Configuration:        d.Configuration,
+		Properties:           d.Properties,
+		EnvironmentVariables: d.EnvironmentVariables,
+	}
 
 	// upgrade dependencies to new version
 	// the old schema only contained dogus as dependencies

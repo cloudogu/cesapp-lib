@@ -2,6 +2,7 @@ package core
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,6 +13,7 @@ func Test_DoguV1_createV2Copy(t *testing.T) {
 		doguV1 := DoguV1{
 			Name:        "test",
 			Version:     "0.1",
+      PublishedAt: time.Date(2024, 10, 16, 7, 33, 45, 456, time.UTC),
 			DisplayName: "displayName",
 			Description: "description",
 			Category:    "category",
@@ -95,6 +97,7 @@ func Test_DoguV1_createV2Copy(t *testing.T) {
 		// then
 		assert.Equal(t, doguV1.Name, doguV2.Name)
 		assert.Equal(t, doguV1.Version, doguV2.Version)
+    assert.Equal(t, doguV1.PublishedAt, doguV2.PublishedAt)
 		assert.Equal(t, doguV1.DisplayName, doguV2.DisplayName)
 		assert.Equal(t, doguV1.Description, doguV2.Description)
 		assert.Equal(t, doguV1.Category, doguV2.Category)
@@ -123,6 +126,7 @@ func Test_newDoguV1Object(t *testing.T) {
 		doguV2 := Dogu{
 			Name:        "test",
 			Version:     "0.1",
+      PublishedAt: time.Date(2024, 10, 16, 7, 33, 45, 456, time.UTC),
 			DisplayName: "displayName",
 			Description: "description",
 			Category:    "category",
@@ -200,6 +204,7 @@ func Test_newDoguV1Object(t *testing.T) {
 		// then
 		assert.Equal(t, doguV2.Name, doguV1.Name)
 		assert.Equal(t, doguV2.Version, doguV1.Version)
+    assert.Equal(t, doguV2.PublishedAt, doguV1.PublishedAt)
 		assert.Equal(t, doguV2.DisplayName, doguV1.DisplayName)
 		assert.Equal(t, doguV2.Description, doguV1.Description)
 		assert.Equal(t, doguV2.Category, doguV1.Category)
