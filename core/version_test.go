@@ -282,3 +282,40 @@ func assertNegativeIsNewerOrEqualThan(t *testing.T, s1, s2 string) {
 	version2, _ := ParseVersion(s2)
 	assert.False(t, version1.IsNewerOrEqualThan(version2), "version %s should not be newer or equal than %s", s1, s2)
 }
+
+func TestVersion_String(t *testing.T) {
+	type fields struct {
+		Raw   string
+		Major int
+		Minor int
+		Patch int
+		Nano  int
+		Extra int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{"return raw", fields{Raw: "1.2.3.4-5"}, "1.2.3.4-5"},
+		{"return 1-part version", fields{Major: 1}, "1.0.0"},
+		{"return 2-part version", fields{Major: 1, Minor: 2}, "1.2.0"},
+		{"return 3-part version", fields{Major: 1, Minor: 2, Patch: 3}, "1.2.3"},
+		{"return 4-part version", fields{Major: 1, Minor: 2, Patch: 3, Nano: 4}, "1.2.3.4"},
+		{"return 5-part version", fields{Major: 1, Minor: 2, Patch: 3, Nano: 4, Extra: 5}, "1.2.3.4-5"},
+		{"return version for empty", fields{}, "0.0.0"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := &Version{
+				Raw:   tt.fields.Raw,
+				Major: tt.fields.Major,
+				Minor: tt.fields.Minor,
+				Patch: tt.fields.Patch,
+				Nano:  tt.fields.Nano,
+				Extra: tt.fields.Extra,
+			}
+			assert.Equalf(t, tt.want, v.String(), "String()")
+		})
+	}
+}
