@@ -1,6 +1,6 @@
 module github.com/cloudogu/cesapp-lib
 
-go 1.18
+go 1.23
 
 require (
 	github.com/eapache/go-resiliency v1.2.0
