@@ -1,11 +1,12 @@
 package core
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
-
-	"encoding/json"
 )
 
 // Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
@@ -613,18 +614,17 @@ const (
 //
 // This example will result in the following capability list: DacOverride, Fsetid, Fowner, Setgid, Setuid, Setpcap, NetBindService, Kill, Syslog
 //
-//
-//  "Capabilities": {
-//     "Drop": "Chown"
-//     "Add": "Syslog"
-//  }
+//	"Capabilities": {
+//	   "Drop": "Chown"
+//	   "Add": "Syslog"
+//	}
 //
 // This example will result in the following capability list: NetBindService
 //
-//  "Capabilities": {
-//     "Drop": ["All"],
-//     "Add": ["NetBindService", "Kill"]
-//  }
+//	"Capabilities": {
+//	   "Drop": ["All"],
+//	   "Add": ["NetBindService", "Kill"]
+//	}
 type Capabilities struct {
 	// Add contains the capabilities that should be allowed to be used in a container. This list is optional.
 	Add []Capability `json:"Add,omitempty"`
@@ -636,14 +636,14 @@ type Capabilities struct {
 //
 // Example:
 //
-//  "Security": {
-//    "Capabilities": {
-//       "Drop": ["All"],
-//       "Add": ["NetBindService", "Kill"]
-//     },
-//    "RunAsNonRoot": true,
-//    "ReadOnlyRootFileSystem": true
-//  }
+//	"Security": {
+//	  "Capabilities": {
+//	     "Drop": ["All"],
+//	     "Add": ["NetBindService", "Kill"]
+//	   },
+//	  "RunAsNonRoot": true,
+//	  "ReadOnlyRootFileSystem": true
+//	}
 type Security struct {
 	// Capabilities sets the allowed and dropped capabilities for the dogu. The dogu should not use more than the
 	// configured capabilities here, otherwise failure may occur at start-up or at run-time. This list is optional.
@@ -1413,14 +1413,67 @@ func (d *DoguJsonV2FormatProvider) GetVersion() DoguApiVersion {
 func (d *DoguJsonV2FormatProvider) ReadDoguFromString(content string) (*Dogu, error) {
 	var dogu *Dogu
 	err := json.Unmarshal([]byte(content), &dogu)
-	return dogu, err
+	if err != nil {
+		return nil, err
+	}
+
+	err = validateDoguJson(dogu)
+	if err != nil {
+		return nil, err
+	}
+
+	return dogu, nil
 }
 
 // ReadDogusFromString reads multiple dogus from a string and returns the API v2 representation.
 func (d *DoguJsonV2FormatProvider) ReadDogusFromString(content string) ([]*Dogu, error) {
 	var dogus []*Dogu
 	err := json.Unmarshal([]byte(content), &dogus)
-	return dogus, err
+
+	err = validateDoguJson(dogus...)
+	if err != nil {
+		return nil, err
+	}
+
+	return dogus, nil
+}
+
+func validateDoguJson(dogus ...*Dogu) error {
+	return validateSecurityForDogus(dogus...)
+}
+
+func validateSecurityForDogus(dogus ...*Dogu) error {
+	var errs error
+	for _, dogu := range dogus {
+		err := validateSecurity(dogu)
+		errs = errors.Join(errs, err)
+	}
+
+	return errs
+}
+
+func validateSecurity(dogu *Dogu) error {
+	var errs error
+
+	for _, value := range dogu.Security.Capabilities.Add {
+		if !slices.Contains(allCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be added", value)
+			errs = errors.Join(errs, err)
+		}
+	}
+
+	for _, value := range dogu.Security.Capabilities.Drop {
+		if !slices.Contains(allCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
+			errs = errors.Join(errs, err)
+		}
+	}
+
+	if errs != nil {
+		return fmt.Errorf("dogu %s:%s contains an invalid security field: %w", dogu.Name, dogu.Version, errs)
+	}
+
+	return nil
 }
 
 // WriteDoguToString receives a single dogu and returns the API v2 representation.
