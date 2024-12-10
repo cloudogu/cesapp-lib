@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- [#52] Adapt to changes in the CMS
+  - Remove `Logo` and `BackgroundImage` from `MarketingDogu`
+  - Add `Category` to `MarketingDogu`
+### Fixed
+- [#52] Add missing fields in `MarektingDogu` example
 
 ## [v0.15.0] - 2024-11-13
 ### Added

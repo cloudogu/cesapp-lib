@@ -11,6 +11,9 @@ import "time"
 //		"Deprecated": false,
 //		"Namespace": "official",
 //		"Name": "newdogu",
+//		"Version": "1.7.8-1",
+//		"PublishedAt": "2024-10-16T07:49:34.738Z",
+//		"Category": "solution",
 //		"DisplayName": "My New Dogu",
 //		"Provider": [
 //			{
@@ -22,14 +25,6 @@ import "time"
 //				}
 //			}
 //		],
-//		"Logo": {
-//			"ID": "34393ef9-a96d-4d1d-823e-0c17b10b762d",
-//			"Title": "Dogu icon"
-//		},
-//		"BackgroundImage": {
-//			"ID": "18a5dc18-c202-40b2-9ee0-7f917ad82406",
-//			"Title": "Screenshot of the main page of the new dogu"
-//		},
 //		"Descriptions": [
 //			{
 //				"Description": "Ein neues Dogu",
@@ -97,6 +92,13 @@ type MarketingDogu struct {
 	//   - 2019-05-03T13:31:48.612Z
 	//
 	PublishedAt time.Time
+	// Category is the category of the dogu which can be used to group dogus.
+	//
+	// Examples:
+	//  - system
+	//  - solution
+	//
+	Category string
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu.
 	//
 	// Examples:
@@ -119,24 +121,6 @@ type MarketingDogu struct {
 	//	}]
 	//
 	Provider []Provider
-	// Logo contains information about the logo or icon of the dogu.
-	//
-	// Example:
-	// 	{
-	//		"ID": "34393ef9-a96d-4d1d-823e-0c17b10b762d",
-	//		"Title": "Dogu Logo"
-	//	}
-	//
-	Logo Image
-	// BackgroundImage contains information about the background image of the dogu.
-	//
-	// Example:
-	//	{
-	//		"ID": "18a5dc18-c202-40b2-9ee0-7f917ad82406",
-	//		"Title": "Screenshot of the main page of the new dogu"
-	//	}
-	//
-	BackgroundImage Image
 	// Descriptions contains a short explanation, what the dogu does in different languages.
 	//
 	// Example:
