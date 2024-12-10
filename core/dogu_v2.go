@@ -627,9 +627,9 @@ const (
 //  }
 type Capabilities struct {
 	// Add contains the capabilities that should be allowed to be used in a container. This list is optional.
-	Add []Capability
+	Add []Capability `json:"Add,omitempty"`
 	// Drop contains the capabilities that should be blocked from being used in a container. This list is optional.
-	Drop []Capability
+	Drop []Capability `json:"Drop,omitempty"`
 }
 
 // Security defines security policies for the dogu. These fields can be used to reduce a dogu's attack surface.
@@ -647,7 +647,7 @@ type Capabilities struct {
 type Security struct {
 	// Capabilities sets the allowed and dropped capabilities for the dogu. The dogu should not use more than the
 	// configured capabilities here, otherwise failure may occur at start-up or at run-time. This list is optional.
-	Capabilities Capabilities
+	Capabilities Capabilities `json:"Capabilities,omitempty"`
 	// RunAsNonRoot indicates that the container must run as a non-root user. The dogu must support running as non-root
 	// user otherwise the dogu start may fail. This flag is optional and defaults to false.
 	RunAsNonRoot bool
@@ -1086,7 +1086,7 @@ type Dogu struct {
 	//   }
 	//
 	// [pod security context]: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-	Security Security
+	Security Security `json:"Security,omitempty"`
 	// Configuration contains a list of [ConfigurationField]. This field is optional.
 	//
 	// It describes generic properties of the dogu in the Cloudogu EcoSystem registry.
