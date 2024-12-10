@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"sort"
@@ -513,5 +514,54 @@ func TestVolume_GetClient(t *testing.T) {
 		// then
 		assert.False(t, ok)
 		require.Nil(t, client)
+	})
+}
+
+func Test_validateSecurity(t *testing.T) {
+	type args struct {
+		dogu *Dogu
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{"valid empty", args{&Dogu{}}, assert.NoError},
+		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{AuditControl}}}}}, assert.NoError},
+		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{AuditControl}}}}}, assert.NoError},
+		{"all possible values", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: allCapabilities, Drop: allCapabilities}}}}, assert.NoError},
+
+		{"invalid valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{"err"}}}}}, assert.Error},
+		{"invalid valid drop filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{"err"}}}}}, assert.Error},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.wantErr(t, validateSecurity(tt.args.dogu), fmt.Sprintf("validateSecurity(%v)", tt.args.dogu))
+		})
+	}
+}
+
+func Test_validateSecurity_message(t *testing.T) {
+	t.Run("should match for drop errors", func(t *testing.T) {
+		// given
+		dogu := &Dogu{Name: "official/dogu", Version: "1.2.3", Security: Security{Capabilities: Capabilities{Drop: []Capability{"err"}}}}
+
+		// when
+		actual := validateDoguJson(dogu)
+
+		// then
+		require.Error(t, actual)
+		assert.ErrorContains(t, actual, "dogu official/dogu:1.2.3 contains an invalid security field: err is not a valid capability to be dropped")
+	})
+	t.Run("should match for add errors", func(t *testing.T) {
+		// given
+		dogu := &Dogu{Name: "official/dogu", Version: "1.2.3", Security: Security{Capabilities: Capabilities{Add: []Capability{"err"}}}}
+
+		// when
+		actual := validateDoguJson(dogu)
+
+		// then
+		require.Error(t, actual)
+		assert.ErrorContains(t, actual, "dogu official/dogu:1.2.3 contains an invalid security field: err is not a valid capability to be added")
 	})
 }

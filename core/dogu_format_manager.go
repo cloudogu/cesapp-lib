@@ -1,9 +1,8 @@
 package core
 
 import (
+	"fmt"
 	"io/ioutil"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -58,17 +57,17 @@ func (d *DoguFormatHandler) GetFormatProviders() []DoguFormatProvider {
 func ReadDoguFromFile(filePath string) (*Dogu, DoguApiVersion, error) {
 	fileContent, err := GetContentOfFile(filePath)
 	if err != nil {
-		return nil, DoguApiVersionUnknown, errors.Wrap(err, "Cannot read dogu from invalid file")
+		return nil, DoguApiVersionUnknown, fmt.Errorf("cannot read dogu from invalid file: %w", err)
 	}
 
 	return ReadDoguFromString(fileContent)
 }
 
-// ReadDogusFromFile reads all dogus from a given file and returns them along with a their dogu API version.
+// ReadDogusFromFile reads all dogus from a given file and returns them along with their dogu API version.
 func ReadDogusFromFile(filePath string) ([]*Dogu, DoguApiVersion, error) {
 	fileContent, err := GetContentOfFile(filePath)
 	if err != nil {
-		return nil, DoguApiVersionUnknown, errors.Wrap(err, "Cannot read dogus from invalid file")
+		return nil, DoguApiVersionUnknown, fmt.Errorf("cannot read dogus from invalid file: %w", err)
 	}
 
 	return ReadDogusFromString(fileContent)
