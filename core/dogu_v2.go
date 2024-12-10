@@ -604,19 +604,55 @@ const (
 )
 
 // Capabilities represent POSIX capabilities that can be added to or removed from a dogu.
-// See DefaultCapabilities for the standard set in the Cloudogu Ecosystem.
+//
+// The fields Add and Drop will modify the default capabilities as provided by DefaultCapabilities. Add will append
+// further capabilities while Drop will remove capabilities. The capability All can be used to add or remove all
+// available capabilities.
+//
+// See DefaultCapabilities for the standard set being used in the Cloudogu Ecosystem.
+//
+// This example will result in the following capability list: DacOverride, Fsetid, Fowner, Setgid, Setuid, Setpcap, NetBindService, Kill, Syslog
+//
+//
+//  "Capabilities": {
+//     "Drop": "Chown"
+//     "Add": "Syslog"
+//  }
+//
+// This example will result in the following capability list: NetBindService
+//
+//  "Capabilities": {
+//     "Drop": ["All"],
+//     "Add": ["NetBindService", "Kill"]
+//  }
 type Capabilities struct {
-	Add  []Capability
+	// Add contains the capabilities that should be allowed to be used in a container. This list is optional.
+	Add []Capability
+	// Drop contains the capabilities that should be blocked from being used in a container. This list is optional.
 	Drop []Capability
 }
 
-// Security defines security policies for the dogu.
+// Security defines security policies for the dogu. These fields can be used to reduce a dogu's attack surface.
+//
+// Example:
+//
+//  "Security": {
+//    "Capabilities": {
+//       "Drop": ["All"],
+//       "Add": ["NetBindService", "Kill"]
+//     },
+//    "RunAsNonRoot": true,
+//    "ReadOnlyRootFileSystem": true
+//  }
 type Security struct {
-	// Capabilities sets the allowed and dropped capabilities for the dogu.
+	// Capabilities sets the allowed and dropped capabilities for the dogu. The dogu should not use more than the
+	// configured capabilities here, otherwise failure may occur at start-up or at run-time. This list is optional.
 	Capabilities Capabilities
-	// RunAsNonRoot indicates that the container must run as a non-root user.
+	// RunAsNonRoot indicates that the container must run as a non-root user. The dogu must support running as non-root
+	// user otherwise the dogu start may fail. This flag is optional and defaults to false.
 	RunAsNonRoot bool
-	// ReadOnlyRootFileSystem mounts the container's root filesystem as read-only.
+	// ReadOnlyRootFileSystem mounts the container's root filesystem as read-only. The dogu must support accessing the
+	// root file system by only reading otherwise the dogu start may fail. This flag is optional and defaults to false.
 	ReadOnlyRootFileSystem bool
 }
 
@@ -1026,13 +1062,28 @@ type Dogu struct {
 	//
 	// Example:
 	//   - false
-	// TODO: Deprecated msg
+	//
+	// Deprecated: This feature will be removed in the future because no dogu should have the privilege of container
+	// meta-insights for obvious security reasons. Also, this field is subject of a misnomer because mounting a
+	// container socket has nothing to do with privileged execution.
 	Privileged bool
-	// Security defines security policies for the dogu.
+	// Security defines security policies for the dogu. This field is optional.
+	//
 	// The Cloudogu Ecosystem may not support restricting capabilities in all environments, e.g. in docker.
 	// This feature was added for the kubernetes platform via [pod security context].
 	//
-	// Example: TODO
+	// Example:
+	//
+	//   {
+	//     "Security": {
+	//       "Capabilities": {
+	//         "Drop": ["All"],
+	//         "Add": ["NetBindService", "Kill"]
+	//       },
+	//       "RunAsNonRoot": true,
+	//       "ReadOnlyRootFileSystem": true
+	//     }
+	//   }
 	//
 	// [pod security context]: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 	Security Security
