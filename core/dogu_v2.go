@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -515,10 +516,12 @@ var DefaultCapabilities = []Capability{
 	Chown, DacOverride, Fsetid, Fowner, Setgid, Setuid, Setpcap, NetBindService, Kill,
 }
 
+var allCapabilities = []Capability{AuditControl, AuditRead, AuditWrite, BlockSuspend, Bpf, CheckpointRestore, Chown, DacOverride, Fowner, Fsetid, IpcLock, IpcOwner, Kill, Lease, LinuxImmutable, MacAdmin, MacOverride, Mknod, NetAdmin, NetBindService, NetBroadcast, NetRaw, Perfmon, Setfcap, Setgid, Setpcap, Setuid, SysAdmin, SysBoot, SysChroot, SysModule, SysNice, SysPAcct, SysPTrace, SysResource, SysTime, SysTtyCONFIG, Syslog, WakeAlarm}
+
 // These capabilities' documentation contain abstracts of their respective manpage documentation and may refer to
 // other man pages references f. e. as epoll(7)
 const (
-	// All can be used to add or drop all capabilities.
+	// All is a special capability which can be used to add or drop all capabilities listed below.
 	All = "ALL"
 	// AuditControl enables and disables kernel auditing; changes auditing filter rules.
 	// retrieves auditing status and filtering rules.
@@ -1345,6 +1348,36 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 	}
 
 	return version.IsNewerThan(otherVersion), nil
+}
+
+// EffectiveCapabilities returns the accumulated list of those Capabilities that are retained after applying the
+// capabilities to be added and removed. DefaultCapabilities build the baseline for added or dropped capabilities.
+func (d *Dogu) EffectiveCapabilities() []Capability {
+	effectiveCaps := make(map[Capability]Capability)
+
+	for _, defaultCap := range DefaultCapabilities {
+		// note this works since go 1.22 because iteration variables now can be used as unshared variable
+		effectiveCaps[defaultCap] = defaultCap
+	}
+
+	for _, dropCap := range d.Security.Capabilities.Drop {
+		if dropCap == All {
+			effectiveCaps = make(map[Capability]Capability)
+			break
+		}
+		delete(effectiveCaps, dropCap)
+	}
+
+	for _, addCap := range d.Security.Capabilities.Add {
+		if addCap == All {
+			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
+			return slices.Clone(allCapabilities)
+		}
+		effectiveCaps[addCap] = addCap
+	}
+
+	actualCaps := maps.Keys(effectiveCaps)
+	return slices.Collect(actualCaps)
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.

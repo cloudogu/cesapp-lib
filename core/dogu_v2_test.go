@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"sort"
 	"testing"
 
@@ -407,7 +408,7 @@ func createTestDogu(t *testing.T, name string, version string) *Dogu {
 }
 
 func TestVolume_GetClient(t *testing.T) {
-	t.Run("call on volumes with no client definitons", func(t *testing.T) {
+	t.Run("call on volumes with no client definitions", func(t *testing.T) {
 		// given
 		sut := Volume{
 			Name:        "data",
@@ -424,7 +425,7 @@ func TestVolume_GetClient(t *testing.T) {
 		assert.False(t, ok)
 		assert.Nil(t, client)
 	})
-	t.Run("call on volumes with a single client definitons", func(t *testing.T) {
+	t.Run("call on volumes with a single client definitions", func(t *testing.T) {
 		// given
 		type testClientParams struct {
 			Type     string
@@ -456,7 +457,7 @@ func TestVolume_GetClient(t *testing.T) {
 		assert.Equal(t, "supersecret", params.MySecret)
 		assert.Equal(t, "myType", params.Type)
 	})
-	t.Run("call on volumes with multiple client definitons", func(t *testing.T) {
+	t.Run("call on volumes with multiple client definitions", func(t *testing.T) {
 		// given
 		type testClientParams struct {
 			Type     string
@@ -564,4 +565,42 @@ func Test_validateSecurity_message(t *testing.T) {
 		require.Error(t, actual)
 		assert.ErrorContains(t, actual, "dogu official/dogu:1.2.3 contains an invalid security field: err is not a valid capability to be added")
 	})
+}
+
+func TestDogu_EffectiveCapabilities(t *testing.T) {
+	type fields struct {
+		Security Security
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   []Capability
+	}{
+		{"drop all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}}}}, []Capability{}},
+		{"add all", fields{Security{Capabilities: Capabilities{Add: []Capability{All}}}}, allCapabilities},
+		{"drop all, add all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}, Add: []Capability{All}}}}, allCapabilities},
+		{"default list", fields{Security{Capabilities: Capabilities{}}}, DefaultCapabilities},
+		{"add 1 new and 1 existing caps to default list", fields{Security{Capabilities: Capabilities{Add: []Capability{Bpf, Chown}}}}, joinCapability(DefaultCapabilities, Bpf, Chown)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &Dogu{
+				Security: tt.fields.Security,
+			}
+			assert.ElementsMatch(t, tt.want, d.EffectiveCapabilities(), "ListCapabilities()")
+		})
+	}
+}
+
+func joinCapability(capSlice []Capability, singleCaps ...Capability) []Capability {
+	result := []Capability{}
+	result = append(result, capSlice...)
+	for _, singleCap := range singleCaps {
+		if slices.Contains(capSlice, singleCap) {
+			continue
+		}
+
+		result = append(result, singleCap)
+	}
+	return result
 }
