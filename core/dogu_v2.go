@@ -1450,12 +1450,32 @@ func (d *DoguJsonV2FormatProvider) ReadDoguFromString(content string) (*Dogu, er
 		return nil, err
 	}
 
-	err = validateDoguJson(dogu)
-	if err != nil {
-		return nil, err
+	return dogu, nil
+}
+
+// ValidateSecurity checks the dogu's Security section for configuration errors.
+func (d *Dogu) ValidateSecurity() error {
+	var errs error
+
+	for _, value := range d.Security.Capabilities.Add {
+		if !slices.Contains(allCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be added", value)
+			errs = errors.Join(errs, err)
+		}
 	}
 
-	return dogu, nil
+	for _, value := range d.Security.Capabilities.Drop {
+		if !slices.Contains(allCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
+			errs = errors.Join(errs, err)
+		}
+	}
+
+	if errs != nil {
+		return fmt.Errorf("dogu %s:%s contains an invalid security field: %w", d.Name, d.Version, errs)
+	}
+
+	return nil
 }
 
 // ReadDogusFromString reads multiple dogus from a string and returns the API v2 representation.
@@ -1466,50 +1486,7 @@ func (d *DoguJsonV2FormatProvider) ReadDogusFromString(content string) ([]*Dogu,
 		return nil, err
 	}
 
-	err = validateDoguJson(dogus...)
-	if err != nil {
-		return nil, err
-	}
-
 	return dogus, nil
-}
-
-func validateDoguJson(dogus ...*Dogu) error {
-	return validateSecurityForDogus(dogus...)
-}
-
-func validateSecurityForDogus(dogus ...*Dogu) error {
-	var errs error
-	for _, dogu := range dogus {
-		err := validateSecurity(dogu)
-		errs = errors.Join(errs, err)
-	}
-
-	return errs
-}
-
-func validateSecurity(dogu *Dogu) error {
-	var errs error
-
-	for _, value := range dogu.Security.Capabilities.Add {
-		if !slices.Contains(allCapabilities, value) {
-			err := fmt.Errorf("%s is not a valid capability to be added", value)
-			errs = errors.Join(errs, err)
-		}
-	}
-
-	for _, value := range dogu.Security.Capabilities.Drop {
-		if !slices.Contains(allCapabilities, value) {
-			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
-			errs = errors.Join(errs, err)
-		}
-	}
-
-	if errs != nil {
-		return fmt.Errorf("dogu %s:%s contains an invalid security field: %w", dogu.Name, dogu.Version, errs)
-	}
-
-	return nil
 }
 
 // WriteDoguToString receives a single dogu and returns the API v2 representation.

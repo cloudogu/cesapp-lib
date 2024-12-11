@@ -537,7 +537,7 @@ func Test_validateSecurity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.wantErr(t, validateSecurity(tt.args.dogu), fmt.Sprintf("validateSecurity(%v)", tt.args.dogu))
+			tt.wantErr(t, tt.args.dogu.ValidateSecurity(), fmt.Sprintf("validateSecurity(%v)", tt.args.dogu))
 		})
 	}
 }
@@ -548,7 +548,7 @@ func Test_validateSecurity_message(t *testing.T) {
 		dogu := &Dogu{Name: "official/dogu", Version: "1.2.3", Security: Security{Capabilities: Capabilities{Drop: []Capability{"err"}}}}
 
 		// when
-		actual := validateDoguJson(dogu)
+		actual := dogu.ValidateSecurity()
 
 		// then
 		require.Error(t, actual)
@@ -559,7 +559,7 @@ func Test_validateSecurity_message(t *testing.T) {
 		dogu := &Dogu{Name: "official/dogu", Version: "1.2.3", Security: Security{Capabilities: Capabilities{Add: []Capability{"err"}}}}
 
 		// when
-		actual := validateDoguJson(dogu)
+		actual := dogu.ValidateSecurity()
 
 		// then
 		require.Error(t, actual)
