@@ -27,14 +27,3 @@ func (doguVersions ByDoguVersion) Less(i, j int) bool {
 	isNewer := v1.IsNewerThan(v2)
 	return isNewer
 }
-
-// ContainsDoguWithName checks if a dogu is contained in a slice by comparing the full name (including namespace)
-func ContainsDoguWithName(dogus []*Dogu, name string) bool {
-	for _, dogu := range dogus {
-		if dogu.Name == name {
-			return true
-		}
-	}
-
-	return false
-}

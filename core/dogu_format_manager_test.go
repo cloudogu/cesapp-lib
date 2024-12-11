@@ -713,3 +713,11 @@ func Test_DoguFormatProvider_WriteDogusToString(t *testing.T) {
 		}
 	})
 }
+
+func TestUnmarshalProperties(t *testing.T) {
+	dogu := &Dogu{}
+	dogu, _, err := ReadDoguFromFile("../resources/test/unmarshalProperties.json")
+	require.Nil(t, err)
+	assert.Equal(t, "http://test.test", dogu.Properties["logoutUrl"])
+	assert.Equal(t, "25", dogu.Properties["TestPort"])
+}

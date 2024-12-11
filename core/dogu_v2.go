@@ -998,3 +998,14 @@ func (d *Dogu) ValidateSecurity() error {
 
 	return nil
 }
+
+// ContainsDoguWithName checks if a dogu is contained in a slice by comparing the full name (including namespace)
+func ContainsDoguWithName(dogus []*Dogu, name string) bool {
+	for _, dogu := range dogus {
+		if dogu.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
