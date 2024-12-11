@@ -1462,6 +1462,9 @@ func (d *DoguJsonV2FormatProvider) ReadDoguFromString(content string) (*Dogu, er
 func (d *DoguJsonV2FormatProvider) ReadDogusFromString(content string) ([]*Dogu, error) {
 	var dogus []*Dogu
 	err := json.Unmarshal([]byte(content), &dogus)
+	if err != nil {
+		return nil, err
+	}
 
 	err = validateDoguJson(dogus...)
 	if err != nil {
