@@ -1,10 +1,7 @@
 package core
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"slices"
 	"sort"
 	"testing"
@@ -211,36 +208,6 @@ func TestGetRegistryName(t *testing.T) {
 		}
 		require.Equal(t, "registry/cloudogu/com", dogu.GetRegistryServerURI())
 	})
-
-}
-
-func restoreOriginalStdout(stdout *os.File) {
-	os.Stdout = stdout
-}
-
-func routeStdoutToReplacement() (readerPipe, writerPipe *os.File) {
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	return r, w
-}
-
-func captureOutput(fakeReaderPipe, fakeWriterPipe, originalStdout *os.File) string {
-	outC := make(chan string)
-	// copy the output in a separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, fakeReaderPipe)
-		outC <- buf.String()
-	}()
-
-	// back to normal state
-	_ = fakeWriterPipe.Close()
-	restoreOriginalStdout(originalStdout)
-
-	actualOutput := <-outC
-
-	return actualOutput
 }
 
 func Test_getSimpleDoguName(t *testing.T) {
