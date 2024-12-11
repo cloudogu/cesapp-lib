@@ -1353,16 +1353,16 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 // EffectiveCapabilities returns the accumulated list of those Capabilities that are retained after applying the
 // capabilities to be added and removed. DefaultCapabilities build the baseline for added or dropped capabilities.
 func (d *Dogu) EffectiveCapabilities() []Capability {
-	effectiveCaps := make(map[Capability]Capability)
+	effectiveCaps := make(map[Capability]int)
 
 	for _, defaultCap := range DefaultCapabilities {
 		// note this works since go 1.22 because iteration variables now can be used as unshared variable
-		effectiveCaps[defaultCap] = defaultCap
+		effectiveCaps[defaultCap] = 0 // we only use the map to check for keys, values don't matter
 	}
 
 	for _, dropCap := range d.Security.Capabilities.Drop {
 		if dropCap == All {
-			effectiveCaps = make(map[Capability]Capability)
+			effectiveCaps = make(map[Capability]int)
 			break
 		}
 		delete(effectiveCaps, dropCap)
@@ -1373,7 +1373,7 @@ func (d *Dogu) EffectiveCapabilities() []Capability {
 			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
 			return slices.Clone(allCapabilities)
 		}
-		effectiveCaps[addCap] = addCap
+		effectiveCaps[addCap] = 0 // we only use the map to check for keys, values don't matter
 	}
 
 	actualCaps := maps.Keys(effectiveCaps)
