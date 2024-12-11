@@ -147,7 +147,7 @@ void potentiallyCreateDoguDocPR() {
     def targetDoguDocDir = "target/dogu-doc"
     def coreDoguChapter = "compendium_en.md"
     def oldCoreDoguChapter = "${targetDoguDocDir}/docs/core/${coreDoguChapter}"
-    def newCoreDoguChapter = "target/${coreDoguChapter}"
+    def newCoreDoguChapter = "target/compendium_en.md"
     def doguDocRepoParts = "cloudogu/dogu-development-docs"
     def doguDocRepo = "github.com/${doguDocRepoParts}.git"
     def doguDocTargetBranch = "main"
@@ -166,7 +166,7 @@ void potentiallyCreateDoguDocPR() {
 
                 stage('Build new dogu doc page') {
                     sh "go install github.com/cloudogu/gomarkdoc/cmd/gomarkdoc@${gomarkVersion}"
-                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --include-files dogu_v2.go"
+                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --include-files dogu_v2.go,dogu_v2_security.go,dogu_v2_configuration_field.go,dogu_v2_dependency.go,dogu_v2_versions.go,dogu_v2_volume.go"
                 }
 
                 def shouldCreateDoguDocsPR = false
