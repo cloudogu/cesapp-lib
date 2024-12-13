@@ -11,7 +11,14 @@ var DefaultCapabilities = []Capability{
 	Chown, DacOverride, Fsetid, Fowner, Setgid, Setuid, Setpcap, NetBindService, Kill,
 }
 
-var allCapabilities = []Capability{AuditControl, AuditRead, AuditWrite, BlockSuspend, Bpf, CheckpointRestore, Chown, DacOverride, Fowner, Fsetid, IpcLock, IpcOwner, Kill, Lease, LinuxImmutable, MacAdmin, MacOverride, Mknod, NetAdmin, NetBindService, NetBroadcast, NetRaw, Perfmon, Setfcap, Setgid, Setpcap, Setuid, SysAdmin, SysBoot, SysChroot, SysModule, SysNice, SysPAcct, SysPTrace, SysResource, SysTime, SysTtyCONFIG, Syslog, WakeAlarm}
+// AllCapabilities includes all capabilities that could possibly be set.
+var AllCapabilities = []Capability{
+	AuditControl, AuditRead, AuditWrite, BlockSuspend, Bpf, CheckpointRestore, Chown,
+	DacOverride, Fowner, Fsetid, IpcLock, IpcOwner, Kill, Lease, LinuxImmutable, MacAdmin,
+	MacOverride, Mknod, NetAdmin, NetBindService, NetBroadcast, NetRaw, Perfmon, Setfcap,
+	Setgid, Setpcap, Setuid, SysAdmin, SysBoot, SysChroot, SysModule, SysNice, SysPAcct,
+	SysPTrace, SysResource, SysTime, SysTtyCONFIG, Syslog, WakeAlarm,
+}
 
 // These capabilities' documentation contain abstracts of their respective manpage documentation and may refer to
 // other man pages references f. e. as epoll(7)

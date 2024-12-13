@@ -911,7 +911,7 @@ func (d *Dogu) EffectiveCapabilities() []Capability {
 	for _, addCap := range d.Security.Capabilities.Add {
 		if addCap == All {
 			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
-			return slices.Clone(allCapabilities)
+			return slices.Clone(AllCapabilities)
 		}
 		effectiveCaps[addCap] = 0 // we only use the map to check for keys, values don't matter
 	}
@@ -979,14 +979,14 @@ func (d *Dogu) ValidateSecurity() error {
 	var errs error
 
 	for _, value := range d.Security.Capabilities.Add {
-		if !slices.Contains(allCapabilities, value) {
+		if !slices.Contains(AllCapabilities, value) {
 			err := fmt.Errorf("%s is not a valid capability to be added", value)
 			errs = errors.Join(errs, err)
 		}
 	}
 
 	for _, value := range d.Security.Capabilities.Drop {
-		if !slices.Contains(allCapabilities, value) {
+		if !slices.Contains(AllCapabilities, value) {
 			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
 			errs = errors.Join(errs, err)
 		}

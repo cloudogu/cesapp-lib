@@ -20,7 +20,7 @@ func Test_validateSecurity(t *testing.T) {
 		{"valid empty", args{&Dogu{}}, assert.NoError},
 		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{AuditControl}}}}}, assert.NoError},
 		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{AuditControl}}}}}, assert.NoError},
-		{"all possible values", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: allCapabilities, Drop: allCapabilities}}}}, assert.NoError},
+		{"all possible values", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: AllCapabilities, Drop: AllCapabilities}}}}, assert.NoError},
 
 		{"invalid valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{"err"}}}}}, assert.Error},
 		{"invalid valid drop filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{"err"}}}}}, assert.Error},
@@ -67,8 +67,8 @@ func TestDogu_EffectiveCapabilities(t *testing.T) {
 		want   []Capability
 	}{
 		{"drop all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}}}}, []Capability{}},
-		{"add all", fields{Security{Capabilities: Capabilities{Add: []Capability{All}}}}, allCapabilities},
-		{"drop all, add all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}, Add: []Capability{All}}}}, allCapabilities},
+		{"add all", fields{Security{Capabilities: Capabilities{Add: []Capability{All}}}}, AllCapabilities},
+		{"drop all, add all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}, Add: []Capability{All}}}}, AllCapabilities},
 		{"default list", fields{Security{Capabilities: Capabilities{}}}, DefaultCapabilities},
 		{"add 1 new and 1 existing caps to default list", fields{Security{Capabilities: Capabilities{Add: []Capability{Bpf, Chown}}}}, joinCapability(DefaultCapabilities, Bpf, Chown)},
 	}
