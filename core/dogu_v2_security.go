@@ -12,6 +12,7 @@ var DefaultCapabilities = []Capability{
 }
 
 // AllCapabilities includes all capabilities that could possibly be set.
+// The special value ALL is not included.
 var AllCapabilities = []Capability{
 	AuditControl, AuditRead, AuditWrite, BlockSuspend, Bpf, CheckpointRestore, Chown,
 	DacOverride, Fowner, Fsetid, IpcLock, IpcOwner, Kill, Lease, LinuxImmutable, MacAdmin,
