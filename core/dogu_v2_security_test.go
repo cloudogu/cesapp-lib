@@ -21,6 +21,8 @@ func Test_validateSecurity(t *testing.T) {
 		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{AuditControl}}}}}, assert.NoError},
 		{"valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{AuditControl}}}}}, assert.NoError},
 		{"all possible values", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: AllCapabilities, Drop: AllCapabilities}}}}, assert.NoError},
+		{"add all keyword", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{All}}}}}, assert.NoError},
+		{"drop all keyword", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{All}}}}}, assert.NoError},
 
 		{"invalid valid add filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Add: []Capability{"err"}}}}}, assert.Error},
 		{"invalid valid drop filled", args{&Dogu{Security: Security{Capabilities: Capabilities{Drop: []Capability{"err"}}}}}, assert.Error},
@@ -42,7 +44,7 @@ func Test_validateSecurity_message(t *testing.T) {
 
 		// then
 		require.Error(t, actual)
-		assert.ErrorContains(t, actual, "dogu official/dogu:1.2.3 contains an invalid security field: err is not a valid capability to be dropped")
+		assert.ErrorContains(t, actual, "dogu descriptor official/dogu:1.2.3 contains at least one invalid security field: err is not a valid capability to be dropped")
 	})
 	t.Run("should match for add errors", func(t *testing.T) {
 		// given
@@ -53,7 +55,7 @@ func Test_validateSecurity_message(t *testing.T) {
 
 		// then
 		require.Error(t, actual)
-		assert.ErrorContains(t, actual, "dogu official/dogu:1.2.3 contains an invalid security field: err is not a valid capability to be added")
+		assert.ErrorContains(t, actual, "dogu descriptor official/dogu:1.2.3 contains at least one invalid security field: err is not a valid capability to be added")
 	})
 }
 

@@ -976,24 +976,32 @@ func (d *Dogu) CreateV1Copy() DoguV1 {
 
 // ValidateSecurity checks the dogu's Security section for configuration errors.
 func (d *Dogu) ValidateSecurity() error {
-	var errs error
-
+	var errs []error
 	for _, value := range d.Security.Capabilities.Add {
+		if value == All {
+			continue
+		}
+
 		if !slices.Contains(AllCapabilities, value) {
 			err := fmt.Errorf("%s is not a valid capability to be added", value)
-			errs = errors.Join(errs, err)
+			errs = append(errs, err)
 		}
 	}
 
 	for _, value := range d.Security.Capabilities.Drop {
+		if value == All {
+			continue
+		}
+
 		if !slices.Contains(AllCapabilities, value) {
 			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
-			errs = errors.Join(errs, err)
+			errs = append(errs, err)
 		}
 	}
 
-	if errs != nil {
-		return fmt.Errorf("dogu %s:%s contains an invalid security field: %w", d.Name, d.Version, errs)
+	err := errors.Join(errs...)
+	if err != nil {
+		return fmt.Errorf("dogu descriptor %s:%s contains at least one invalid security field: %w", d.Name, d.Version, err)
 	}
 
 	return nil
