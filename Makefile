@@ -2,7 +2,7 @@
 ARTIFACT_ID=cesapp-lib
 VERSION=0.15.0
 
-GOTAG?=1.18.6
+GOTAG?=1.23.4
 MAKEFILES_VERSION=7.4.0
 
 GO_BUILD_FLAGS?=-mod=vendor -a ./...
