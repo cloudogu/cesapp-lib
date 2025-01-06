@@ -1,11 +1,12 @@
 package core
 
 import (
+	"errors"
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"time"
-
-	"encoding/json"
 )
 
 // Names for ExposedCommands correspond with actual dogu descriptor instance values. Do not change because these come
@@ -42,131 +43,6 @@ const (
 	// Deprecated: This field is no longer used. There is no substitute.
 	ExposedCommandPostBackup = "post-backup"
 )
-
-// VolumeClient adds additional information for clients to create volumes.
-//
-// Example:
-//
-//	{
-//	  "Name": "k8s-dogu-operator",
-//	  "Params": {
-//	    "Type": "configmap",
-//	    "Content": {
-//	      "Name": "k8s-ces-menu-json"
-//	    }
-//	  }
-//	}
-type VolumeClient struct {
-	// Name identifies the client responsible to process this volume definition. This field is mandatory.
-	//
-	// Examples:
-	//   - cesapp
-	//   - k8s-dogu-operator
-	Name string
-	// Params contains generic data only interpretable by the client. This field is mandatory.
-	Params interface{}
-}
-
-// Volume defines container volumes that are created during the dogu creation or upgrade.
-//
-// Examples:
-//   - { "Name": "data", "Path":"/usr/share/yourtool/data", "Owner":"1000", "Group":"1000", "NeedsBackup": true}
-//   - { "Name": "temp", "Path":"/tmp", "Owner":"1000", "Group":"1000", "NeedsBackup": false}
-type Volume struct {
-	// Name identifies the volume. This field is mandatory. It must be unique in all volumes of the same dogu.
-	//
-	// The name syntax must comply with the file system syntax of the respective host operating system and is encouraged
-	// to consist of:
-	//   - lower case latin characters
-	//   - special characters underscore "_", minus "-"
-	//   - ciphers 0-9
-	//
-	// The name must not be "_private" to avoid conflicts with the dogu's private key.
-	//
-	// Examples:
-	//   - tooldata
-	//   - tool-data-0
-	//
-	Name string
-	// Path to the directory or file where the volume will be mounted inside the dogu. This field is mandatory.
-	//
-	// Path may consist of several directory levels, delimited by a forward slash "/". Path must comply with the file
-	// system syntax of the container operating system.
-	//
-	// The path must not match `/private` to avoid conflicts with the dogu's private key.
-	//
-	// Examples:
-	//   - /usr/share/yourtool
-	//   - /tmp
-	//   - /usr/share/license.txt
-	//
-	Path string
-	// Owner contains the numeric Unix UID of the user owning this volume. This field is optional.
-	//
-	// For security reasons it is strongly recommended to set the Owner of the volume to an unprivileged user. Please
-	// note that container image must be then built in a way that the container process may own the path either by
-	// user or group ownership.
-	//
-	// The owner syntax must consist of ciphers (0-9) only.
-	//
-	// Examples:
-	//   - "1000" - an unprivileged user
-	//   - "0" - the root user
-	//
-	Owner string
-	// Group contains the numeric Unix GID of the group owning this volume. This field is optional.
-	//
-	// For security reasons it is strongly recommended to set the Group of the volume to an unprivileged Group. Please
-	// note that container image must be then built in a way that the container process may own the path either by
-	// user or group ownership.
-	//
-	// The Group syntax must consist of ciphers (0-9) only.
-	//
-	// Examples:
-	//   - "1000" - an unprivileged group
-	//   - "0" - the root group
-	//
-	Group string
-	// NeedsBackup controls whether the Cloudogu EcoSystem backup facility backs up the whole the volume or not. This
-	// field is optional. If unset, a value of `false` will be assumed.
-	NeedsBackup bool
-	// Clients contains a list of client-specific (t. i., the client that interprets the dogu.json) configurations for
-	// the volume. This field is optional.
-	//
-	Clients []VolumeClient `json:"Clients,omitempty"`
-}
-
-// GetClient retrieves a client with a given name and return a pointer to it. If a client does not exist a nil pointer
-// and false are returned.
-func (v *Volume) GetClient(clientName string) (*VolumeClient, bool) {
-	if v.Clients == nil {
-		return nil, false
-	}
-
-	for i := range v.Clients {
-		if v.Clients[i].Name == clientName {
-			return &v.Clients[i], true
-		}
-	}
-
-	return nil, false
-}
-
-// UnmarshalJSON sets the default value for NeedsBackup. We are preventing an infinite loop by using a local Alias type
-// to call json.Unmarshal again
-func (v *Volume) UnmarshalJSON(data []byte) error {
-	type Alias Volume
-	a := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(v),
-	}
-	v.NeedsBackup = true
-	if err := json.Unmarshal(data, &a); err != nil {
-		return err
-	}
-	return nil
-}
 
 // HealthCheck provide readiness and health checks for the dogu container.
 type HealthCheck struct {
@@ -317,191 +193,11 @@ type ServiceAccount struct {
 	Kind string `json:"Kind,omitempty"`
 }
 
-// ConfigurationField describes a single dogu configuration field which is stored in the Cloudogu EcoSystem registry.
-type ConfigurationField struct {
-	// Name contains the name of the configuration key. The field is mandatory. It
-	// must not contain leading or trailing slashes "/", but it may contain
-	// directory keys delimited with slashes "/" within the name.
-	//
-	// The Name syntax is encouraged to consist of:
-	//   - lower case latin characters
-	//   - special characters underscore "_"
-	//   - ciphers 0-9
-	//
-	// Example:
-	//   - feedback_url
-	//   - logging/root
-	//
-	Name string
-	// Description offers context and purpose of the configuration field in human-readable format. This field is
-	// optional, yet highly recommended to be set.
-	//
-	// Example:
-	//   - "Set the root log level to one of ERROR, WARN, INFO, DEBUG or TRACE. Default is INFO"
-	//   - "URL of the feedback service"
-	//
-	Description string
-	// Optional allows to have this configuration field unset, otherwise a value must be set. This field is optional.
-	// If unset, a value of `false` will be assumed.
-	//
-	// Example:
-	//   - true
-	//
-	Optional bool
-	// Encrypted marks this configuration field to contain a sensitive value that will be encrypted with the dogu's
-	// public key. This field is optional. If unset, a value of `false` will be assumed.
-	//
-	// Example:
-	//   - true
-	//
-	Encrypted bool
-	// Global marks this configuration field to contain a value that is available for all dogus. This field is optional.
-	// If unset, a value of `false` will be assumed.
-	//
-	// Example:
-	//   - true
-	//
-	Global bool
-	// Default defines a default value that may be evaluated if no value was configured, or the value is empty or even
-	// invalid. This field is optional.
-	//
-	// Example:
-	//   - "WARN"
-	//   - "true"
-	//   - "https://scm-manager.org/plugins"
-	//
-	Default string
-	// Validation configures a validator that will be used to mark invalid or
-	// out-of-range values for this configuration field. This field is optional.
-	//
-	// Example:
-	//  "Validation": {
-	//     "Type": "ONE_OF", // only allows one of these two values
-	//     "Values": [
-	//       "value 1",
-	//       "value 2",
-	//     ]
-	//   }
-	//
-	//  "Validation": {
-	//     "Type": "FLOAT_PERCENTAGE_HUNDRED" // valid values range between 0.0 and 100.0
-	//  }
-	//
-	//  "Validation": {
-	//    "Type": "BINARY_MEASUREMENT" // only allows suffixed integer values measured in byte, kibibyte, mebibyte, gibibyte
-	//   }
-	//
-	//
-	Validation ValidationDescriptor
-}
-
-// ValidationDescriptor describes how to determine if a config value is valid.
-type ValidationDescriptor struct {
-	// Type contains the name of the config value validator. This field is mandatory. Valid types are:
-	//
-	//   - ONE_OF
-	//   - BINARY_MEASUREMENT
-	//   - FLOAT_PERCENTAGE_HUNDRED
-	//
-	Type string
-	// Values may contain values that aid the selected validator. The values may or
-	// may not be optional, depending on the Type being used.
-	// It is up to the selected validator whether this field is mandatory, optional,
-	// or unused.
-	Values []string
-}
-
 // Properties describes generic properties of the dogu which are evaluated by a client like cesapp or k8s-dogu-operator.
 //
 // Example:
 //   - { "key": "value" }
 type Properties map[string]string
-
-// Contains the different kind of types supported by dogu dependencies
-const (
-	// DependencyTypeDogu identifies a dogu dependency towards another dogu.
-	DependencyTypeDogu = "dogu"
-	// DependencyTypeClient identifies a dogu dependency towards a dogu.json-processing client like cesapp or
-	// k8s-dogu-operator.
-	DependencyTypeClient = "client"
-	// DependencyTypePackage identifies a dogu dependency towards an operating system package.
-	DependencyTypePackage = "package"
-)
-
-// Dependency describes the quality of a dogu dependency towards another entity.
-//
-// Examples:
-//
-//	{
-//	  "type": "dogu",
-//	  "name": "postgresql"
-//	}
-//
-//	{
-//	  "name": "postgresql"
-//	}
-//
-//	{
-//	  "type": "client",
-//	  "name": "k8s-dogu-operator",
-//	  "version": ">=0.16.0"
-//	}
-//
-//	{
-//	  "type": "package",
-//	  "name": "cesappd",
-//	  "version": ">=3.2.0"
-//	}
-type Dependency struct {
-	// Type identifies the entity on which the dogu depends. This field is optional.
-	// If unset, a value of `dogu` is then assumed.
-	//
-	// Valid values are one of these: "dogu", "client", "package".
-	//
-	// A type of "dogu" references another dogu which must be present and running
-	// during the dependency check.
-	//
-	// A type of "client" references the client which processes this dogu's
-	// "dogu.json". Several client dependencies of a different client type can be
-	// used f. i. to prohibit the processing of a certain client.
-	//
-	// A type of "package" references a necessary operating system package that must
-	// be present during the dependency check.
-	//
-	// Examples:
-	//  - "dogu"
-	//  - "client"
-	//  - "package"
-	//
-	Type string `json:"type"`
-	// Name identifies the entity selected by Type. This field is mandatory. If the Type selects another dogu, Name
-	// must use the simple dogu name (f. e. "postgres"), not the full qualified dogu name (not "official/postgres").
-	//
-	// Examples:
-	//  - "postgresql"
-	//  - "k8s-dogu-operator"
-	//  - "cesappd"
-	//
-	Name string `json:"name"`
-	// Version selects the version of entity selected by Type. This field is optional. If unset, any version of the
-	// selected entity will be accepted during the dependency check.
-	//
-	// Version accepts different version styles and compare operators.
-	//
-	// Examples:
-	//
-	//  - ">=4.1.1-2" - select the entity version greater than or equal to version 4.1.1-2
-	//  - "<=1.0.1" - select the entity version less than or equal to version 1.0.1
-	//  - "1.2.3.4" - select exactly the version 1.2.3.4
-	//
-	// With a non-existing version it is possible to negate a dependency.
-	//
-	// Example:
-	//
-	//   - "<=0.0.0" - prohibit the selected entity being present
-	//
-	Version string `json:"version"`
-}
 
 // Dogu describes properties of a containerized application for the Cloudogu EcoSystem. Besides the meta information and
 // the [OCI container image], Dogu describes all necessities for automatic container instantiation, f. i. volumes,
@@ -909,7 +605,31 @@ type Dogu struct {
 	//
 	// Example:
 	//   - false
+	//
+	// Deprecated: This feature will be removed in the future because no dogu should have the privilege of container
+	// meta-insights for obvious security reasons. Also, this field is subject of a misnomer because mounting a
+	// container socket has nothing to do with privileged execution.
 	Privileged bool
+	// Security defines security policies for the dogu. This field is optional.
+	//
+	// The Cloudogu Ecosystem may not support restricting capabilities in all environments, e.g. in docker.
+	// This feature was added for the kubernetes platform via [pod security context].
+	//
+	// Example:
+	//
+	//   {
+	//     "Security": {
+	//       "Capabilities": {
+	//         "Drop": ["All"],
+	//         "Add": ["NetBindService", "Kill"]
+	//       },
+	//       "RunAsNonRoot": true,
+	//       "ReadOnlyRootFileSystem": true
+	//     }
+	//   }
+	//
+	// [pod security context]: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+	Security Security `json:"Security,omitempty"`
 	// Configuration contains a list of [ConfigurationField]. This field is optional.
 	//
 	// It describes generic properties of the dogu in the Cloudogu EcoSystem registry.
@@ -1170,6 +890,36 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 	return version.IsNewerThan(otherVersion), nil
 }
 
+// EffectiveCapabilities returns the accumulated list of those Capabilities that are retained after applying the
+// capabilities to be added and removed. DefaultCapabilities build the baseline for added or dropped capabilities.
+func (d *Dogu) EffectiveCapabilities() []Capability {
+	effectiveCaps := make(map[Capability]int)
+
+	for _, defaultCap := range DefaultCapabilities {
+		// note this works since go 1.22 because iteration variables now can be used as unshared variable
+		effectiveCaps[defaultCap] = 0 // we only use the map to check for keys, values don't matter
+	}
+
+	for _, dropCap := range d.Security.Capabilities.Drop {
+		if dropCap == All {
+			effectiveCaps = make(map[Capability]int)
+			break
+		}
+		delete(effectiveCaps, dropCap)
+	}
+
+	for _, addCap := range d.Security.Capabilities.Add {
+		if addCap == All {
+			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
+			return slices.Clone(AllCapabilities)
+		}
+		effectiveCaps[addCap] = 0 // we only use the map to check for keys, values don't matter
+	}
+
+	actualCaps := maps.Keys(effectiveCaps)
+	return slices.Collect(actualCaps)
+}
+
 // GetSimpleDoguName returns the dogu name without its namespace.
 func GetSimpleDoguName(fullDoguName string) string {
 	dogu := Dogu{Name: fullDoguName}
@@ -1224,72 +974,37 @@ func (d *Dogu) CreateV1Copy() DoguV1 {
 	return dogu
 }
 
-// DoguJsonV2FormatProvider provides methods to format Dogu results compatible to v2 API.
-type DoguJsonV2FormatProvider struct{}
+// ValidateSecurity checks the dogu's Security section for configuration errors.
+func (d *Dogu) ValidateSecurity() error {
+	var errs []error
+	for _, value := range d.Security.Capabilities.Add {
+		if value == All {
+			continue
+		}
 
-// GetVersion returns DoguApiV2 for this implementation.
-func (d *DoguJsonV2FormatProvider) GetVersion() DoguApiVersion {
-	return DoguApiV2
-}
-
-// ReadDoguFromString reads a dogu from a string and returns the API v2 representation.
-func (d *DoguJsonV2FormatProvider) ReadDoguFromString(content string) (*Dogu, error) {
-	var dogu *Dogu
-	err := json.Unmarshal([]byte(content), &dogu)
-	return dogu, err
-}
-
-// ReadDogusFromString reads multiple dogus from a string and returns the API v2 representation.
-func (d *DoguJsonV2FormatProvider) ReadDogusFromString(content string) ([]*Dogu, error) {
-	var dogus []*Dogu
-	err := json.Unmarshal([]byte(content), &dogus)
-	return dogus, err
-}
-
-// WriteDoguToString receives a single dogu and returns the API v2 representation.
-func (d *DoguJsonV2FormatProvider) WriteDoguToString(dogu *Dogu) (string, error) {
-	data, err := json.Marshal(dogu)
-	if err != nil {
-		return "", err
-	}
-	return string(data), err
-}
-
-// WriteDogusToString receives a list of dogus and returns the API v2 representation.
-func (d *DoguJsonV2FormatProvider) WriteDogusToString(dogu []*Dogu) (string, error) {
-	data, err := json.Marshal(dogu)
-	if err != nil {
-		return "", err
-	}
-	return string(data), err
-}
-
-// ByDoguVersion implements sort.Interface for []Dogu to Dogus by their versions
-type ByDoguVersion []*Dogu
-
-// Len is the number of elements in the collection.
-func (doguVersions ByDoguVersion) Len() int {
-	return len(doguVersions)
-}
-
-// Swap swaps the elements with indexes i and j.
-func (doguVersions ByDoguVersion) Swap(i, j int) {
-	doguVersions[i], doguVersions[j] = doguVersions[j], doguVersions[i]
-}
-
-// Less reports whether the element with index i should sort before the element with index j.
-func (doguVersions ByDoguVersion) Less(i, j int) bool {
-	v1, err := ParseVersion(doguVersions[i].Version)
-	if err != nil {
-		GetLogger().Errorf("connot parse version %s for comparison", doguVersions[i].Version)
-	}
-	v2, err := ParseVersion(doguVersions[j].Version)
-	if err != nil {
-		GetLogger().Errorf("connot parse version %s for comparison", doguVersions[j].Version)
+		if !slices.Contains(AllCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be added", value)
+			errs = append(errs, err)
+		}
 	}
 
-	isNewer := v1.IsNewerThan(v2)
-	return isNewer
+	for _, value := range d.Security.Capabilities.Drop {
+		if value == All {
+			continue
+		}
+
+		if !slices.Contains(AllCapabilities, value) {
+			err := fmt.Errorf("%s is not a valid capability to be dropped", value)
+			errs = append(errs, err)
+		}
+	}
+
+	err := errors.Join(errs...)
+	if err != nil {
+		return fmt.Errorf("dogu descriptor %s:%s contains at least one invalid security field: %w", d.Name, d.Version, err)
+	}
+
+	return nil
 }
 
 // ContainsDoguWithName checks if a dogu is contained in a slice by comparing the full name (including namespace)

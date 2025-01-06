@@ -14,6 +14,7 @@ changelog = new Changelog(this)
 repositoryOwner = "cloudogu"
 repositoryName = "cesapp-lib"
 project = "github.com/${repositoryOwner}/${repositoryName}"
+goVersion = "1.23.4"
 
 // Configuration of branches
 productionReleaseBranch = "main"
@@ -132,7 +133,7 @@ void withBuildDependencies(Closure closure) {
         etcdImage.withRun("--network ${buildnetwork} --name ${etcdContainerName}", 'etcd --listen-client-urls http://0.0.0.0:4001 --advertise-client-urls http://0.0.0.0:4001')
                 {
                     new Docker(this)
-                            .image('golang:1.18.6')
+                            .image("golang:${goVersion}")
                             .mountJenkinsUser()
                             .inside("--network ${buildnetwork} -e ETCD=${etcdContainerName} -e SKIP_SYSLOG_TESTS=true -e SKIP_DOCKER_TESTS=true --volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}")
                                     {
@@ -146,7 +147,7 @@ void potentiallyCreateDoguDocPR() {
     def targetDoguDocDir = "target/dogu-doc"
     def coreDoguChapter = "compendium_en.md"
     def oldCoreDoguChapter = "${targetDoguDocDir}/docs/core/${coreDoguChapter}"
-    def newCoreDoguChapter = "target/${coreDoguChapter}"
+    def newCoreDoguChapter = "target/compendium_en.md"
     def doguDocRepoParts = "cloudogu/dogu-development-docs"
     def doguDocRepo = "github.com/${doguDocRepoParts}.git"
     def doguDocTargetBranch = "main"
@@ -155,7 +156,7 @@ void potentiallyCreateDoguDocPR() {
     def gomarkVersion = "v0.4.1-8"
 
     new Docker(this)
-            .image('golang:1.20') // gomarkdoc needs /go/doc/comment from go 1.19+
+            .image("golang:${goVersion}") // gomarkdoc needs /go/doc/comment from go 1.19+
             .mountJenkinsUser()
             .inside("--volume ${WORKSPACE}:/go/src/${project} -w /go/src/${project}") {
 
@@ -165,7 +166,7 @@ void potentiallyCreateDoguDocPR() {
 
                 stage('Build new dogu doc page') {
                     sh "go install github.com/cloudogu/gomarkdoc/cmd/gomarkdoc@${gomarkVersion}"
-                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --include-files dogu_v2.go"
+                    sh "gomarkdoc --output ${newCoreDoguChapter} core/dogu_v2.go --include-files dogu_v2.go,dogu_v2_security.go,dogu_v2_configuration_field.go,dogu_v2_dependency.go,dogu_v2_versions.go,dogu_v2_volume.go"
                 }
 
                 def shouldCreateDoguDocsPR = false
