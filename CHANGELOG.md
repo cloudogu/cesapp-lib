@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v0.16.0] - 2025-01-06
+### Added
 - [#53] Add Security field to `dogu_v2`, which can be to define security policies for the dogu.
   - This can be used for example in the pod security context on the kubernetes platform. 
 
