@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.16.0] - 2025-01-06
+### Added
+- [#53] Add Security field to `dogu_v2`, which can be to define security policies for the dogu.
+  - This can be used for example in the pod security context on the kubernetes platform. 
+
 ## [v0.15.0] - 2024-11-13
 ### Added
 - [#43] add a timestamp to `dogu_v1` and `dogu_v2` which represents the date and time when a dogu was created

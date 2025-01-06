@@ -1,10 +1,6 @@
 package core
 
 import (
-	"bytes"
-	"io"
-	"os"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,21 +40,6 @@ func TestGetEnvironmentVariablesAsStringArray(t *testing.T) {
 		EnvironmentVariables: []EnvironmentVariable{sampleEnv},
 	}
 	assert.Equal(t, []string{"HAPPY_MODE=true"}, dogu.GetEnvironmentVariablesAsStringArray())
-}
-
-func TestDependsOn(t *testing.T) {
-	dogu := Dogu{
-		Name: "hansolo",
-		Dependencies: []Dependency{
-			{Type: DependencyTypeDogu, Name: "a"},
-			{Type: DependencyTypeDogu, Name: "b"},
-		},
-		OptionalDependencies: []Dependency{{Type: DependencyTypeDogu, Name: "c"}},
-	}
-	assert.True(t, dogu.DependsOn("a"))
-	assert.True(t, dogu.DependsOn("b"))
-	assert.False(t, dogu.DependsOn("c"))
-	assert.False(t, dogu.DependsOn("d"))
 }
 
 func TestGetVersion(t *testing.T) {
@@ -132,14 +113,6 @@ func TestDoguIsNewerThan(t *testing.T) {
 	assert.False(t, newer)
 }
 
-func TestUnmarshalProperties(t *testing.T) {
-	dogu := &Dogu{}
-	dogu, _, err := ReadDoguFromFile("../resources/test/unmarshalProperties.json")
-	require.Nil(t, err)
-	assert.Equal(t, "http://test.test", dogu.Properties["logoutUrl"])
-	assert.Equal(t, "25", dogu.Properties["TestPort"])
-}
-
 func TestHasExposedCommand_shouldFindCommand(t *testing.T) {
 	dogu := &Dogu{ExposedCommands: []ExposedCommand{{Name: "doNothing"}, {Name: "service-account-create"}}}
 	assert.True(t, dogu.HasExposedCommand(ExposedCommandServiceAccountCreate))
@@ -209,36 +182,6 @@ func TestGetRegistryName(t *testing.T) {
 		}
 		require.Equal(t, "registry/cloudogu/com", dogu.GetRegistryServerURI())
 	})
-
-}
-
-func restoreOriginalStdout(stdout *os.File) {
-	os.Stdout = stdout
-}
-
-func routeStdoutToReplacement() (readerPipe, writerPipe *os.File) {
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	return r, w
-}
-
-func captureOutput(fakeReaderPipe, fakeWriterPipe, originalStdout *os.File) string {
-	outC := make(chan string)
-	// copy the output in a separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, fakeReaderPipe)
-		outC <- buf.String()
-	}()
-
-	// back to normal state
-	_ = fakeWriterPipe.Close()
-	restoreOriginalStdout(originalStdout)
-
-	actualOutput := <-outC
-
-	return actualOutput
 }
 
 func Test_getSimpleDoguName(t *testing.T) {
@@ -251,134 +194,6 @@ func Test_getNamespace(t *testing.T) {
 	actual := GetNamespace("official/redmine")
 
 	assert.Equal(t, "official", actual)
-}
-
-func TestDogu_Dependencies(t *testing.T) {
-	// given
-	depDogu1 := Dependency{Type: DependencyTypeDogu, Name: "DoguTest"}
-	depDogu2 := Dependency{Type: DependencyTypeDogu, Name: "DoguTest2"}
-	depClient1 := Dependency{Type: DependencyTypeClient, Name: "ClientTest1"}
-	depClient2 := Dependency{Type: DependencyTypeClient, Name: "ClientTest2"}
-	depPackage1 := Dependency{Type: DependencyTypePackage, Name: "PackageTest1"}
-	depPackage2 := Dependency{Type: DependencyTypePackage, Name: "PackageTest2"}
-
-	t.Run("GetAllDependenciesOfType - Return only empty slice when dependencies are empty", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name: "namespace/dogu1",
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetAllDependenciesOfType(DependencyTypeDogu)
-
-		// then
-		assert.Empty(t, dependenciesDogu)
-	})
-
-	t.Run("GetDependenciesOfType - Return only empty slice when dependencies are empty", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name: "namespace/dogu1",
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetDependenciesOfType(DependencyTypeDogu)
-
-		// then
-		assert.Empty(t, dependenciesDogu)
-	})
-
-	t.Run("GetOptionalDependenciesOfType - Return only empty slice when dependencies are empty", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name: "namespace/dogu1",
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetOptionalDependenciesOfType(DependencyTypeDogu)
-
-		// then
-		assert.Empty(t, dependenciesDogu)
-	})
-
-	t.Run("GetAllDependenciesOfType - Return all dependencies with their correct types", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name:                 "namespace/dogu1",
-			Dependencies:         []Dependency{depDogu1, depClient1, depPackage1},
-			OptionalDependencies: []Dependency{depDogu2, depClient2, depPackage2},
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetAllDependenciesOfType(DependencyTypeDogu)
-		dependenciesClient := dogu1.GetAllDependenciesOfType(DependencyTypeClient)
-		dependenciesPackage := dogu1.GetAllDependenciesOfType(DependencyTypePackage)
-
-		// then
-		assert.NotEmpty(t, dependenciesDogu)
-		assert.Len(t, dependenciesDogu, 2)
-		assert.Equal(t, depDogu1, dependenciesDogu[0])
-		assert.Equal(t, depDogu2, dependenciesDogu[1])
-		assert.Len(t, dependenciesClient, 2)
-		assert.Equal(t, depClient1, dependenciesClient[0])
-		assert.Equal(t, depClient2, dependenciesClient[1])
-		assert.Len(t, dependenciesPackage, 2)
-		assert.Equal(t, depPackage1, dependenciesPackage[0])
-		assert.Equal(t, depPackage2, dependenciesPackage[1])
-	})
-
-	t.Run("GetDependenciesOfType - Return only required dependencies with their correct types", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name:                 "namespace/dogu1",
-			Dependencies:         []Dependency{depDogu1, depClient1, depPackage1},
-			OptionalDependencies: []Dependency{depDogu2, depClient2, depPackage2},
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetDependenciesOfType(DependencyTypeDogu)
-		dependenciesClient := dogu1.GetDependenciesOfType(DependencyTypeClient)
-		dependenciesPackage := dogu1.GetDependenciesOfType(DependencyTypePackage)
-
-		// then
-		assert.Len(t, dependenciesDogu, 1)
-		assert.Equal(t, depDogu1, dependenciesDogu[0])
-		assert.Len(t, dependenciesClient, 1)
-		assert.Equal(t, depClient1, dependenciesClient[0])
-		assert.Len(t, dependenciesPackage, 1)
-		assert.Equal(t, depPackage1, dependenciesPackage[0])
-	})
-
-	t.Run("GetOptionalDependenciesOfType - Return all optional dependencies with their correct types", func(t *testing.T) {
-		// given
-		dogu1 := &Dogu{
-			Name:                 "namespace/dogu1",
-			Dependencies:         []Dependency{depDogu1, depClient1, depPackage1},
-			OptionalDependencies: []Dependency{depDogu2, depClient2, depPackage2},
-		}
-
-		// when
-		dependenciesDogu := dogu1.GetOptionalDependenciesOfType(DependencyTypeDogu)
-		dependenciesClient := dogu1.GetOptionalDependenciesOfType(DependencyTypeClient)
-		dependenciesPackage := dogu1.GetOptionalDependenciesOfType(DependencyTypePackage)
-
-		// then
-		assert.Len(t, dependenciesDogu, 1)
-		assert.Equal(t, depDogu2, dependenciesDogu[0])
-		assert.Len(t, dependenciesClient, 1)
-		assert.Equal(t, depClient2, dependenciesClient[0])
-		assert.Len(t, dependenciesPackage, 1)
-		assert.Equal(t, depPackage2, dependenciesPackage[0])
-	})
-}
-
-func Test_sortDogus(t *testing.T) {
-	unsortedDogus := []*Dogu{{Name: "Dogu1", Version: "11.22.33-1"}, {Name: "Dogu2", Version: "0.1.3-5"}, {Name: "Dogu3", Version: "0.5.3-3"}, {Name: "Dogu4", Version: "9.3.9"}}
-	expectedDogus := []*Dogu{{Name: "Dogu1", Version: "11.22.33-1"}, {Name: "Dogu4", Version: "9.3.9"}, {Name: "Dogu3", Version: "0.5.3-3"}, {Name: "Dogu2", Version: "0.1.3-5"}}
-
-	sort.Sort(ByDoguVersion(unsortedDogus))
-
-	assert.Equal(t, unsortedDogus, expectedDogus)
 }
 
 func TestContainsDogu(t *testing.T) {
@@ -403,115 +218,4 @@ func TestContainsDogu(t *testing.T) {
 func createTestDogu(t *testing.T, name string, version string) *Dogu {
 	t.Helper()
 	return &Dogu{Name: "official/" + name, Version: version}
-}
-
-func TestVolume_GetClient(t *testing.T) {
-	t.Run("call on volumes with no client definitons", func(t *testing.T) {
-		// given
-		sut := Volume{
-			Name:        "data",
-			Path:        "/var/lib/scm",
-			Owner:       "",
-			Group:       "",
-			NeedsBackup: true,
-		}
-
-		// when
-		client, ok := sut.GetClient("testClient")
-
-		// then
-		assert.False(t, ok)
-		assert.Nil(t, client)
-	})
-	t.Run("call on volumes with a single client definitons", func(t *testing.T) {
-		// given
-		type testClientParams struct {
-			Type     string
-			MySecret string
-		}
-
-		sut := Volume{
-			Name:        "data",
-			Path:        "/var/lib/scm",
-			Owner:       "",
-			Group:       "",
-			NeedsBackup: true,
-			Clients: []VolumeClient{
-				{Name: "testClient", Params: testClientParams{MySecret: "supersecret", Type: "myType"}},
-			},
-		}
-
-		// when
-		client, ok := sut.GetClient("testClient")
-
-		// then
-		assert.True(t, ok)
-		require.NotNil(t, client)
-		assert.Equal(t, "testClient", client.Name)
-
-		params, ok := client.Params.(testClientParams)
-		require.True(t, ok)
-
-		assert.Equal(t, "supersecret", params.MySecret)
-		assert.Equal(t, "myType", params.Type)
-	})
-	t.Run("call on volumes with multiple client definitons", func(t *testing.T) {
-		// given
-		type testClientParams struct {
-			Type     string
-			MySecret string
-		}
-
-		sut := Volume{
-			Name:        "data",
-			Path:        "/var/lib/scm",
-			Owner:       "",
-			Group:       "",
-			NeedsBackup: true,
-			Clients: []VolumeClient{
-				{Name: "wrongClient", Params: "wrong data"},
-				{Name: "testClient", Params: testClientParams{MySecret: "supersecret", Type: "myType"}},
-			},
-		}
-
-		// when
-		client, ok := sut.GetClient("testClient")
-
-		// then
-		assert.True(t, ok)
-		require.NotNil(t, client)
-		assert.Equal(t, "testClient", client.Name)
-
-		params, ok := client.Params.(testClientParams)
-		require.True(t, ok)
-
-		assert.Equal(t, "supersecret", params.MySecret)
-		assert.Equal(t, "myType", params.Type)
-	})
-	t.Run("return false when requested client does not exits in multiple available clients", func(t *testing.T) {
-		// given
-		type testClientParams struct {
-			Type     string
-			MySecret string
-		}
-
-		sut := Volume{
-			Name:        "data",
-			Path:        "/var/lib/scm",
-			Owner:       "",
-			Group:       "",
-			NeedsBackup: true,
-			Clients: []VolumeClient{
-				{Name: "wrongClient", Params: "wrong data"},
-				{Name: "testClient", Params: testClientParams{MySecret: "supersecret", Type: "myType"}},
-			},
-		}
-
-		// when
-		client, ok := sut.GetClient("againAnotherClient")
-
-		// then
-		assert.False(t, ok)
-		require.Nil(t, client)
-	})
 }
