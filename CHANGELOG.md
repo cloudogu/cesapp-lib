@@ -7,6 +7,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.17.0] - 2025-01-07
+### Changed
+- [#52] Adapt to changes in the CMS
+  - Remove `Logo` and `BackgroundImage` from `MarketingDogu`
+  - Add `Category` to `MarketingDogu`
+### Fixed
+- [#52] Add missing fields in `MarektingDogu` example
+
 ## [v0.16.0] - 2025-01-06
 ### Added
 - [#53] Add Security field to `dogu_v2`, which can be to define security policies for the dogu.
