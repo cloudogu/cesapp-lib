@@ -3,7 +3,6 @@ package core
 import (
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"strings"
 	"time"
@@ -890,34 +889,12 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 	return version.IsNewerThan(otherVersion), nil
 }
 
-// EffectiveCapabilities returns the accumulated list of those Capabilities that are retained after applying the
-// capabilities to be added and removed. DefaultCapabilities build the baseline for added or dropped capabilities.
+// EffectiveCapabilities returns the actual capabilities after dropping and then adding the given capabilities
+// from the dogu descriptor to the given default capabilities.
+// It can also handle the All meta-capability, so adding or dropping all capabilities can be done
+// without listing every single capability directly.
 func (d *Dogu) EffectiveCapabilities() []Capability {
-	effectiveCaps := make(map[Capability]int)
-
-	for _, defaultCap := range DefaultCapabilities {
-		// note this works since go 1.22 because iteration variables now can be used as unshared variable
-		effectiveCaps[defaultCap] = 0 // we only use the map to check for keys, values don't matter
-	}
-
-	for _, dropCap := range d.Security.Capabilities.Drop {
-		if dropCap == All {
-			effectiveCaps = make(map[Capability]int)
-			break
-		}
-		delete(effectiveCaps, dropCap)
-	}
-
-	for _, addCap := range d.Security.Capabilities.Add {
-		if addCap == All {
-			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
-			return slices.Clone(AllCapabilities)
-		}
-		effectiveCaps[addCap] = 0 // we only use the map to check for keys, values don't matter
-	}
-
-	actualCaps := maps.Keys(effectiveCaps)
-	return slices.Collect(actualCaps)
+	return CalcEffectiveCapabilities(DefaultCapabilities, d.Security.Capabilities.Drop, d.Security.Capabilities.Drop)
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.
