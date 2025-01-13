@@ -894,7 +894,7 @@ func (d *Dogu) IsNewerThan(otherDogu *Dogu) (bool, error) {
 // It can also handle the All meta-capability, so adding or dropping all capabilities can be done
 // without listing every single capability directly.
 func (d *Dogu) EffectiveCapabilities() []Capability {
-	return CalcEffectiveCapabilities(DefaultCapabilities, d.Security.Capabilities.Drop, d.Security.Capabilities.Drop)
+	return CalcEffectiveCapabilities(DefaultCapabilities, d.Security.Capabilities.Drop, d.Security.Capabilities.Add)
 }
 
 // GetSimpleDoguName returns the dogu name without its namespace.

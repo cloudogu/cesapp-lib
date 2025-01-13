@@ -72,6 +72,7 @@ func TestDogu_EffectiveCapabilities(t *testing.T) {
 		{"add all", fields{Security{Capabilities: Capabilities{Add: []Capability{All}}}}, AllCapabilities},
 		{"drop all, add all", fields{Security{Capabilities: Capabilities{Drop: []Capability{All}, Add: []Capability{All}}}}, AllCapabilities},
 		{"default list", fields{Security{Capabilities: Capabilities{}}}, DefaultCapabilities},
+		{"drop every cap without all keyword", fields{Security{Capabilities: Capabilities{Drop: DefaultCapabilities}}}, nil},
 		{"add 1 new and 1 existing caps to default list", fields{Security{Capabilities: Capabilities{Add: []Capability{Bpf, Chown}}}}, joinCapability(DefaultCapabilities, Bpf, Chown)},
 	}
 	for _, tt := range tests {
