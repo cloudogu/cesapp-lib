@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.18.0] - 2025-01-15
+### Changed
+- [#55] Extract calculation of effective capabilities to be reusable
+
 ## [v0.17.0] - 2025-01-07
 ### Changed
 - [#52] Adapt to changes in the CMS
