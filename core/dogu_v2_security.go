@@ -1,5 +1,10 @@
 package core
 
+import (
+	"maps"
+	"slices"
+)
+
 // Capability represent POSIX capabilities type.
 //
 // See docs at https://manned.org/capabilities.7
@@ -160,4 +165,36 @@ type Security struct {
 	// ReadOnlyRootFileSystem mounts the container's root filesystem as read-only. The dogu must support accessing the
 	// root file system by only reading otherwise the dogu start may fail. This flag is optional and defaults to false.
 	ReadOnlyRootFileSystem bool
+}
+
+// CalcEffectiveCapabilities returns the actual capabilities after dropping and then adding the given capabilities
+// to the given default capabilities.
+// It can also handle the All meta-capability, so adding or dropping all capabilities can be done
+// without listing every single capability directly.
+func CalcEffectiveCapabilities(defaultCaps, capsToDrop, capsToAdd []Capability) []Capability {
+	effectiveCaps := make(map[Capability]int)
+
+	for _, defaultCap := range defaultCaps {
+		// note this works since go 1.22 because iteration variables now can be used as unshared variable
+		effectiveCaps[defaultCap] = 0 // we only use the map to check for keys, values don't matter
+	}
+
+	for _, dropCap := range capsToDrop {
+		if dropCap == All {
+			effectiveCaps = make(map[Capability]int)
+			break
+		}
+		delete(effectiveCaps, dropCap)
+	}
+
+	for _, addCap := range capsToAdd {
+		if addCap == All {
+			// do a fast exit here because alternatives of slice-to-map conversion would be cumbersome
+			return slices.Clone(AllCapabilities)
+		}
+		effectiveCaps[addCap] = 0 // we only use the map to check for keys, values don't matter
+	}
+
+	actualCaps := maps.Keys(effectiveCaps)
+	return slices.Collect(actualCaps)
 }
