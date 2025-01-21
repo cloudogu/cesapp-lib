@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -306,7 +307,7 @@ type Dogu struct {
 	//   - 2024-10-16T07:49:34.738Z
 	//   - 2019-05-03T13:31:48.612Z
 	//
-	PublishedAt time.Time
+	PublishedAt DoguTime
 	// DisplayName is the name of the dogu which is used in UI frontends to represent the dogu. This field is mandatory.
 	//
 	// Usages:
@@ -993,4 +994,30 @@ func ContainsDoguWithName(dogus []*Dogu, name string) bool {
 	}
 
 	return false
+}
+
+// DoguTime aliases to a time object to map empty strings to a zero time.
+type DoguTime time.Time
+
+// MarshalJSON marshals the value as a quoted json string or as empty string
+func (dt DoguTime) MarshalJSON() ([]byte, error) {
+	if time.Time(dt).IsZero() {
+		return []byte(`""`), nil
+	}
+	return time.Time(dt).MarshalJSON()
+}
+
+// UnmarshalJSON unmarshals a quoted json string to the time value. Use it with usual json unmarshalling:
+func (dt DoguTime) UnmarshalJSON(b []byte) error {
+	if len(b) == 0 {
+		dt = DoguTime{}
+		return nil
+	}
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal value %s to a time: %w", string(b), err)
+	}
+
+	return nil
 }

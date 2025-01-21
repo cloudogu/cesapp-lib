@@ -219,3 +219,323 @@ func createTestDogu(t *testing.T, name string, version string) *Dogu {
 	t.Helper()
 	return &Dogu{Name: "official/" + name, Version: version}
 }
+
+func TestTestDogu(t *testing.T) {
+	var mydogu core.Dogu
+	err := json.Unmarshal([]byte(testDogu(t)), &mydogu)
+
+	require.NoError(t, err)
+	assert.NotNil(t, mydogu)
+	assert.Equal(t, "asdf", mydogu.Dependencies[0].Name)
+}
+func TestTestDogu2(t *testing.T) {
+	var mydogu core.Dogu
+	err := json.Unmarshal([]byte(testDogu(t)), &mydogu)
+
+	require.NoError(t, err)
+	assert.NotNil(t, mydogu)
+
+	dogubytes, err := json.Marshal(&mydogu)
+	require.NoError(t, err)
+	assert.Equal(t, "{hallo}", string(dogubytes))
+}
+func TestTestDogu2Bson(t *testing.T) {
+	var mydogu core.Dogu
+	err := json.Unmarshal([]byte(testDogu(t)), &mydogu)
+
+	require.NoError(t, err)
+	assert.NotNil(t, mydogu)
+
+	// save into mongodb here ;)
+	dogubytes, err := bson.Marshal(&mydogu)
+	require.NoError(t, err)
+
+	err = bson.Unmarshal(dogubytes, &mydogu)
+	require.NoError(t, err)
+	assert.True(t, time.Time(mydogu.PublishedAt).IsZero())
+}
+
+func testDogu(t *testing.T) string {
+	t.Helper()
+
+	return `  {
+    "_id": {
+      "$oid": "666ab089e93bd78f3282c6d5"
+    },
+    "name": "testing/jenkins",
+    "version": "2.440.2-999",
+    "displayname": "Jenkins CI",
+    "description": "Jenkins Continuous Integration Server",
+    "category": "Development Apps",
+    "tags": [
+      "warp",
+      "build",
+      "ci",
+      "cd"
+    ],
+    "logo": "https://cloudogu.com/images/dogus/jenkins.png",
+    "url": "https://jenkins-ci.org",
+    "image": "registry.cloudogu.com/testing/jenkins",
+    "exposedports": null,
+    "exposedcommands": [
+      {
+        "name": "upgrade-notification",
+        "description": "",
+        "command": "/upgrade-notification.sh"
+      },
+      {
+        "name": "pre-upgrade",
+        "description": "",
+        "command": "/pre-upgrade.sh"
+      }
+    ],
+    "volumes": [
+      {
+        "name": "data",
+        "path": "/var/lib/jenkins",
+        "owner": "1000",
+        "group": "1000",
+        "needsbackup": true,
+        "clients": null
+      },
+      {
+        "name": "custom.init.groovy.d",
+        "path": "/var/lib/custom.init.groovy.d",
+        "owner": "1000",
+        "group": "1000",
+        "needsbackup": true,
+        "clients": null
+      },
+      {
+        "name": "tmp",
+        "path": "/tmp",
+        "owner": "1000",
+        "group": "1000",
+        "needsbackup": false,
+        "clients": null
+      }
+    ],
+    "healthcheck": {
+      "type": "",
+      "state": "",
+      "port": 0,
+      "path": "",
+      "parameters": null
+    },
+    "healthchecks": [
+      {
+        "type": "tcp",
+        "state": "",
+        "port": 8080,
+        "path": "",
+        "parameters": null
+      },
+      {
+        "type": "state",
+        "state": "",
+        "port": 0,
+        "path": "",
+        "parameters": null
+      }
+    ],
+    "serviceaccounts": null,
+    "privileged": false,
+    "configuration": [
+      {
+        "name": "additional.plugins",
+        "description": "Comma separated list of plugin names to install on start",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/memory_limit",
+        "description": "Limits the container's memory usage. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/swap_limit",
+        "description": "Limits the container's swap memory usage. Use zero or a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte). 0 will disable swapping.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/java_max_ram_percentage",
+        "description": "Limits the heap stack size of the Jenkins process to the configured percentage of the available physical memory when the container has more than approx. 250 MB of memory available. Is only considered when a memory_limit is set. Use a valid float value with decimals between 0 and 100 (f. ex. 55.0 for 55%). Default value for Jenkins: 25%",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "25.0",
+        "validation": {
+          "type": "FLOAT_PERCENTAGE_HUNDRED",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/java_min_ram_percentage",
+        "description": "Limits the heap stack size of the Jenkins process to the configured percentage of the available physical memory when the container has less than approx. 250 MB of memory available. Is only considered when a memory_limit is set. Use a valid float value with decimals between 0 and 100 (f. ex. 55.0 for 55%). Default value for Jenkins: 50%",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "50.0",
+        "validation": {
+          "type": "FLOAT_PERCENTAGE_HUNDRED",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/memory_limit",
+        "description": "Limits the container's memory usage. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/memory_request",
+        "description": "Requests the container's minimal memory requirement. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "2g",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/swap_limit",
+        "description": "Limits the container's swap memory usage. Use zero or a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte). 0 will disable swapping.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/cpu_core_limit",
+        "description": "Limits the container's CPU core usage. Use a positive floating value describing a fraction of 1 CPU core. When you define a value of '0.5', you are requesting half as much CPU time compared to if you asked for '1.0' CPU.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/cpu_core_request",
+        "description": "Requests the container's minimal CPU core requirement. Use a positive floating value describing a fraction of 1 CPU core. When you define a value of '0.5', you are requesting half as much CPU time compared to if you asked for '1.0' CPU.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "1.0",
+        "validation": {
+          "type": "",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/storage_limit",
+        "description": "Limits the container's ephemeral storage usage. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "container_config/storage_request",
+        "description": "Requests the container's minimal ephemeral storage requirement. Use a positive integer value followed by one of these units [b,k,m,g] (byte, kibibyte, mebibyte, gibibyte).",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "",
+        "validation": {
+          "type": "BINARY_MEASUREMENT",
+          "values": null
+        }
+      },
+      {
+        "name": "additional_java_args",
+        "description": "Additional args that are passed to the jenkins process.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "UNSET",
+        "validation": {
+          "type": "",
+          "values": null
+        }
+      },
+      {
+        "name": "logging/root",
+        "description": "Set the root log level to one of ERROR, WARN, INFO, DEBUG.",
+        "optional": true,
+        "encrypted": false,
+        "global": false,
+        "default": "INFO",
+        "validation": {
+          "type": "ONE_OF",
+          "values": [
+            "WARN",
+            "DEBUG",
+            "INFO",
+            "ERROR"
+          ]
+        }
+      }
+    ],
+    "properties": null,
+    "environmentvariables": null,
+    "dependencies": [
+      {
+        "type": "dogu",
+        "name": "cas",
+        "version": ""
+      },
+      {
+        "type": "dogu",
+        "name": "nginx",
+        "version": ""
+      },
+      {
+        "type": "dogu",
+        "name": "postfix",
+        "version": ""
+      }
+    ],
+    "optionaldependencies": null,
+    "publishedAt": ""
+  }
+`
+}
