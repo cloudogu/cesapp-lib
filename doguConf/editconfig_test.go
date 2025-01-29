@@ -127,6 +127,46 @@ func TestEditConfigurationWithEmptyValue(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestEditConfigurationOfAGlobalField(t *testing.T) {
+	// given
+	writer := NewMockFieldWriter(t)
+	field := core.ConfigurationField{Name: "title", Global: true}
+	reader := NewMockFieldReader(t)
+
+	configurationContext := newMockDoguConfigurationContext(t)
+	editor := DoguConfigurationEditor{
+		ConfigurationContext: configurationContext,
+		Writer:               writer,
+		Reader:               reader,
+	}
+
+	// when
+	err := editor.EditConfiguration([]core.ConfigurationField{field}, false)
+
+	// then
+	assert.Nil(t, err)
+}
+
+func TestEditConfigurationOfADirectory(t *testing.T) {
+	// given
+	writer := NewMockFieldWriter(t)
+	field := core.ConfigurationField{Name: "title", IsDirectory: true}
+	reader := NewMockFieldReader(t)
+
+	configurationContext := newMockDoguConfigurationContext(t)
+	editor := DoguConfigurationEditor{
+		ConfigurationContext: configurationContext,
+		Writer:               writer,
+		Reader:               reader,
+	}
+
+	// when
+	err := editor.EditConfiguration([]core.ConfigurationField{field}, false)
+
+	// then
+	assert.Nil(t, err)
+}
+
 func TestEditConfigurationWithDeleteOnEmpty(t *testing.T) {
 	// given
 	writer := NewMockFieldWriter(t)

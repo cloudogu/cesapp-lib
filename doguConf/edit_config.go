@@ -163,13 +163,13 @@ func (editor *DoguConfigurationEditor) printFieldAndReadInput(field core.Configu
 // EditConfiguration prints registry keys to writer and read values from reader.
 func (editor *DoguConfigurationEditor) EditConfiguration(fields []core.ConfigurationField, deleteOnEmpty bool) error {
 	for _, field := range fields {
-		if !field.Global {
+		if !field.Global && !field.IsDirectory {
 			err := editor.editConfigurationField(field, deleteOnEmpty)
 			if err != nil {
 				return err
 			}
 		} else {
-			log.Debug("skip global field", field.Name)
+			log.Debug("skip global field or directory", field.Name)
 		}
 	}
 	return nil
