@@ -76,6 +76,13 @@ type ConfigurationField struct {
 	//
 	//
 	Validation ValidationDescriptor
+	// IsDirectory marks this configuration field to be a directory. Multiple keys can be stored in this directory.
+	// This field is optional. If unset, a value of `false` will be assumed.
+	//
+	// Example:
+	//   - false
+	//
+	IsDirectory bool
 }
 
 // ValidationDescriptor describes how to determine if a config value is valid.
