@@ -54,7 +54,7 @@ func TestDoguDependencyChecker_CheckDependencies(t *testing.T) {
 	assert.NotContains(t, problems.Error(), "a valid dogu")
 	assert.Contains(t, problems.Error(), "failed to resolve dependencies a dogu for which doguRegistry.Get() will fail")
 	assert.Contains(t, problems.Error(), "an error occurred when comparing the versions")
-	assert.Contains(t, problems.Error(), "0.2.3-1 parsed Version does not fulfill version requirement of >1.0.0-1")
+	assert.Contains(t, problems.Error(), "The parsed version of the dogu a dogu for which allows returns false (0.2.3-1) does not fulfill the version requirement of the dogu dependency a dogu for which allows returns false (>1.0.0-1)")
 	assert.Contains(t, problems.Error(), "failed to parse version of dependency a dogu for which ParseVersion will fail")
 	assert.Contains(t, problems.Error(), "failed to parse ParseVersionComparator of version x!2.3.1-7")
 	assert.Contains(t, problems.Error(), "dependency a dogu for which doguRegistry.Get() will find nothing seems not to be installed")
