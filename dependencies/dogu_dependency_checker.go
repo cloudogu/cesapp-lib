@@ -85,10 +85,10 @@ func (dc *doguDependencyChecker) CheckDoguDependency(doguDependency core.Depende
 		return fmt.Errorf("dependency %s seems not to be installed", doguDependency.Name)
 	}
 
-	return checkDependencyVersion(doguDependency, localDependency)
+	return CheckDependencyVersion(doguDependency, core.Dependency{Name: localDependency.Name, Version: localDependency.Version}, core.DependencyTypeDogu)
 }
 
-func checkDependencyVersion(doguDependency core.Dependency, localDependency *core.Dogu) error {
+func CheckDependencyVersion(doguDependency core.Dependency, localDependency core.Dependency, dependencyType string) error {
 	// it does not count as an error if no version is specified as the field is optional
 	if doguDependency.Version != "" {
 		localDependencyVersion, err := core.ParseVersion(localDependency.Version)
@@ -97,14 +97,14 @@ func checkDependencyVersion(doguDependency core.Dependency, localDependency *cor
 		}
 		comparator, err := core.ParseVersionComparator(doguDependency.Version)
 		if err != nil {
-			return fmt.Errorf("failed to parse ParseVersionComparator of version %s for doguDependency %s: %w", doguDependency.Version, doguDependency.Name, err)
+			return fmt.Errorf("failed to parse ParseVersionComparator of version %s for %sDependency %s: %w", doguDependency.Version, dependencyType, doguDependency.Name, err)
 		}
 		allows, err := comparator.Allows(localDependencyVersion)
 		if err != nil {
 			return fmt.Errorf("an error occurred when comparing the versions: %w", err)
 		}
 		if !allows {
-			return fmt.Errorf("%s parsed Version does not fulfill version requirement of %s dogu %s", localDependency.Version, doguDependency.Version, doguDependency.Name)
+			return fmt.Errorf("The parsed version of the %[3]s %[1]s (%[2]s) does not fulfill the version requirement of the %[3]s dependency %[1]s (%[4]s)", doguDependency.Name, localDependency.Version, dependencyType, doguDependency.Version)
 		}
 	}
 	return nil // no error, dependency is ok
