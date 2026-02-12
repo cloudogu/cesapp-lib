@@ -75,8 +75,8 @@ type HealthCheck struct {
 //
 // Example:
 //
-//	{ "Type": "tcp", "Container": "2222", "Host":"2222" }
-//	{ "Container": "2222", "Host":"2222" }
+//	{ "Type": "tcp", "Container": 2222, "Host": 2222 }
+//	{ "Container": 2222, "Host": 2222 }
 type ExposedPort struct {
 	// Type contains the protocol type over which the container communicates (f. i. 'tcp'). This field is optional (the
 	// value of `tcp` is then assumed).
@@ -418,7 +418,7 @@ type Dogu struct {
 	//
 	// Examples:
 	//
-	//   [ { "Type": "tcp", "Container": "2222", "Host":"2222" } ]
+	//   [ { "Type": "tcp", "Container": 2222, "Host": 2222 } ]
 	//
 	ExposedPorts []ExposedPort
 	// ExposedCommands defines actions of type [ExposedCommand] which can be executed in different phases of

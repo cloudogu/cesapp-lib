@@ -34,7 +34,7 @@ type KeyProvider struct {
 func NewKeyProvider(keyType string) (*KeyProvider, error) {
 	provider := providers[keyType]
 	if provider == nil {
-		return nil, fmt.Errorf("could not find provider from type " + keyType)
+		return nil, fmt.Errorf("could not find provider from type %s", keyType)
 	}
 	return provider, nil
 }

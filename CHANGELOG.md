@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.18.2] - 2026-02-12
+### Fixed
+- Fixed examples doc comments for `ExposedPort`
+
 ## [v0.18.1] - 2025-02-28
 ### Changed
 -[#58] make CheckDependencyVersion public
