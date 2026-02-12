@@ -14,7 +14,7 @@ changelog = new Changelog(this)
 repositoryOwner = "cloudogu"
 repositoryName = "cesapp-lib"
 project = "github.com/${repositoryOwner}/${repositoryName}"
-goVersion = "1.23.4"
+goVersion = "1.26.0"
 
 // Configuration of branches
 productionReleaseBranch = "main"
