@@ -1,8 +1,8 @@
 # Set these to the desired values
 ARTIFACT_ID=cesapp-lib
-VERSION=0.18.2
+VERSION=0.18.3
 
-GOTAG?=1.26.0
+GOTAG?=1.26.5
 MAKEFILES_VERSION=10.6.0
 LINT_VERSION=v2.9.0
 

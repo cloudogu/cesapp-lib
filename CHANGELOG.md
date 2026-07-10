@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.18.3] - 2026-07-10
+### Security
+- [#64] update dependencies
+- [#64] update go to 1.26.5
+
 ## [v0.18.2] - 2026-02-12
 ### Fixed
 - Fixed examples doc comments for `ExposedPort`
