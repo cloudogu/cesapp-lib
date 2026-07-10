@@ -2,8 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/gammazero/toposort"
 	"sort"
+
+	"github.com/gammazero/toposort"
 )
 
 var (
@@ -108,36 +109,23 @@ func contains(slice []Dependency, item string) bool {
 
 func (bd *sortByDependency) sortDogusByDependency() ([]*Dogu, error) {
 	dependencyEdges := bd.getDependencyEdges()
-	sorted, err := toposort.Toposort(dependencyEdges)
-	return bd.handleSortResult(sorted, err)
+	return toposort.Toposort[*Dogu](dependencyEdges)
 }
 
-func (bd *sortByDependency) getDependencyEdges() []toposort.Edge {
-	var dependencyEdges []toposort.Edge
+func (bd *sortByDependency) getDependencyEdges() []toposort.Edge[*Dogu] {
+	var dependencyEdges []toposort.Edge[*Dogu]
 	for _, dogu := range bd.dogus {
 		dependencies := dogu.GetAllDependenciesOfType(DependencyTypeDogu)
 		dependentDogus := bd.dependenciesToDogus(dependencies)
 		if len(dependentDogus) > 0 {
 			for _, dependency := range dependentDogus {
-				dependencyEdges = append(dependencyEdges, toposort.Edge{dependency, dogu})
+				dependencyEdges = append(dependencyEdges, toposort.Edge[*Dogu]{dependency, dogu})
 			}
 		} else {
-			dependencyEdges = append(dependencyEdges, toposort.Edge{nil, dogu})
+			dependencyEdges = append(dependencyEdges, toposort.Edge[*Dogu]{nil, dogu})
 		}
 	}
 	return dependencyEdges
-}
-
-func toDoguSlice(dogus []interface{}) ([]*Dogu, error) {
-	result := make([]*Dogu, len(dogus))
-	for i, dogu := range dogus {
-		if castedDogu, ok := dogu.(*Dogu); ok {
-			result[i] = castedDogu
-		} else {
-			return nil, fmt.Errorf("expected Dogu, got %T", dogu)
-		}
-	}
-	return result, nil
 }
 
 func (bd *sortByDependency) dependenciesToDogus(dependencies []Dependency) []*Dogu {
@@ -166,23 +154,5 @@ func appendK8sMappedDependencies(dependencies []Dependency) []Dependency {
 
 func (bd *sortByDependency) sortDogusByInvertedDependency() ([]*Dogu, error) {
 	dependencyEdges := bd.getDependencyEdges()
-	sorted, err := toposort.ToposortR(dependencyEdges)
-	return bd.handleSortResult(sorted, err)
-}
-
-func (bd *sortByDependency) handleSortResult(sorted []interface{}, err error) ([]*Dogu, error) {
-	if err != nil {
-		err = fmt.Errorf("sort by dependency failed: %s", err)
-		log.Error(err)
-		return nil, err
-	}
-
-	sortedDogus, err := toDoguSlice(sorted)
-	if err != nil {
-		err = fmt.Errorf("sort by dependency failed: %s", err)
-		log.Error(err)
-		return nil, err
-	}
-
-	return sortedDogus, nil
+	return toposort.ToposortR[*Dogu](dependencyEdges)
 }
