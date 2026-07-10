@@ -138,7 +138,6 @@ func TestSortDogusByDependencyWithError(t *testing.T) {
 
 		dogus, err := SortDogusByDependencyWithError([]*Dogu{a, b, c})
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "sort by dependency failed")
 		assert.ErrorContains(t, err, "error in sorting dogus by dependency")
 		assert.Nil(t, dogus)
 	})
@@ -273,7 +272,6 @@ func TestSortDogusByInvertedDependencyWithError(t *testing.T) {
 
 		dogus, err := SortDogusByInvertedDependencyWithError([]*Dogu{a, b, c})
 		assert.Error(t, err)
-		assert.ErrorContains(t, err, "sort by dependency failed")
 		assert.ErrorContains(t, err, "error in sorting dogus by inverted dependency")
 		assert.Nil(t, dogus)
 	})

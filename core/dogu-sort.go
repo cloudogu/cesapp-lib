@@ -109,8 +109,7 @@ func contains(slice []Dependency, item string) bool {
 
 func (bd *sortByDependency) sortDogusByDependency() ([]*Dogu, error) {
 	dependencyEdges := bd.getDependencyEdges()
-	sorted, err := toposort.Toposort[*Dogu](dependencyEdges)
-	return bd.handleSortResult(sorted, err)
+	return toposort.Toposort[*Dogu](dependencyEdges)
 }
 
 func (bd *sortByDependency) getDependencyEdges() []toposort.Edge[*Dogu] {
@@ -155,16 +154,5 @@ func appendK8sMappedDependencies(dependencies []Dependency) []Dependency {
 
 func (bd *sortByDependency) sortDogusByInvertedDependency() ([]*Dogu, error) {
 	dependencyEdges := bd.getDependencyEdges()
-	sorted, err := toposort.ToposortR[*Dogu](dependencyEdges)
-	return bd.handleSortResult(sorted, err)
-}
-
-func (bd *sortByDependency) handleSortResult(sorted []*Dogu, err error) ([]*Dogu, error) {
-	if err != nil {
-		err = fmt.Errorf("sort by dependency failed: %s", err)
-		log.Error(err)
-		return nil, err
-	}
-
-	return sorted, nil
+	return toposort.ToposortR[*Dogu](dependencyEdges)
 }
