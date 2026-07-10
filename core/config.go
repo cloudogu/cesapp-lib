@@ -20,7 +20,7 @@ type Registry struct {
 // Remote contains dogu registry configuration details.
 type Remote struct {
 	Endpoint               string `validate:"url"`
-	AuthenticationEndpoint string `validate:"omitempty,url"`
+	AuthenticationEndpoint string `validate:"omitempty,uri"`
 	URLSchema              string `json:"urlSchema,omitempty" validate:"omitempty,oneof=default index"`
 	CacheDir               string `validate:"required"`
 	ProxySettings          ProxySettings
