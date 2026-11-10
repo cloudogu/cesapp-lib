@@ -18,6 +18,10 @@ const (
 	// ExposedCommandServiceAccountRemove identifies a name of a core.ExposedCommand which removes a service accounts.
 	ExposedCommandServiceAccountRemove = "service-account-remove"
 
+	// ExposedCommandServiceAccountRotate identifies a name of a core.ExposedCommand which replaces the credentials of
+	// an existing service account.
+	ExposedCommandServiceAccountRotate = "service-account-rotate"
+
 	// ExposedCommandPreUpgrade identifies a name of a core.ExposedCommand which executes before a dogu upgrade.
 	ExposedCommandPreUpgrade = "pre-upgrade"
 
@@ -429,7 +433,7 @@ type Dogu struct {
 	// Usually, commands which are automatically triggered by a dogu-client are
 	// those in upgrade or service account processes. These commands are:
 	// pre-upgrade, post-upgrade, upgrade-notification, service-account-create,
-	// service-account-remove
+	// service-account-remove, service-account-rotate
 	//
 	// pre-upgrade:
 	// This command will be executed during an early stage of an
@@ -491,6 +495,42 @@ type Dogu struct {
 	// processing client passes the service account name as the only parameter. In
 	// contrast to the service-account-create command the script can output logs
 	// because the dogu client won't use any of this data.
+	//
+	// service-account-rotate:
+	// The service-account-rotate command is optional. It replaces the credentials
+	// of an existing service account, e.g. its password, and keeps the account
+	// itself (e.g. its database, owner and permissions) unchanged. The dogu client
+	// executes it during the upgrade of the service account producing dogu: after
+	// the post-upgrade command and while the consuming dogus are stopped, once for
+	// every consumer whose service account has not been rotated yet. The client
+	// checks the new dogu version for this command, so it is executed as soon as a
+	// release of the producing dogu contains it.
+	//
+	// The client passes the custom parameters of the service account first (see
+	// core.ServiceAccounts), followed by the username of the existing account and
+	// the name of the consuming dogu as the last parameter. The username is read
+	// from the key "username" which the service-account-create command returned.
+	// If the service account has no username, e.g. an OAuth client, an empty
+	// argument takes its place, so the username is always the second to last
+	// parameter. Each argument is quoted, so it may contain spaces.
+	//
+	// If the script succeeds, it prints only the new credentials, in the same
+	// "key: value" format as the service-account-create command. The dogu client
+	// stores them encrypted in the configuration of the consuming dogu, replacing
+	// the old values, and finally marks the service account as rotated in the
+	// configuration key sa_password_rotated/<producing dogu> of the consuming dogu.
+	// A service account with this marker is not rotated again. Because the command
+	// runs in a terminal, stdout and stderr end up in the same output stream: the
+	// script must not print anything else, not even on stderr.
+	//
+	// If the script fails, it exits with a non-zero exit code, keeps the old
+	// credentials valid and prints no credentials. The dogu client shows its
+	// output as error message and repeats the rotation during the next upgrade.
+	// The script should not pass credentials as command line arguments, because
+	// they would show up in the process list.
+	//
+	// Example output:
+	//  echo "password: ${PASSWORD}"
 	//
 	// Example commands for service accounts:
 	//  "ExposedCommands": [
