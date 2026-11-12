@@ -520,8 +520,9 @@ type Dogu struct {
 	// the old values, and finally marks the service account as rotated in the
 	// configuration key sa_password_rotated/<producing dogu> of the consuming dogu.
 	// A service account with this marker is not rotated again. Because the command
-	// runs in a terminal, stdout and stderr end up in the same output stream: the
-	// script must not print anything else, not even on stderr.
+	// runs in a terminal, stdout and stderr end up in the same output stream: on
+	// success, the script must print nothing but the credentials, neither on stdout
+	// nor on stderr.
 	//
 	// If the script fails, it exits with a non-zero exit code, keeps the old
 	// credentials valid and prints no credentials. The dogu client shows its
