@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- [#66] Exposed command `service-account-rotate` which replaces the credentials of an existing service account during the
+  upgrade of the producing dogu
 
 ## [v0.18.3] - 2026-07-10
 ### Security
