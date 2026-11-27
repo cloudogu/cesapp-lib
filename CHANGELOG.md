@@ -10,6 +10,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [#66] Exposed command `service-account-rotate` which replaces the credentials of an existing service account during the
   upgrade of the producing dogu
 
+### Fixed
+- [#68] Self-signed certificates no longer set the FQDN as Common Name, as the CN is limited to 64 characters while
+  the FQDN may be longer; the FQDN remains in the Subject Alternative Names
+
 ## [v0.18.3] - 2026-07-10
 ### Security
 - [#64] update dependencies
