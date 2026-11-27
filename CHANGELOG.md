@@ -14,6 +14,15 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - [#68] Self-signed certificates no longer set the FQDN as Common Name, as the CN is limited to 64 characters while
   the FQDN may be longer; the FQDN remains in the Subject Alternative Names
 
+### Security
+- [#68] update golang.org/x/net to v0.63.0 to fix CVE-2026-78663, CVE-2026-78659, CVE-2026-78660, CVE-2026-78669,
+  CVE-2026-97032, CVE-2026-97045 and CVE-2026-78661
+
+### Changed
+- [#68] update go to 1.27.4
+- [#68] update makefiles to 11.2.0, golangci-lint to v2.15.0 and ces-build-lib to 6.1.0
+- [#68] make tests independent of go version specific json error messages and zip compression output
+
 ## [v0.18.3] - 2026-07-10
 ### Security
 - [#64] update dependencies

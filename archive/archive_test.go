@@ -2,23 +2,18 @@ package archive
 
 import (
 	"archive/zip"
+	bytesPkg "bytes"
 	"errors"
 	"fmt"
 	"github.com/cloudogu/cesapp-lib/archive/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/fs"
 	"os"
 	"testing"
 	"time"
 )
-
-// testArchiveByteArray contains the bytes of a test archive
-// The test archive contains:
-// * File "myfile" containing text "test"
-// * File "myfile1" containing text "test1"
-// * File "myfile2" containing text "test2"
-var testArchiveByteArray = []byte{80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 9, 0, 109, 121, 102, 105, 108, 101, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 1, 4, 0, 0, 255, 255, 80, 75, 7, 8, 12, 126, 127, 216, 10, 0, 0, 0, 4, 0, 0, 0, 80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 9, 0, 109, 121, 102, 105, 108, 101, 49, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 49, 4, 4, 0, 0, 255, 255, 80, 75, 7, 8, 226, 220, 178, 138, 11, 0, 0, 0, 5, 0, 0, 0, 80, 75, 3, 4, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 9, 0, 109, 121, 102, 105, 108, 101, 50, 85, 84, 5, 0, 1, 205, 167, 207, 97, 42, 73, 45, 46, 49, 2, 4, 0, 0, 255, 255, 80, 75, 7, 8, 88, 141, 187, 19, 11, 0, 0, 0, 5, 0, 0, 0, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 12, 126, 127, 216, 10, 0, 0, 0, 4, 0, 0, 0, 6, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 109, 121, 102, 105, 108, 101, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 226, 220, 178, 138, 11, 0, 0, 0, 5, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 71, 0, 0, 0, 109, 121, 102, 105, 108, 101, 49, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 1, 2, 20, 0, 20, 0, 8, 0, 8, 0, 32, 8, 33, 84, 88, 141, 187, 19, 11, 0, 0, 0, 5, 0, 0, 0, 7, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 144, 0, 0, 0, 109, 121, 102, 105, 108, 101, 50, 85, 84, 5, 0, 1, 205, 167, 207, 97, 80, 75, 5, 6, 0, 0, 0, 0, 3, 0, 3, 0, 185, 0, 0, 0, 217, 0, 0, 0, 0, 0}
 
 func Test_AddContentAsFileWithModifiedDate(t *testing.T) {
 	manager := NewManager()
@@ -42,7 +37,27 @@ func Test_AddContentAsFileWithModifiedDate(t *testing.T) {
 
 	bytes = manager.GetContent()
 	require.True(t, len(bytes) > 0)
-	require.Equal(t, testArchiveByteArray, bytes)
+
+	// compare the archive entries instead of the raw bytes, as the compressed output may differ between go versions
+	reader, err := zip.NewReader(bytesPkg.NewReader(bytes), int64(len(bytes)))
+	require.NoError(t, err)
+	expected := []struct{ name, content string }{
+		{"myfile", "test"},
+		{"myfile1", "test1"},
+		{"myfile2", "test2"},
+	}
+	require.Len(t, reader.File, len(expected))
+	for i, file := range reader.File {
+		assert.Equal(t, expected[i].name, file.Name)
+		assert.True(t, date.Truncate(time.Second).Equal(file.Modified), "unexpected modified date %s", file.Modified)
+
+		rc, err := file.Open()
+		require.NoError(t, err)
+		content, err := io.ReadAll(rc)
+		require.NoError(t, err)
+		require.NoError(t, rc.Close())
+		assert.Equal(t, expected[i].content, string(content))
+	}
 }
 
 func TestNewManager(t *testing.T) {
