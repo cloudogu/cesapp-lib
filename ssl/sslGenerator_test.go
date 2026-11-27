@@ -43,6 +43,48 @@ func Test_sslGenerator_GenerateSelfSignedCert(t *testing.T) {
 		_, err = validatePEM(key)
 		require.NoError(t, err)
 	})
+
+	t.Run("should not set fqdn as common name", func(t *testing.T) {
+		// given
+		generator := ssl.NewSSLGenerator()
+
+		// when
+		cert, _, err := generator.GenerateSelfSignedCert("my.ces.example.com", "myces", 365, "de",
+			"lower sachs", "brunswick", nil)
+
+		// then
+		require.NoError(t, err)
+		leaf := parseCert(t, splitPemCertificates(cert)[0])
+		assert.Empty(t, leaf.Subject.CommonName)
+		assert.Contains(t, leaf.DNSNames, "my.ces.example.com")
+	})
+
+	t.Run("should succeed with fqdn longer than 64 characters", func(t *testing.T) {
+		// given
+		generator := ssl.NewSSLGenerator()
+		longFqdn := strings.Repeat("a", 60) + ".subdomain.example.com"
+		require.Greater(t, len(longFqdn), 64)
+
+		// when
+		cert, _, err := generator.GenerateSelfSignedCert(longFqdn, "myces", 365, "de",
+			"lower sachs", "brunswick", nil)
+
+		// then
+		require.NoError(t, err)
+		leaf := parseCert(t, splitPemCertificates(cert)[0])
+		assert.Empty(t, leaf.Subject.CommonName)
+		assert.Contains(t, leaf.DNSNames, longFqdn)
+		require.NoError(t, leaf.VerifyHostname(longFqdn))
+	})
+}
+
+func parseCert(t *testing.T, certPEM string) *x509.Certificate {
+	t.Helper()
+	block, err := validatePEM(certPEM)
+	require.NoError(t, err)
+	parsed, err := x509.ParseCertificate(block.Bytes)
+	require.NoError(t, err)
+	return parsed
 }
 
 func splitPemCertificates(chain string) []string {

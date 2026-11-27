@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -10,8 +9,8 @@ import (
 )
 
 const (
-	ErrorMessageCannotUnmarshalDependenciesV2 = "json: cannot unmarshal string into Go struct field Dogu.Dependencies of type core.Dependency"
-	ErrorMessageCannotUnmarshalDependenciesV1 = "json: cannot unmarshal object into Go struct field DoguV1.Dependencies of type string"
+	ErrorMessageCannotUnmarshalDependenciesV2 = `json: cannot unmarshal string into .*Dependencies.* of type core\.Dependency`
+	ErrorMessageCannotUnmarshalDependenciesV1 = `json: cannot unmarshal object into .*Dependencies.* of type string`
 )
 
 func Test_DoguFormatHandler_GetFormatProvider(t *testing.T) {
@@ -316,7 +315,7 @@ func TestReadDogusFromString(t *testing.T) {
 func TestWriteDoguToFile(t *testing.T) {
 	t.Run("Ensure simple content is begin written", func(t *testing.T) {
 		// given
-		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		file, _ := os.CreateTemp(os.TempDir(), "cesapp-")
 		path := file.Name()
 		defer func(name string) {
 			_ = os.Remove(name)
@@ -335,7 +334,7 @@ func TestWriteDoguToFile(t *testing.T) {
 	})
 	t.Run("Ensure only v1 format is begin written to the file. This transforms extended dependencies into their simple form", func(t *testing.T) {
 		// given
-		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		file, _ := os.CreateTemp(os.TempDir(), "cesapp-")
 		path := file.Name()
 		defer func(name string) {
 			_ = os.Remove(name)
@@ -362,7 +361,7 @@ func TestWriteDoguToFile(t *testing.T) {
 func TestWriteDoguToFileWithFormat(t *testing.T) {
 	t.Run("Explicitly write the dogu as V2 format to preserve the advanced dependencies", func(t *testing.T) {
 		// given
-		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		file, _ := os.CreateTemp(os.TempDir(), "cesapp-")
 		path := file.Name()
 		defer func(name string) {
 			_ = os.Remove(name)
@@ -385,7 +384,7 @@ func TestWriteDoguToFileWithFormat(t *testing.T) {
 	})
 	t.Run("Write extended volume definitons with the v2 format", func(t *testing.T) {
 		// given
-		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		file, _ := os.CreateTemp(os.TempDir(), "cesapp-")
 		path := file.Name()
 		defer func(name string) {
 			_ = os.Remove(name)
@@ -417,7 +416,7 @@ func TestWriteDoguToFileWithFormat(t *testing.T) {
 	})
 	t.Run("Write volume definitons without volume clients with the v2 format", func(t *testing.T) {
 		// given
-		file, _ := ioutil.TempFile(os.TempDir(), "cesapp-")
+		file, _ := os.CreateTemp(os.TempDir(), "cesapp-")
 		path := file.Name()
 		defer func(name string) {
 			_ = os.Remove(name)
@@ -455,7 +454,7 @@ type formatTest struct {
 
 func assertTestError(t *testing.T, err error, test formatTest) {
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), test.errorMsg)
+	assert.Regexp(t, test.errorMsg, err.Error())
 }
 
 func Test_DoguFormatProvider_ReadDoguFromString(t *testing.T) {

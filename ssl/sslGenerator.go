@@ -133,5 +133,6 @@ func (sg *sslGenerator) appendCertTemplate(cert *x509.Certificate, fqdn string) 
 	}
 	cert.DNSNames = append(cert.DNSNames, fqdn)
 	cert.DNSNames = append(cert.DNSNames, "local.cloudogu.com")
-	cert.Subject.CommonName = fqdn
+	// The CN is intentionally not set to the fqdn because the CN is limited to 64 characters (RFC 5280) while
+	// a fqdn may be longer. Hostname verification uses the SANs (DNSNames/IPAddresses) instead.
 }
